@@ -3,11 +3,12 @@
 
 namespace iak {
 
-class NonCopyable
-{
+class NonCopyable {
 protected:
-	NonCopyable() {} 
-	~NonCopyable() {}
+	NonCopyable() {
+	} 
+	~NonCopyable() {
+	}
 private:
 	NonCopyable( const NonCopyable& );
 	const NonCopyable& operator=( const NonCopyable& );

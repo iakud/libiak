@@ -1,5 +1,6 @@
 set(base_SRCS
-	Mutex.cpp
+	Timestamp.cpp
+	Thread.cpp
 	)
 
 add_library(iak_base ${base_SRCS})
