@@ -2,6 +2,8 @@
 #define IAK_BASE_THREAD_H
 
 #include "NonCopyable.h"
+#include <memory>
+#include <functional>
 #include <stdint.h>
 #include <pthread.h>
 
@@ -11,6 +13,9 @@ extern __thread int t_id;
 extern __thread const char* t_name;
 
 class Thread : public NonCopyable {
+private:
+	typedef std::function<void()> ThreadFunc;
+
 public:
 	static int GetId() {
 		if (t_id == 0) {
@@ -27,6 +32,21 @@ public:
 	static void SleepUsec(int64_t usec);
 private:
 	static pid_t gettid();
+
+public:
+	explicit Thread(ThreadFunc&& func, const std::string& name);
+	~Thread();
+
+	void Start();
+	void Join();
+
+private:
+	bool m_started;
+	bool m_joined;
+	pthread_t m_thread;
+	std::shared_ptr<int> m_tid;
+	ThreadFunc m_func;
+	std::string m_name;
 };
 
 } // end namespace iak
