@@ -1,4 +1,11 @@
 rm -rf CMakeFiles CMakeCache.txt cmake_install.cmake Makefile bin lib
-base/clean.sh
-net/clean.sh
+
+cd base
+./clean.sh
+cd ..
+
+cd base
+./clean.sh
+cd ..
+
 echo "iak OK."

@@ -5,12 +5,8 @@
 
 namespace iak {
 
-class Timestamp
-{
+class Timestamp {
 public:
-	static const int kMilliSecondsPerSecond = 1000;
-	static const int kMicroSecondsPerSecond = kMilliSecondsPerSecond * 1000;
-//	static const int kNanoSecondsPerSecond = kMicroSecondsPerSecond * 1000;
 	static Timestamp Now();
 
 public:

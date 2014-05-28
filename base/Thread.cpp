@@ -1,8 +1,10 @@
 #include "Thread.h"
-#include "Timestamp.h"
 
 #include <unistd.h>
 #include <sys/syscall.h>
+
+#define MICROSEC_PER_SEC (uint32_t(1e6))
+#define NANOSEC_PER_MICROSEC (uint32_t(1e3))
 
 namespace iak {
 
@@ -59,8 +61,8 @@ bool Thread::IsMainThread() {
 
 void SleepUsec(int64_t usec) {
 	struct timespec ts = {
-		static_cast<time_t>(usec / Timestamp::kMicroSecondsPerSecond),
-		static_cast<long>(usec % Timestamp::kMicroSecondsPerSecond * 1000)
+		static_cast<time_t>(usec / MICROSEC_PER_SEC),
+		static_cast<long>(usec % MICROSEC_PER_SEC * NANOSEC_PER_MICROSEC)
 	};
 	::nanosleep(&ts, NULL);
 }
