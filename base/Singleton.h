@@ -1,57 +1,49 @@
-// Use of this source code is governed by a BSD-style license
-// that can be found in the License file.
-//
-// Author: Shuo Chen (chenshuo at chenshuo dot com)
+#ifndef IAK_BASE_SINGLETON_H
+#define IAK_BASE_SINGLETON_H
 
-#ifndef MUDUO_BASE_SINGLETON_H
-#define MUDUO_BASE_SINGLETON_H
+#include "NonCopyable.h"
 
-#include <boost/noncopyable.hpp>
 #include <pthread.h>
 #include <stdlib.h> // atexit
 
-namespace muduo
-{
+namespace iak {
 
 template<typename T>
-class Singleton : boost::noncopyable
-{
- public:
-  static T& instance()
-  {
-    pthread_once(&ponce_, &Singleton::init);
-    return *value_;
-  }
+class Singleton : public NonCopyable {
+public:
+	static T& Instance() {
+		::pthread_once(&s_once, &Singleton::init);
+		return *s_value;
+	}
 
- private:
-  Singleton();
-  ~Singleton();
+	void Destroy() {
+		delete s_value;
+	}
+private:
+	Singleton();
+	~Singleton();
 
-  static void init()
-  {
-    value_ = new T();
-    ::atexit(destroy);
-  }
+	static void init() {
+		s_value = new T();
+		::atexit(destroy);
+	}
 
-  static void destroy()
-  {
-    typedef char T_must_be_complete_type[sizeof(T) == 0 ? -1 : 1];
-    T_must_be_complete_type dummy; (void) dummy;
+	static void destroy() {
+		typedef char T_must_be_complete_type[sizeof(T) == 0 ? -1 : 1];
+		T_must_be_complete_type dummy; (void) dummy;
+		delete s_value;
+	}
 
-    delete value_;
-  }
-
- private:
-  static pthread_once_t ponce_;
-  static T*             value_;
+	static pthread_once_t s_once;
+	static T* s_value;
 };
 
 template<typename T>
-pthread_once_t Singleton<T>::ponce_ = PTHREAD_ONCE_INIT;
+pthread_once_t Singleton<T>::s_once = PTHREAD_ONCE_INIT;
 
 template<typename T>
-T* Singleton<T>::value_ = NULL;
+T* Singleton<T>::s_value = NULL;
 
-}
-#endif
+} // end namespace iak
 
+#endif // IAK_BASE_SINGLETON_H

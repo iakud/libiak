@@ -2,6 +2,8 @@
 #define IAK_BASE_THREAD_H
 
 #include "NonCopyable.h"
+
+#include <atomic>
 #include <memory>
 #include <functional>
 #include <stdint.h>
@@ -41,8 +43,8 @@ public:
 	void Join();
 
 private:
-	bool m_started;
-	bool m_joined;
+	std::atomic_flag m_started;
+	std::atomic_flag m_joined;
 	pthread_t m_thread;
 	std::shared_ptr<int> m_tid;
 	ThreadFunc m_func;

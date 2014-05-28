@@ -74,8 +74,8 @@ void* StartRoutine(void* arg) {
 }
 
 Thread::Thread(ThreadFunc&& func, const std::string& name)
-	: m_started(false)
-	, m_joined(false)
+	: m_started(ATOMIC_FLAG_INIT)
+	, m_joined(ATOMIC_FLAG_INIT)
 	, m_thread(0)
 	, m_tid(new pid_t(0))
 	, m_func(func)
@@ -83,17 +83,16 @@ Thread::Thread(ThreadFunc&& func, const std::string& name)
 }
 
 Thread::~Thread() {
-	if (m_started && !m_joined) {
+	if (m_started.test_and_set() && !m_joined.test_and_set()) {
 		::pthread_detach(m_thread);
 	}
 }
 
 void Thread::Start() {
-	if (m_started) {
+	if (m_started.test_and_set()) {
 		return;
 	}
 
-	m_started = true;
 	ThreadRoutine* routine = new ThreadRoutine(m_func, m_name, m_tid);
 	if (::pthread_create(&m_thread, NULL, StartRoutine, routine)) {
 		delete routine;
@@ -102,10 +101,9 @@ void Thread::Start() {
 }
 
 void Thread::Join() {
-	if (m_joined) {
+	if (m_joined.test_and_set()) {
 		return;
 	}
 
-	m_joined = true;
 	::pthread_join(m_thread, NULL);
 }

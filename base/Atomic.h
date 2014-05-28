@@ -1,92 +1,128 @@
-// Use of this source code is governed by a BSD-style license
-// that can be found in the License file.
-//
-// Author: Shuo Chen (chenshuo at chenshuo dot com)
+#ifndef IAK_BASE_ATOMIC_H
+#define IAK_BASE_ATOMIC_H
 
-#ifndef MUDUO_BASE_ATOMIC_H
-#define MUDUO_BASE_ATOMIC_H
+#include "NonCopyable.h"
 
-#include <boost/noncopyable.hpp>
 #include <stdint.h>
 
-namespace muduo
-{
+namespace iak {
 
-namespace detail
-{
-template<typename T>
-class AtomicIntegerT : boost::noncopyable
-{
- public:
-  AtomicIntegerT()
-    : value_(0)
-  {
-  }
+class AtomicInt32 : public NonCopyable {
+public:
+	AtomicInt32()
+		: m_value(0) {
+	}
+	
+	// if need copying and assignment
+	//
+	// AtomicInt32(const AtomicInt32& rhs)
+	//   : m_value(rhs.get())
+	// {}
+	//
+	// AtomicInt32& operator=(const AtomicInt32& rhs)
+	// {
+	//   getAndSet(rhs.get());
+	//   return *this;
+	// }
 
-  // uncomment if you need copying and assignment
-  //
-  // AtomicIntegerT(const AtomicIntegerT& that)
-  //   : value_(that.get())
-  // {}
-  //
-  // AtomicIntegerT& operator=(const AtomicIntegerT& that)
-  // {
-  //   getAndSet(that.get());
-  //   return *this;
-  // }
+	int32_t get() {
+		return __sync_val_compare_and_swap(&m_value, 0, 0);
+	}
 
-  T get()
-  {
-    return __sync_val_compare_and_swap(&value_, 0, 0);
-  }
+	int32_t getAndAdd(int32_t value) {
+		return __sync_fetch_and_add(&m_value, value);
+	}
 
-  T getAndAdd(T x)
-  {
-    return __sync_fetch_and_add(&value_, x);
-  }
+	int32_t addAndGet(int32_t value) {
+		return getAndAdd(value) + value;
+	}
 
-  T addAndGet(T x)
-  {
-    return getAndAdd(x) + x;
-  }
+	int32_t incrementAndGet() {
+		return addAndGet(1);
+	}
 
-  T incrementAndGet()
-  {
-    return addAndGet(1);
-  }
+	int32_t decrementAndGet() {
+		return addAndGet(-1);
+	}
 
-  T decrementAndGet()
-  {
-    return addAndGet(-1);
-  }
+	void add(int32_t value) {
+		getAndAdd(value);
+	}
 
-  void add(T x)
-  {
-    getAndAdd(x);
-  }
+	void increment() {
+		incrementAndGet();
+	}
 
-  void increment()
-  {
-    incrementAndGet();
-  }
+	void decrement() {
+		decrementAndGet();
+	}
 
-  void decrement()
-  {
-    decrementAndGet();
-  }
+	int32_t getAndSet(int32_t value) {
+		return __sync_lock_test_and_set(&m_value, value);
+	}
 
-  T getAndSet(T newValue)
-  {
-    return __sync_lock_test_and_set(&value_, newValue);
-  }
-
- private:
-  volatile T value_;
+private:
+	volatile int32_t m_value;
 };
-}
 
-typedef detail::AtomicIntegerT<int32_t> AtomicInt32;
-typedef detail::AtomicIntegerT<int64_t> AtomicInt64;
-}
+class AtomicInt64 : public NonCopyable {
+public:
+	AtomicInt64()
+		: m_value(0) {
+	}
+	
+	// if need copying and assignment
+	//
+	// AtomicInt64(const AtomicInt64& rhs)
+	//   : m_value(rhs.get())
+	// {}
+	//
+	// AtomicInt64& operator=(const AtomicInt64& rhs)
+	// {
+	//   getAndSet(rhs.get());
+	//   return *this;
+	// }
+
+	int64_t get() {
+		return __sync_val_compare_and_swap(&m_value, 0, 0);
+	}
+
+	int64_t getAndAdd(int64_t value) {
+		return __sync_fetch_and_add(&m_value, value);
+	}
+
+	int64_t addAndGet(int64_t value) {
+		return getAndAdd(value) + value;
+	}
+
+	int64_t incrementAndGet() {
+		return addAndGet(1);
+	}
+
+	int64_t decrementAndGet() {
+		return addAndGet(-1);
+	}
+
+	void add(int64_t value) {
+		getAndAdd(value);
+	}
+
+	void increment() {
+		incrementAndGet();
+	}
+
+	void decrement() {
+		decrementAndGet();
+	}
+
+	int64_t getAndSet(int64_t value) {
+		return __sync_lock_test_and_set(&m_value, value);
+	}
+
+private:
+	volatile int64_t m_value;
+};
+
+} // end namespace iak
 
 #endif  // MUDUO_BASE_ATOMIC_H
