@@ -11,7 +11,8 @@
 
 namespace iak {
 
-extern __thread int t_id;
+extern __thread int t_tid;
+extern __thread char t_tidstr[32];
 extern __thread const char* t_name;
 
 class Thread : public NonCopyable {
@@ -19,11 +20,18 @@ private:
 	typedef std::function<void()> ThreadFunc;
 
 public:
-	static int GetId() {
-		if (t_id == 0) {
-			t_id = gettid();
+	static int GetTid() {
+		if (t_tid == 0) {
+			cacheTid();
 		}
 		return t_id;
+	}
+
+	static const char* GetTidString() {
+		if (t_tid == 0) {
+			cacheTid();
+		}
+		return t_tidstr;
 	}
 
 	static const char* GetName() {
@@ -33,7 +41,7 @@ public:
 	static bool IsMainThread();
 	static void SleepUsec(int64_t usec);
 private:
-	static pid_t gettid();
+	static void cacheTid();
 
 public:
 	explicit Thread(ThreadFunc&& func, const std::string& name);
@@ -43,12 +51,12 @@ public:
 	void Join();
 
 private:
-	std::atomic_flag m_started;
-	std::atomic_flag m_joined;
-	pthread_t m_thread;
-	std::shared_ptr<int> m_tid;
-	ThreadFunc m_func;
-	std::string m_name;
+	std::atomic_flag started_;
+	std::atomic_flag joined_;
+	pthread_t thread_;
+	std::shared_ptr<int> tid_;
+	ThreadFunc func_;
+	std::string name_;
 };
 
 } // end namespace iak

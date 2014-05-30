@@ -9,6 +9,7 @@
 namespace iak {
 
 __thread int t_id = 0;
+__thread char t_idstr[32];
 __thread const char* t_name = "unknown";
 
 class ThreadNameInitializer {
@@ -16,7 +17,7 @@ public:
 	ThreadNameInitializer() {
 		t_name = "main";
 	}
-};
+}; // end class ThreadNameInitialize
 
 ThreadNameInitializer init;
 
@@ -27,32 +28,35 @@ public:
 	ThreadRoutine(ThreadFunc& func, 
 				const std::string& name,
 				std::shared_ptr<int>& tid)
-		: m_func(func)
-		, m_name(name)
-		, m_tid(tid) {
+		: func_(func)
+		, name_(name)
+		, tid_(tid) {
 	}
 
 	void Run() {
-		std::shared_ptr<int> tid = m_tid.lock();
+		std::shared_ptr<int> tid = tid_.lock();
 		if (tid) {
 			*tid = Thread::GetId();
 		}
-		t_name = m_name.c_str();
-		m_func();
+		t_name = name_.c_str();
+		func_();
 	}
 
 private:
-	ThreadFunc m_func;
-	std::string m_name;
-	std::weak_ptr<int> m_tid;
-};
+	ThreadFunc func_;
+	std::string name_;
+	std::weak_ptr<int> tid_;
+}; // end class ThreadRoutine
 
-}
+} // end namespace iak
 
 using namespace iak;
 
-pid_t Thread::gettid() {
-	return static_cast<pid_t>(::syscall(SYS_gettid));
+void Thread::cacheTid() {
+	t_tid = static_cast<int>(::syscall(SYS_gettid));
+	int n = snprintf(t_tidstr, sizeof t_tidstr, "%5d", t_tid);
+	(void) n;
+	assert(n == 6);
 }
 
 bool Thread::IsMainThread() {
