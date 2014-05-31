@@ -43,7 +43,7 @@ private:
 template <typename T>
 T* CheckNotNull(const char* filename, int line, const char *name, T* ptr) {
 	if (ptr == NULL) {
-		Logger(file, line, Logger::FATAL).stream() << name;
+		Logger(filename, line, Logger::FATAL).stream() << name;
 	}
 	return ptr;
 }
