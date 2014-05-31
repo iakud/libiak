@@ -66,7 +66,7 @@ public:
 	int GetLength() const { return length_; }
 
 private:
-	char* data_[LOGFORMAT_SIZE];
+	char data_[LOGFORMAT_SIZE];
 	int length_;
 }; // end class LogFormat
 
