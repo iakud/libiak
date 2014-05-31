@@ -23,7 +23,7 @@ public:
 	Logger(const char* filename, int line, bool toAbort);
 	~Logger();
 
-	LogStream& stream() { return stream_; }
+	LogStream& GetStream() { return stream_; }
 
 private:
 	void formatTime();
@@ -43,25 +43,27 @@ private:
 template <typename T>
 T* CheckNotNull(const char* filename, int line, const char *name, T* ptr) {
 	if (ptr == NULL) {
-		Logger(filename, line, Logger::FATAL).stream() << name;
+		Logger(filename, line, Logger::FATAL).GetStream() << name;
 	}
 	return ptr;
 }
 
 #define LOG_TRACE if (::iak::Logger::GetLevel() <= ::iak::Logger::TRACE) \
-	::iak::Logger(__FILE__, __LINE__, ::iak::Logger::TRACE, __func__).stream()
+	::iak::Logger(__FILE__, __LINE__, ::iak::Logger::TRACE, __func__).GetStream()
 #define LOG_DEBUG if (::iak::Logger::GetLevel() <= ::iak::Logger::DEBUG) \
-	::iak::Logger(__FILE__, __LINE__, ::iak::Logger::DEBUG, __func__).stream()
+	::iak::Logger(__FILE__, __LINE__, ::iak::Logger::DEBUG, __func__).GetStream()
 #define LOG_INFO if (::iak::Logger::GetLevel() <= ::iak::Logger::INFO) \
-	::iak::Logger(__FILE__, __LINE__, ::iak::Logger::INFO).stream()
-#define LOG_WARN ::iak::Logger(__FILE__, __LINE__, ::iak::Logger::WARN).stream()
-#define LOG_ERROR ::iak::Logger(__FILE__, __LINE__, ::iak::Logger::ERROR).stream()
-#define LOG_FATAL ::iak::Logger(__FILE__, __LINE__, ::iak::Logger::FATAL).stream()
-#define LOG_SYSERR ::iak::Logger(__FILE__, __LINE__, false).stream()
-#define LOG_SYSFATAL ::iak::Logger(__FILE__, __LINE__, true).stream()
+	::iak::Logger(__FILE__, __LINE__, ::iak::Logger::INFO).GetStream()
+#define LOG_WARN ::iak::Logger(__FILE__, __LINE__, ::iak::Logger::WARN).GetStream()
+#define LOG_ERROR ::iak::Logger(__FILE__, __LINE__, ::iak::Logger::ERROR).GetStream()
+#define LOG_FATAL ::iak::Logger(__FILE__, __LINE__, ::iak::Logger::FATAL).GetStream()
+#define LOG_SYSERR ::iak::Logger(__FILE__, __LINE__, false).GetStream()
+#define LOG_SYSFATAL ::iak::Logger(__FILE__, __LINE__, true).GetStream()
 
 #define CHECK_NOTNULL(val) \
 	::iak::CheckNotNull(__FILE__, __LINE__, "'" #val "' must be non NULL", (val))
+
+const char* strerror_tl(int savedErrno);
 
 } // end namespace iak
 

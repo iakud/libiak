@@ -16,6 +16,10 @@ __thread char t_errnobuf[512];
 __thread char t_time[32];
 __thread time_t t_lastSecond;
 
+const char* strerror_tl(int savedErrno) {
+	return strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf);
+}
+
 Logger::LogLevel GetLogLevel() {
 	if (::getenv("MUDUO_LOG_TRACE"))
 		return Logger::TRACE;
@@ -84,7 +88,7 @@ Logger::Logger(const char* filename, int line, bool toAbort)
 	stream_ << LogLevelName[level_];
 	int savedErrno = errno;
 	if (savedErrno != 0) {
-		stream_ << ::strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf) << " (errno=" << savedErrno << ") ";
+		stream_ << ::strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
 	}
 }
 

@@ -1,49 +1,45 @@
-#ifndef MUDUO_BASE_LOGFILE_H
-#define MUDUO_BASE_LOGFILE_H
+#ifndef IAK_BASE_LOGFILE_H
+#define IAK_BASE_LOGFILE_H
 
-#include <muduo/base/Mutex.h>
-#include <muduo/base/Types.h>
+#include "NonCopyable.h"
+#include "Mutex.h"
 
-#include <boost/noncopyable.hpp>
-#include <boost/scoped_ptr.hpp>
+namespace iak {
 
-namespace muduo
-{
+class LogFile : public NonCopyable {
+public:
+	LogFile(const string& basename,
+		size_t rollSize,
+		bool threadSafe = true,
+		int flushInterval = 3);
+	~LogFile();
 
-class LogFile : boost::noncopyable
-{
- public:
-  LogFile(const string& basename,
-          size_t rollSize,
-          bool threadSafe = true,
-          int flushInterval = 3);
-  ~LogFile();
+	void Append(const char* logline, int len);
+	void Flush();
 
-  void append(const char* logline, int len);
-  void flush();
+private:
+	void append_unlocked(const char* logline, int len);
+	void rollFile();
+	static string getLogFileName(const string& basename, time_t* now);
 
- private:
-  void append_unlocked(const char* logline, int len);
+	const string basename_;
+	const size_t rollSize_;
+	const int flushInterval_;
 
-  static string getLogFileName(const string& basename, time_t* now);
-  void rollFile();
+	int count_;
 
-  const string basename_;
-  const size_t rollSize_;
-  const int flushInterval_;
+	std::unique_ptr<MutexLock> mutex_;
+	time_t startOfPeriod_;
+	time_t lastRoll_;
+	time_t lastFlush_;
 
-  int count_;
+	class File;
+	std::unique_ptr<File> file_;
 
-  boost::scoped_ptr<MutexLock> mutex_;
-  time_t startOfPeriod_;
-  time_t lastRoll_;
-  time_t lastFlush_;
-  class File;
-  boost::scoped_ptr<File> file_;
+	const static int kCheckTimeRoll_ = 1024;
+	const static int kRollPerSeconds_ = 60*60*24;
+}; // end class LogFile
 
-  const static int kCheckTimeRoll_ = 1024;
-  const static int kRollPerSeconds_ = 60*60*24;
-};
+} // end namespace iak
 
-}
-#endif  // MUDUO_BASE_LOGFILE_H
+#endif  // IAK_BASE_LOGFILE_H
