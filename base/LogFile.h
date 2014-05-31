@@ -5,6 +5,7 @@
 #include "Mutex.h"
 
 #include <string>
+#include <memory>
 
 namespace iak {
 
