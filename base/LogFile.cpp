@@ -8,9 +8,9 @@
 
 namespace iak {
 // not thread safe
-class LogFile::File : ppublic NonCopyable {
+class LogFile::File : public NonCopyable {
 public:
-	explicit File(const string& filename)
+	explicit File(const std::string& filename)
 		: fp_(::fopen(filename.data(), "ae"))
 		, writtenBytes_(0) {
 		assert(fp_);

@@ -31,7 +31,7 @@ private:
 
 	int count_;
 
-	std::unique_ptr<MutexLock> mutex_;
+	std::unique_ptr<Mutex> mutex_;
 	time_t startOfPeriod_;
 	time_t lastRoll_;
 	time_t lastFlush_;
