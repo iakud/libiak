@@ -81,7 +81,7 @@ Logger::Logger(const char* filename, int line, LogLevel level, const char* func)
 Logger::Logger(const char* filename, int line, bool toAbort)
 	: Logger(filename, line, toAbort?FATAL:ERROR) {
 	stream_ << Thread::GetTidString();
-	stream_ << LogLevelName[level];
+	stream_ << LogLevelName[level_];
 	int savedErrno = errno;
 	if (savedErrno != 0) {
 		stream_ << ::strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf) << " (errno=" << savedErrno << ") ";
