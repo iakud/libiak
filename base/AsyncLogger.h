@@ -1,11 +1,12 @@
-#ifndef MUDUO_BASE_ASYNCLOGGING_H
-#define MUDUO_BASE_ASYNCLOGGING_H
+#ifndef IAK_BASE_ASYNCLOGGGER_H
+#define IAK_BASE_ASYNCLOGGGER_H
 
+#include "NonCopyable.h"
 #include <muduo/base/BlockingQueue.h>
 #include <muduo/base/BoundedBlockingQueue.h>
 #include <muduo/base/CountDownLatch.h>
-#include <muduo/base/Mutex.h>
-#include <muduo/base/Thread.h>
+#include "Mutex.h"
+#include "Thread.h"
 
 #include <muduo/base/LogStream.h>
 
@@ -14,40 +15,33 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
 
-namespace muduo
-{
+namespace iak {
 
-class AsyncLogging : boost::noncopyable
-{
- public:
+class AsyncLogger : public NonCopyable {
+public:
+	AsyncLogger(const string& basename,
+				size_t rollSize,
+				int flushInterval = 3);
 
-  AsyncLogging(const string& basename,
-               size_t rollSize,
-               int flushInterval = 3);
+	~AsyncLogger() {
+		if (running_) {
+			stop();
+		}
+	}
 
-  ~AsyncLogging()
-  {
-    if (running_)
-    {
-      stop();
-    }
-  }
+	void Append(const char* logline, int len);
 
-  void append(const char* logline, int len);
+	void Start() {
+		running_ = true;
+		thread_.start();
+		latch_.wait();
+	}
 
-  void start()
-  {
-    running_ = true;
-    thread_.start();
-    latch_.wait();
-  }
-
-  void stop()
-  {
-    running_ = false;
-    cond_.notify();
-    thread_.join();
-  }
+	void stop() {
+		running_ = false;
+		cond_.notify();
+		thread_.join();
+	}
 
  private:
 
@@ -55,11 +49,10 @@ class AsyncLogging : boost::noncopyable
   AsyncLogging(const AsyncLogging&);  // ptr_container
   void operator=(const AsyncLogging&);  // ptr_container
 
-  void threadFunc();
+	void threadFunc();
 
-  typedef muduo::detail::FixedBuffer<muduo::detail::kLargeBuffer> Buffer;
-  typedef boost::ptr_vector<Buffer> BufferVector;
-  typedef BufferVector::auto_type BufferPtr;
+	class Buffer;
+	typedef std::shared_ptr<Buffer> BufferPtr;
 
   const int flushInterval_;
   bool running_;
@@ -69,10 +62,11 @@ class AsyncLogging : boost::noncopyable
   muduo::CountDownLatch latch_;
   muduo::MutexLock mutex_;
   muduo::Condition cond_;
-  BufferPtr currentBuffer_;
-  BufferPtr nextBuffer_;
-  BufferVector buffers_;
+	BufferPtr currentBuffer_;
+	BufferPtr nextBuffer_;
+	std::vector<BufferPtr> buffers_;
 };
 
-}
-#endif  // MUDUO_BASE_ASYNCLOGGING_H
+} // end namespace iak
+
+#endif  // IAK_BASE_ASYNCLOGGGER_H

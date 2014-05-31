@@ -1,5 +1,6 @@
 #include "LogStream.h"
 
+#include <type_traits>
 #include <algorithm>
 #include <limits>
 #include <assert.h>
@@ -58,9 +59,6 @@ size_t convertHex(char buf[], uintptr_t value) {
 	return p - buf;
 }
 
-template class FixedBuffer<kSmallBuffer>;
-template class FixedBuffer<kLargeBuffer>;
-
 } // end namespace iak
 
 #define NUMERICSIZE_MAX 32
@@ -74,29 +72,49 @@ static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<long long>::digits10);
 
 template<typename T>
 void LogStream::formatInteger(T v) {
-	if (buffer_.avail() >= NUMERICSIZE_MAX) {
-		size_t len = convert(buffer_.current(), v);
-		buffer_.add(len);
+	if (avail() >= NUMERICSIZE_MAX) {
+		cur_ += convert(cur_, v);
 	}
 }
 
 // FIXME: replace this with Grisu3 by Florian Loitsch.
 LogStream& LogStream::operator<<(double v) {
-	if (buffer_.avail() >= NUMERICSIZE_MAX) {
-		int len = snprintf(buffer_.current(), NUMERICSIZE_MAX, "%.12g", v);
-		buffer_.add(len);
+	if (avail() >= NUMERICSIZE_MAX) {
+		cur_ += snprintf(cur_, NUMERICSIZE_MAX, "%.12g", v);
 	}
 	return *this;
 }
 
 LogStream& LogStream::operator<<(const void* p) {
 	uintptr_t v = reinterpret_cast<uintptr_t>(p);
-	if (buffer_.avail() >= NUMERICSIZE_MAX) {
-		char* buf = buffer_.current();
-		buf[0] = '0';
-		buf[1] = 'x';
-		size_t len = convertHex(buf+2, v);
-		buffer_.add(len+2);
+	if (avail() >= NUMERICSIZE_MAX) {
+		cur_[0] = '0';
+		cur_[1] = 'x';
+		cur_ += 2;
+		cur_ += convertHex(cur_, v);
 	}
 	return *this;
 }
+
+template<typename T>
+LogFormat::LogFormat(const char* fmt, T val) {
+	static_assert(std::is_arithmetic<T>::value);
+	size_ = snprintf(data_, sizeof data_, fmt, val);
+	assert(static_cast<size_t>(length_) < sizeof data_);
+}
+
+// explicit instantiations
+template LogFormat::LogFormat(const char* fmt, char);
+template LogFormat::LogFormat(const char* fmt, unsigned char);
+
+template LogFormat::LogFormat(const char* fmt, short);
+template LogFormat::LogFormat(const char* fmt, unsigned short);
+template LogFormat::LogFormat(const char* fmt, int);
+template LogFormat::LogFormat(const char* fmt, unsigned int);
+template LogFormat::LogFormat(const char* fmt, long);
+template LogFormat::LogFormat(const char* fmt, unsigned long);
+template LogFormat::LogFormat(const char* fmt, long long);
+template LogFormat::LogFormat(const char* fmt, unsigned long long);
+
+template LogFormat::LogFormat(const char* fmt, float);
+template LogFormat::LogFormat(const char* fmt, double);

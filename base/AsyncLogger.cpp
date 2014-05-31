@@ -4,59 +4,95 @@
 
 #include <stdio.h>
 
-using namespace muduo;
+#define ASYNCLOGGER_BUFFER_SIZE 4096 * 1024
 
-AsyncLogging::AsyncLogging(const string& basename,
-                           size_t rollSize,
-                           int flushInterval)
-  : flushInterval_(flushInterval),
-    running_(false),
+namespace iak {
+
+class AsyncLogger::Buffer : public NonCopyable {
+public:
+	Buffer()
+		: cur_(data_) {
+	}
+
+	~Buffer() {
+	}
+
+	void Append(const char* buf, size_t len) {
+		if ((size_t)avail() > len) {
+			memcpy(cur_, buf, len);
+			cur_ += len;
+		}
+	}
+
+	const char* GetData() const {
+		return data_;
+	}
+
+	int GetLength() const {
+		return static_cast<int>(cur_ - data_);
+	}
+
+	char* Current() { return cur_; }
+	int Avail() const { return end() - cur_; }
+	void Add(size_t len) { cur_ += len; }
+
+	void Reset() { cur_ = data_;}
+	void Zero() { ::bzero(data_, sizeof(data_); }
+private:
+	const char* end() const {
+		return data_ + sizeof(data_);
+	}
+
+	char data_[ASYNCLOGGER_BUFFER_SIZE];
+	char* cur_;
+}; // end class AsyncLogger::Buffer
+
+} // end namespace iak
+
+using namespace iak;
+
+AsyncLogger::AsyncLogger(const string& basename,
+						size_t rollSize,
+						int flushInterval)
+	: flushInterval_(flushInterval)
+	, running_(false),
     basename_(basename),
     rollSize_(rollSize),
-    thread_(boost::bind(&AsyncLogging::threadFunc, this), "Logging"),
+    thread_(std::bind(&AsyncLogger::threadFunc, this), "Logging"),
     latch_(1),
     mutex_(),
-    cond_(mutex_),
-    currentBuffer_(new Buffer),
-    nextBuffer_(new Buffer),
-    buffers_()
-{
-  currentBuffer_->bzero();
-  nextBuffer_->bzero();
-  buffers_.reserve(16);
+    cond_(mutex_)
+	, currentBuffer_(std::make_shared<Buffer>())
+    , nextBuffer_(std::make_shared<Buffer>())
+    , buffers_() {
+	currentBuffer_->Zero();
+	nextBuffer_->Zero();
+	buffers_.reserve(16);
 }
 
-void AsyncLogging::append(const char* logline, int len)
-{
-  muduo::MutexLockGuard lock(mutex_);
-  if (currentBuffer_->avail() > len)
-  {
-    currentBuffer_->append(logline, len);
-  }
-  else
-  {
-    buffers_.push_back(currentBuffer_.release());
+void AsyncLogger::append(const char* logline, int len) {
+	MutexGuard lock(mutex_);
+	if (currentBuffer_->Avail() > len) {
+		currentBuffer_->Append(logline, len);
+	} else {
+		buffers_.push_back(currentBuffer_.release());
 
-    if (nextBuffer_)
-    {
-      currentBuffer_ = boost::ptr_container::move(nextBuffer_);
-    }
-    else
-    {
-      currentBuffer_.reset(new Buffer); // Rarely happens
-    }
-    currentBuffer_->append(logline, len);
-    cond_.notify();
-  }
+		if (nextBuffer_) {
+			currentBuffer_ = boost::ptr_container::move(nextBuffer_);
+		} else {
+			currentBuffer_.reset(new Buffer); // Rarely happens
+		}
+		currentBuffer_->append(logline, len);
+		cond_.Notify();
+	}
 }
 
-void AsyncLogging::threadFunc()
-{
-  assert(running_ == true);
-  latch_.countDown();
-  LogFile output(basename_, rollSize_, false);
-  BufferPtr newBuffer1(new Buffer);
-  BufferPtr newBuffer2(new Buffer);
+void AsyncLogger::threadFunc() {
+	assert(running_ == true);
+	latch_.countDown();
+	LogFile output(basename_, rollSize_, false);
+	BufferPtr newBuffer1(new Buffer);
+	BufferPtr newBuffer2(new Buffer);
   newBuffer1->bzero();
   newBuffer2->bzero();
   BufferVector buffersToWrite;
