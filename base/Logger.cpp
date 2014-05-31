@@ -1,21 +1,20 @@
 #include "Logger.h"
 
 #include "Thread.h"
-#include "Timestamp.h"
 
+#include <assert.h>
 #include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+
+#define MICROSEC_PER_SEC ((uint32_t)1e6)
 
 namespace iak {
 
 __thread char t_errnobuf[512];
 __thread char t_time[32];
 __thread time_t t_lastSecond;
-
-const char* strerror_tl(int savedErrno) {
-	return ::strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf);
-}
 
 Logger::LogLevel GetLogLevel() {
 	if (::getenv("MUDUO_LOG_TRACE"))
@@ -26,24 +25,24 @@ Logger::LogLevel GetLogLevel() {
 		return Logger::INFO;
 }
 
-Logger::LogLevel Logger::s_level = GetLogLevel();
+Logger::LogLevel Logger::s_level_ = GetLogLevel();
 
 const char* LogLevelName[Logger::NUM_LOG_LEVELS] = {
   "TRACE ", "DEBUG ", "INFO  ", "WARN  ", "ERROR ", "FATAL "
 };
 
 void defaultOutput(const char* msg, int len) {
-	size_t n = fwrite(msg, 1, len, stdout);
+	size_t n = ::fwrite(msg, 1, len, stdout);
 	//FIXME check n
 	(void)n;
 }
 
 void defaultFlush() {
-	fflush(stdout);
+	::fflush(::stdout);
 }
 
-Logger::OutputFunc s_output = defaultOutput;
-Logger::FlushFunc s_flush = defaultFlush;
+Logger::OutputFunc Logger::s_output_ = defaultOutput;
+Logger::FlushFunc Logger::s_flush_ = defaultFlush;
 
 } // end namespace iak
 
@@ -53,12 +52,11 @@ Logger::Logger(const char* filename, int line, LogLevel level)
 	: time_(Timestamp::now())
 	, stream_()
 	, filename_(filename)
-	, level_(level)
 	, line_(line)
-{
+	, level_(level) {
 	int64_t time = time_.GetTime();
-	time_t seconds = static_cast<time_t>(time / 1000000);
-	int microseconds = static_cast<int>(time % 1000000);
+	time_t seconds = static_cast<time_t>(time / MICROSEC_PER_SEC);
+	int microseconds = static_cast<int>(time % MICROSEC_PER_SEC);
 	if (seconds != t_lastSecond) {
 		t_lastSecond = seconds;
 		struct tm tm_time;
@@ -66,10 +64,10 @@ Logger::Logger(const char* filename, int line, LogLevel level)
 		int len = snprintf(t_time, sizeof(t_time), "%4d%02d%02d %02d:%02d:%02d",
 			tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
 			tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec);
-		assert(len == 17); (void)len;
+		::assert(len == 17); (void)len;
 	}
 	LogFormat us(".%06dZ ", microseconds);
-	assert(us.length() == 9);
+	::assert(us.length() == 9);
 	stream_ << t_time << us.data();
 	stream_ << Thread::GetTidString();
 	stream_ << LogLevelName[level];
@@ -86,21 +84,20 @@ Logger::Logger(SourceFile file, int line, bool toAbort)
 	stream_ << LogLevelName[level];
 	int savedErrno = errno;
 	if (savedErrno != 0) {
-		stream_ << strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
+		stream_ << ::strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf) << " (errno=" << savedErrno << ") ";
 	}
 }
 
 Logger::~Logger() {
-	const char* slash = strrchr(filename_, '/');
+	const char* slash = ::strrchr(filename_, '/');
 	if (slash) {
 		filename_ = slash + 1;
 	}
 	stream_ << " - " << filename_ << ':' << line_ << '\n';
 
-	const LogStream::Buffer& buf(stream().buffer());
-	g_output(buf.data(), buf.length());
+	s_output_(stream_.GetData(), stream_.GetLength());
 	if (level_ == FATAL) {
-		g_flush();
-		abort();
+		s_flush_();
+		::abort();
 	}
 }
