@@ -60,7 +60,7 @@ private:
 
 using namespace iak;
 
-LogFile::LogFile(const string& basename,
+LogFile::LogFile(const std::string& basename,
 	size_t rollSize,
 	bool threadSafe,
 	int flushInterval)
@@ -72,7 +72,7 @@ LogFile::LogFile(const string& basename,
 	, startOfPeriod_(0)
 	, lastRoll_(0)
 	, lastFlush_(0) {
-	assert(basename.find('/') == string::npos);
+	assert(basename.find('/') == std::string::npos);
 	rollFile();
 }
 
@@ -120,7 +120,7 @@ void LogFile::append_unlocked(const char* logline, int len) {
 
 void LogFile::rollFile() {
 	time_t now = 0;
-	string filename = getLogFileName(basename_, &now);
+	std::string filename = getLogFileName(basename_, &now);
 	time_t start = now / kRollPerSeconds_ * kRollPerSeconds_;
 
 	if (now > lastRoll_) {
@@ -131,8 +131,8 @@ void LogFile::rollFile() {
 	}
 }
 
-string LogFile::getLogFileName(const string& basename, time_t* now) {
-	string filename;
+string LogFile::getLogFileName(const std::string& basename, time_t* now) {
+	std::string filename;
 	filename.reserve(basename.size() + 64);
 	filename = basename;
 

@@ -4,11 +4,13 @@
 #include "NonCopyable.h"
 #include "Mutex.h"
 
+#include <string>
+
 namespace iak {
 
 class LogFile : public NonCopyable {
 public:
-	LogFile(const string& basename,
+	LogFile(const std::string& basename,
 		size_t rollSize,
 		bool threadSafe = true,
 		int flushInterval = 3);
@@ -20,9 +22,9 @@ public:
 private:
 	void append_unlocked(const char* logline, int len);
 	void rollFile();
-	static string getLogFileName(const string& basename, time_t* now);
+	static std::string getLogFileName(const std::string& basename, time_t* now);
 
-	const string basename_;
+	const std::string basename_;
 	const size_t rollSize_;
 	const int flushInterval_;
 
