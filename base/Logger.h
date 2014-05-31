@@ -14,8 +14,8 @@ public:
 
 	static LogLevel GetLevel() { return s_level_; }
 	static void SetLevel(LogLevel level) { s_level_ = level; }
-	static void setOutput(OutputFunc output) { s_output_ = output; }
-	static void setFlush(FlushFunc flush) { s_flush_ = flush; }
+	static void SetOutput(OutputFunc output) { s_output_ = output; }
+	static void SetFlush(FlushFunc flush) { s_flush_ = flush; }
 
 public:
 	Logger(const char* filename, int line, LogLevel level);
