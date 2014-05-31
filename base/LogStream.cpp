@@ -17,10 +17,10 @@ namespace iak {
 
 const char digits[] = "9876543210123456789";
 const char* zero = digits + 9;
-static_assert(sizeof digits == 20);
+static_assert(sizeof digits == 20, "sizeof digits == 20");
 
 const char digitsHex[] = "0123456789ABCDEF";
-static_assert(sizeof digitsHex == 17);
+static_assert(sizeof digitsHex == 17, "sizeof digitsHex == 17");
 
 // Efficient Integer to String Conversions, by Matthew Wilson.
 template<typename T>
@@ -65,10 +65,10 @@ size_t convertHex(char buf[], uintptr_t value) {
 
 using namespace iak;
 
-static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<double>::digits10);
-static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<long double>::digits10);
-static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<long>::digits10);
-static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<long long>::digits10);
+static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<double>::digits10, "NUMERICSIZE_MAX - 10 > std::numeric_limits<double>::digits10");
+static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<long double>::digits10, "NUMERICSIZE_MAX - 10 > std::numeric_limits<long double>::digits10");
+static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<long>::digits10, "NUMERICSIZE_MAX - 10 > std::numeric_limits<long>::digits10");
+static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<long long>::digits10, "NUMERICSIZE_MAX - 10 > std::numeric_limits<long long>::digits10");
 
 template<typename T>
 void LogStream::formatInteger(T v) {
@@ -80,7 +80,7 @@ void LogStream::formatInteger(T v) {
 // FIXME: replace this with Grisu3 by Florian Loitsch.
 LogStream& LogStream::operator<<(double v) {
 	if (avail() >= NUMERICSIZE_MAX) {
-		cur_ += snprintf(cur_, NUMERICSIZE_MAX, "%.12g", v);
+		cur_ += ::snprintf(cur_, NUMERICSIZE_MAX, "%.12g", v);
 	}
 	return *this;
 }
@@ -99,7 +99,7 @@ LogStream& LogStream::operator<<(const void* p) {
 template<typename T>
 LogFormat::LogFormat(const char* fmt, T val) {
 	static_assert(std::is_arithmetic<T>::value);
-	size_ = snprintf(data_, sizeof data_, fmt, val);
+	size_ = ::snprintf(data_, sizeof data_, fmt, val);
 	assert(static_cast<size_t>(length_) < sizeof data_);
 }
 

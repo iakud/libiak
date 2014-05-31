@@ -30,7 +30,7 @@ public:
 	LogStream& operator<<(float v) { *this << static_cast<double>(v); return *this; }
 	LogStream& operator<<(double v);
 	LogStream& operator<<(char v) { Append(&v, 1); return *this; }
-	LogStream& operator<<(unsigned char v) { Append(&v, 1); return *this; }
+	//LogStream& operator<<(unsigned char v) { Append(&v, 1); return *this; }
 	LogStream& operator<<(const char* v) { Append(v, strlen(v)); return *this; }
 	LogStream& operator<<(const std::string& v) { Append(v.c_str(), v.size()); return *this; }
 	LogStream& operator<<(const void*);
@@ -41,7 +41,7 @@ public:
 
 	void Append(const char* data, size_t len) {
 		if (static_cast<size_t>(avail()) > len) {
-			::memcpy(cur_, buf, len);
+			::memcpy(cur_, data, len);
 			cur_ += len;
 		}
 	}
@@ -60,7 +60,7 @@ private:
 class LogFormat {
 public:
 	template<typename T>
-	Format(const char* fmt, T val);
+	LogFormat(const char* fmt, T val);
 
 	const char* GetData() const { return data_; }
 	int GetLength() const { return length_; }
