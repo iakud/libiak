@@ -72,7 +72,7 @@ Logger::Logger(const char* filename, int line, LogLevel level)
 	}
 	LogFormat us(".%06dZ ", microseconds);
 	assert(us.GetLength() == 9);
-	stream_ << t_time << us.GetData();
+	stream_ << t_time <<us.GetData();
 	stream_ << Thread::GetTidString();
 	stream_ << LogLevelName[level];
 }

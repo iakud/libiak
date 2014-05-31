@@ -17,7 +17,7 @@ public:
 	/* Constructs a Timestamp object using
 	 * a microseconds time value.*/
 	explicit Timestamp(int64_t time)
-		: time_(0) {
+		: time_(time) {
 	}
 	
 	/* Return the number of microseconds since

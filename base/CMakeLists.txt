@@ -2,6 +2,9 @@ set(base_SRCS
 	Condition.cpp
 	Timestamp.cpp
 	Thread.cpp
+	LogStream.cpp
+	Logger.cpp
+	LogFile.cpp
 	)
 
 add_library(iak_base ${base_SRCS})

@@ -1,5 +1,6 @@
 #include "Thread.h"
 
+#include <assert.h>
 #include <unistd.h>
 #include <sys/syscall.h>
 
@@ -54,7 +55,7 @@ using namespace iak;
 
 void Thread::cacheTid() {
 	t_tid = static_cast<int>(::syscall(SYS_gettid));
-	int n = snprintf(t_tidstr, sizeof t_tidstr, "%5d", t_tid);
+	int n = ::snprintf(t_tidstr, sizeof t_tidstr, "%5d ", t_tid);
 	(void) n;
 	assert(n == 6);
 }
