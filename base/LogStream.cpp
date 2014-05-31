@@ -98,8 +98,8 @@ LogStream& LogStream::operator<<(const void* p) {
 
 template<typename T>
 LogFormat::LogFormat(const char* fmt, T val) {
-	static_assert(std::is_arithmetic<T>::value);
-	size_ = ::snprintf(data_, sizeof data_, fmt, val);
+	static_assert(std::is_arithmetic<T>::value, "std::is_arithmetic<T>::value");
+	length_ = ::snprintf(data_, sizeof data_, fmt, val);
 	assert(static_cast<size_t>(length_) < sizeof data_);
 }
 
