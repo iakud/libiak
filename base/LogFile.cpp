@@ -131,7 +131,7 @@ void LogFile::rollFile() {
 	}
 }
 
-string LogFile::getLogFileName(const std::string& basename, time_t* now) {
+std::string LogFile::getLogFileName(const std::string& basename, time_t* now) {
 	std::string filename;
 	filename.reserve(basename.size() + 64);
 	filename = basename;
