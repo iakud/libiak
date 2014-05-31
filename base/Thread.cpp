@@ -8,8 +8,8 @@
 
 namespace iak {
 
-__thread int t_id = 0;
-__thread char t_idstr[32];
+__thread int t_tid = 0;
+__thread char t_tidstr[32];
 __thread const char* t_name = "unknown";
 
 class ThreadNameInitializer {
@@ -36,7 +36,7 @@ public:
 	void Run() {
 		std::shared_ptr<int> tid = tid_.lock();
 		if (tid) {
-			*tid = Thread::GetId();
+			*tid = Thread::GetTid();
 		}
 		t_name = name_.c_str();
 		func_();
@@ -60,7 +60,7 @@ void Thread::cacheTid() {
 }
 
 bool Thread::IsMainThread() {
-	return GetId() == ::getpid();
+	return GetTid() == ::getpid();
 }
 
 void SleepUsec(int64_t usec) {
@@ -78,36 +78,34 @@ void* StartRoutine(void* arg) {
 }
 
 Thread::Thread(ThreadFunc&& func, const std::string& name)
-	: m_started(ATOMIC_FLAG_INIT)
-	, m_joined(ATOMIC_FLAG_INIT)
-	, m_thread(0)
-	, m_tid(new pid_t(0))
-	, m_func(func)
-	, m_name(name) {
+	: started_(ATOMIC_FLAG_INIT)
+	, joined_(ATOMIC_FLAG_INIT)
+	, thread_(0)
+	, tid_(new pid_t(0))
+	, func_(func)
+	, name_(name) {
 }
 
 Thread::~Thread() {
-	if (m_started.test_and_set() && !m_joined.test_and_set()) {
-		::pthread_detach(m_thread);
+	if (started_.test_and_set() && !joined_.test_and_set()) {
+		::pthread_detach(thread_);
 	}
 }
 
 void Thread::Start() {
-	if (m_started.test_and_set()) {
+	if (started_.test_and_set()) {
 		return;
 	}
-
-	ThreadRoutine* routine = new ThreadRoutine(m_func, m_name, m_tid);
-	if (::pthread_create(&m_thread, NULL, StartRoutine, routine)) {
+	ThreadRoutine* routine = new ThreadRoutine(func_, name_, tid_);
+	if (::pthread_create(&thread_, NULL, StartRoutine, routine)) {
 		delete routine;
 		// LOG
 	}
 }
 
 void Thread::Join() {
-	if (m_joined.test_and_set()) {
+	if (joined_.test_and_set()) {
 		return;
 	}
-
-	::pthread_join(m_thread, NULL);
+	::pthread_join(thread_, NULL);
 }

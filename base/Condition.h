@@ -12,31 +12,31 @@ namespace iak {
 class Condition : public NonCopyable {
 public:
 	explicit Condition(Mutex& mutex)
-		: m_mutex(mutex) {
-		::pthread_cond_init(&m_cond, NULL);
+		: mutex_(mutex) {
+		::pthread_cond_init(&cond_, NULL);
 	}
 
 	~Condition() {
-		::pthread_cond_destroy(&m_cond);
+		::pthread_cond_destroy(&cond_);
 	}
 
 	void Signal() {
-		::pthread_cond_signal(&m_cond);
+		::pthread_cond_signal(&cond_);
 	}
 
 	void Broadcast() {
-		::pthread_cond_broadcast(&m_cond);
+		::pthread_cond_broadcast(&cond_);
 	}
 
 	void Wait() {
-		::pthread_cond_wait(&m_cond, &m_mutex.GetPthreadMutex());
+		::pthread_cond_wait(&cond_, &mutex_.GetPthreadMutex());
 	}
 
 	bool TimedWait(uint64_t timeout);
 
 private:
-	Mutex& m_mutex;
-	pthread_cond_t m_cond;
+	Mutex& mutex_;
+	pthread_cond_t cond_;
 };
 
 } // end namespace iak

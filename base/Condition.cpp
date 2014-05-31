@@ -10,5 +10,5 @@ bool Condition::TimedWait(uint64_t timeout) {
 	timeout += (abstime.tv_sec * NANOSEC_PER_SEC + abstime.tv_nsec);
 	abstime.tv_sec = timeout / NANOSEC_PER_SEC;
 	abstime.tv_nsec = timeout % NANOSEC_PER_SEC;
-	return !(::pthread_cond_timedwait(&m_cond, &m_mutex.GetPthreadMutex(), &abstime));
+	return !(::pthread_cond_timedwait(&cond_, &mutex_.GetPthreadMutex(), &abstime));
 }

@@ -10,46 +10,46 @@ namespace iak {
 class Mutex : public NonCopyable {
 public:
 	explicit Mutex() {
-		::pthread_mutex_init(&m_mutex, NULL);
+		::pthread_mutex_init(&mutex_, NULL);
 	}
 
 	~Mutex() {
-		::pthread_mutex_destroy(&m_mutex);
+		::pthread_mutex_destroy(&mutex_);
 	}
 
 	void Lock() {
-		::pthread_mutex_lock(&m_mutex);
+		::pthread_mutex_lock(&mutex_);
 	}
 
 	bool TryLock() {
-		return !(::pthread_mutex_trylock(&m_mutex));// ret : EBUSY
+		return !(::pthread_mutex_trylock(&mutex_));// ret : EBUSY
 	}
 
 	void Unlock() {
-		::pthread_mutex_unlock(&m_mutex);
+		::pthread_mutex_unlock(&mutex_);
 	}
 
 	pthread_mutex_t& GetPthreadMutex() {
-		return m_mutex;
+		return mutex_;
 	}
 
 private:
-	pthread_mutex_t m_mutex;
+	pthread_mutex_t mutex_;
 };
 
 class MutexGuard : public NonCopyable {
 public:
 	explicit MutexGuard(Mutex& mutex)
-		: m_mutex(mutex) {
-		m_mutex.Lock();
+		: mutex_(mutex) {
+		mutex_.Lock();
 	}
 
 	~MutexGuard() {
-		m_mutex.Unlock();
+		mutex_.Unlock();
 	}
 
 private:
-	Mutex& m_mutex;
+	Mutex& mutex_;
 };
 
 } // end namespace iak

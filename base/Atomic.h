@@ -10,7 +10,7 @@ namespace iak {
 class AtomicInt32 : public NonCopyable {
 public:
 	AtomicInt32()
-		: m_value(0) {
+		: value_(0) {
 	}
 	
 	// if need copying and assignment
@@ -26,11 +26,11 @@ public:
 	// }
 
 	int32_t get() {
-		return __sync_val_compare_and_swap(&m_value, 0, 0);
+		return __sync_val_compare_and_swap(&value_, 0, 0);
 	}
 
 	int32_t getAndAdd(int32_t value) {
-		return __sync_fetch_and_add(&m_value, value);
+		return __sync_fetch_and_add(&value_, value);
 	}
 
 	int32_t addAndGet(int32_t value) {
@@ -58,17 +58,17 @@ public:
 	}
 
 	int32_t getAndSet(int32_t value) {
-		return __sync_lock_test_and_set(&m_value, value);
+		return __sync_lock_test_and_set(&value_, value);
 	}
 
 private:
-	volatile int32_t m_value;
-};
+	volatile int32_t value_;
+}; // end class AtomicInt32
 
 class AtomicInt64 : public NonCopyable {
 public:
 	AtomicInt64()
-		: m_value(0) {
+		: value_(0) {
 	}
 	
 	// if need copying and assignment
@@ -84,11 +84,11 @@ public:
 	// }
 
 	int64_t get() {
-		return __sync_val_compare_and_swap(&m_value, 0, 0);
+		return __sync_val_compare_and_swap(&value_, 0, 0);
 	}
 
 	int64_t getAndAdd(int64_t value) {
-		return __sync_fetch_and_add(&m_value, value);
+		return __sync_fetch_and_add(&value_, value);
 	}
 
 	int64_t addAndGet(int64_t value) {
@@ -116,12 +116,12 @@ public:
 	}
 
 	int64_t getAndSet(int64_t value) {
-		return __sync_lock_test_and_set(&m_value, value);
+		return __sync_lock_test_and_set(&value_, value);
 	}
 
 private:
-	volatile int64_t m_value;
-};
+	volatile int64_t value_;
+}; // end class AtomicInt64
 
 } // end namespace iak
 

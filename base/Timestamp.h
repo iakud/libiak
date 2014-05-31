@@ -11,29 +11,29 @@ public:
 
 public:
 	Timestamp()
-		: m_time(0) {
+		: time_(0) {
 	}
 
 	/* Constructs a Timestamp object using
 	 * a microseconds time value.*/
 	explicit Timestamp(int64_t time)
-		: m_time(0) {
+		: time_(0) {
 	}
 	
 	/* Return the number of microseconds since
 	 * January 1, 1970, 00:00:00 GMT
 	 * represented by this Timestamp object.*/
 	int64_t GetTime() const {
-		return m_time;
+		return time_;
 	}
 
 	operator bool() const {
-		return m_time > 0;
+		return time_ > 0;
 	}
 
 private:
-	int64_t m_time;
-};
+	int64_t time_;
+}; // end class Timestamp
 
 inline bool operator==(Timestamp& lhs, Timestamp& rhs) {
 	return lhs.GetTime() == rhs.GetTime();

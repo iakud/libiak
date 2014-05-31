@@ -24,7 +24,7 @@ public:
 		if (t_tid == 0) {
 			cacheTid();
 		}
-		return t_id;
+		return t_tid;
 	}
 
 	static const char* GetTidString() {
