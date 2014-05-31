@@ -30,7 +30,7 @@ public:
 			if (x == 0) {
 				int err = ferror(fp_);
 				if (err) {
-					fprintf(stderr, "LogFile::File::append() failed %s\n", ::strerror_tl(err));
+					fprintf(stderr, "LogFile::File::append() failed %s\n", strerror_tl(err));
 				}
 				break;
 			}

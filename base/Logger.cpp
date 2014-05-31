@@ -88,7 +88,7 @@ Logger::Logger(const char* filename, int line, bool toAbort)
 	stream_ << LogLevelName[level_];
 	int savedErrno = errno;
 	if (savedErrno != 0) {
-		stream_ << ::strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
+		stream_ << strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
 	}
 }
 
