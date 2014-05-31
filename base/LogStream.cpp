@@ -70,6 +70,46 @@ static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<long double>::digits10,
 static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<long>::digits10, "NUMERICSIZE_MAX - 10 > std::numeric_limits<long>::digits10");
 static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<long long>::digits10, "NUMERICSIZE_MAX - 10 > std::numeric_limits<long long>::digits10");
 
+LogStream& LogStream::operator<<(short v) {
+	formatInteger(static_cast<int>(v));
+	return *this;
+}
+
+LogStream& LogStream::operator<<(unsigned short v) {
+	formatInteger(static_cast<unsigned int>(v));
+	return *this;
+}
+
+LogStream& LogStream::operator<<(int v) {
+	formatInteger(v);
+	return *this;
+}
+
+LogStream& LogStream::operator<<(unsigned int v) {
+	formatInteger(v);
+	return *this;
+}
+
+LogStream& LogStream::operator<<(long v) {
+	formatInteger(v);
+	return *this;
+}
+
+LogStream& LogStream::operator<<(unsigned long v) {
+	formatInteger(v);
+	return *this;
+}
+
+LogStream& LogStream::operator<<(long long v) {
+	formatInteger(v);
+	return *this;
+}
+
+LogStream& LogStream::operator<<(unsigned long long v) {
+	formatInteger(v);
+	return *this;
+}
+
 template<typename T>
 void LogStream::formatInteger(T v) {
 	if (avail() >= NUMERICSIZE_MAX) {

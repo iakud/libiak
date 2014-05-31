@@ -18,21 +18,22 @@ public:
 		, end_(data_ + sizeof data_) {
 	}
 
-	LogStream& operator<<(bool v) { Append(v ? "1" : "0", 1); return *this; }
-	LogStream& operator<<(short v) { formatInteger(static_cast<int>(v)); return *this; }
-	LogStream& operator<<(unsigned short v) { formatInteger(static_cast<unsigned int>(v)); return *this; }
-	LogStream& operator<<(int v) { formatInteger(v); return *this; }
-	LogStream& operator<<(unsigned int v) { formatInteger(v); return *this; }
-	LogStream& operator<<(long v) { formatInteger(v); return *this; }
-	LogStream& operator<<(unsigned long v) { formatInteger(v); return *this; }
-	LogStream& operator<<(long long v) { formatInteger(v); return *this; }
-	LogStream& operator<<(unsigned long long v) { formatInteger(v); }
+	LogStream& operator<<(short v);
+	LogStream& operator<<(unsigned short v);
+	LogStream& operator<<(int v);
+	LogStream& operator<<(unsigned int v);
+	LogStream& operator<<(long v);
+	LogStream& operator<<(unsigned long v);
+	LogStream& operator<<(long long v);
+	LogStream& operator<<(unsigned long long v);
+
 	LogStream& operator<<(float v) { *this << static_cast<double>(v); return *this; }
 	LogStream& operator<<(double v);
 	LogStream& operator<<(char v) { Append(&v, 1); return *this; }
 	//LogStream& operator<<(unsigned char v) { Append(&v, 1); return *this; }
 	LogStream& operator<<(const char* v) { Append(v, strlen(v)); return *this; }
 	LogStream& operator<<(const std::string& v) { Append(v.c_str(), v.size()); return *this; }
+	LogStream& operator<<(bool v) { Append(v ? "1" : "0", 1); return *this; }
 	LogStream& operator<<(const void*);
 
 	const char* GetData() const { return data_; }
