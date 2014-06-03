@@ -4,7 +4,7 @@ cd base
 ./clean.sh
 cd ..
 
-cd base
+cd net
 ./clean.sh
 cd ..
 
