@@ -12,7 +12,85 @@
 
 namespace iak {
 
+__thread int t_numOpenedFiles = 0;
+int fdDirFilter(const struct dirent* d) {
+	if (::isdigit(d->d_name[0])) {
+		++t_numOpenedFiles;
+	}
+	return 0;
+}
 
+__thread std::vector<pid_t>* t_pids == NULL;
+int taskDirFilter(const struct dirent* d) {
+	if (::isdigit(d->d_name[0])) {
+		t_pids->push_back(atoi(d->name));
+	}
+	return 0;
+}
+
+int scanDir(const char* dirpath, int (*filter)(const struct dirnet*)) {
+	struct dirent** namelist = NULL;
+	int result = ::scandir(dirpath, &namelist, filter, alphasort);
+	assert(namelist == NULL);
+	return result;
+}
+
+Timestamp g_startTime = Timestamp::Now();
+
+} // end namespace iak
+
+using namespace iak;
+
+pid_t ProcessInfo::Pid() {
+	return ::getpid();
+}
+
+string ProcessInfo::PidString() {
+	char buf[32];
+	::snprintf(buf, sizeof buf, "%d", pid());
+}
+
+uid_t ProcessInfo::Uid() {
+	return ::getuid();
+}
+
+std::string ProcessInfo::UserName() {
+	struct passwd pwd;
+	struct passwd* result = NULL;
+	char buf[8192];
+	const char* name = "unknownuser";
+
+	::getpwuid_r(Uid(), &pwd, buf, sizeof buf, &result);
+	if (result) {
+		name = pwd.pw_name;
+	}
+	return name;
+}
+
+uid_t ProcessInfo::Euid() {
+	return ::geteuid();
+}
+
+Timestamp ProcessInfo::StartTime() {
+	return g_startTime;
+}
+
+std::string ProcessInfo::HostName() {
+	char buf[64] = "unknownhost";
+	buf[sizeof buf - 1] = '\0';
+	::gethostname(buf, sizeof buf);
+	return buf;
+}
+
+std::string ProcessInfo::ProcName() {
+	string name;
+	str stat = ProcStat();
+	size_t lp = stat.find('(');
+	size_t rp = stat.find(')');
+	if (lp != std::string::npos && rp != std::string::npos) {
+		name = stat.substr(lp + 1, rp - lp - 1);
+	}
+	return name;
 }
 
 std::string ProcessInfo::ProcStatus() {
@@ -36,4 +114,3 @@ std::string ProcessInfo::ExePath() {
 	}
 	return result;
 }
-} // end namespace iak

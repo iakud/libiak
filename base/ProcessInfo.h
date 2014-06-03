@@ -12,7 +12,7 @@ public:
 	static string PidString();
 	static uid_t Uid();
 	static string UserName();
-	static uid_t EUid();
+	static uid_t Euid();
 	static Timestamp StartTime();
 
 	static string HostName();
