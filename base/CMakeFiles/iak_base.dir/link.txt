@@ -1,2 +1,0 @@
-/usr/bin/ar cr ../lib/libiak_base.a  CMakeFiles/iak_base.dir/Condition.cpp.o CMakeFiles/iak_base.dir/Timestamp.cpp.o CMakeFiles/iak_base.dir/Thread.cpp.o CMakeFiles/iak_base.dir/LogStream.cpp.o CMakeFiles/iak_base.dir/Logger.cpp.o CMakeFiles/iak_base.dir/LogFile.cpp.o
-/usr/bin/ranlib ../lib/libiak_base.a
