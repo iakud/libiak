@@ -1,0 +1,2 @@
+add_executable(LogFile_test LogFile_test.cpp)
+target_link_libraries(LogFile_test iak_base)

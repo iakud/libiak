@@ -5,6 +5,8 @@ set(base_SRCS
 	LogStream.cpp
 	Logger.cpp
 	LogFile.cpp
+	FileUtil.cpp
+	ProcessInfo.cpp
 	)
 
 add_library(iak_base ${base_SRCS})
@@ -17,5 +19,5 @@ file(GLOB HEADERS "*.h")
 install(FILES ${HEADERS} DESTINATION include/iak/base)
 
 if (NOT CMAKE_BUILD_NO_EXAMPLES)
-
+	add_subdirectory(tests)
 endif()

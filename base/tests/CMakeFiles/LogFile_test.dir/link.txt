@@ -1,0 +1,1 @@
+g++   -g -std=c++11 -O0    CMakeFiles/LogFile_test.dir/LogFile_test.cpp.o  -o ../../bin/LogFile_test -rdynamic ../../lib/libiak_base.a -lpthread -lrt 

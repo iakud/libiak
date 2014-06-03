@@ -1,5 +1,5 @@
-#include "LogFile.h"
-#include "Logger.h"
+#include "base/LogFile.h"
+#include "base/Logger.h"
 #include <unistd.h>
 
 using namespace iak;
