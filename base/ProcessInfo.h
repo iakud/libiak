@@ -2,6 +2,7 @@
 #define IAK_BASE_PROCESSINFO_H
 
 #include "Timestamp.h"
+#include <string>
 #include <vector>
 
 namespace iak {
@@ -9,23 +10,23 @@ namespace iak {
 class ProcessInfo {
 public:
 	static pid_t pid();
-	static string pidString();
+	static std::string pidString();
 	static uid_t uid();
-	static string userName();
+	static std::string userName();
 	static uid_t euid();
 	static Timestamp startTime();
 
-	static string hostName();
-	static string procName();
+	static std::string hostName();
+	static std::string procName();
 
-	static string procStatus();
-	static string procStat();
-	static string exePath();
+	static std::string procStatus();
+	static std::string procStat();
+	static std::string exePath();
 
 	static int openedFiles();
 	static int maxOpenFiles();
 
-	static numThreads();
+	static int numThreads();
 	static std::vector<pid_t> threads();
 }; // end class ProcessInfo
 

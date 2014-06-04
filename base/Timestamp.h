@@ -2,6 +2,7 @@
 #define IAK_BASE_TIMESTAMP_H
 
 #include <stdint.h>
+#include <string>
 
 namespace iak {
 
@@ -26,6 +27,9 @@ public:
 	int64_t getTime() const {
 		return time_;
 	}
+
+	std::string toString() const;
+	std::string toFormattedString() const;
 
 	operator bool() const {
 		return time_ > 0;

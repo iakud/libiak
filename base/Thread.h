@@ -34,7 +34,7 @@ public:
 		return t_tidstr;
 	}
 
-	static const char* name() {
+	static const char* getName() {
 		return t_name;
 	}
 

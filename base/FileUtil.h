@@ -8,7 +8,7 @@ namespace iak {
 
 class FileReader : public NonCopyable {
 public:
-	static readFile(const char* filename,
+	static int readFile(const char* filename,
 			std::string& content,
 			size_t size) {
 		FileReader file(filename);

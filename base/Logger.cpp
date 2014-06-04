@@ -8,9 +8,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MICROSEC_PER_SEC ((uint32_t)1e6)
-
 namespace iak {
+
+const uint32_t MICROSEC_PER_SEC = 1e6;
 
 __thread char t_errnobuf[512];
 __thread char t_time[32];

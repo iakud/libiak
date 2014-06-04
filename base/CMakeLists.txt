@@ -5,6 +5,8 @@ set(base_SRCS
 	LogStream.cpp
 	Logger.cpp
 	LogFile.cpp
+	FileUtil.cpp
+	ProcessInfo.cpp
 	)
 
 add_library(iak_base ${base_SRCS})

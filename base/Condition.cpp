@@ -2,7 +2,7 @@
 
 using namespace iak;
 
-#define NANOSEC_PER_SEC ((uint64_t)1e9)
+const uint64_t NANOSEC_PER_SEC = 1e9;
 
 bool Condition::timedwait(uint64_t timeout) {
 	struct timespec abstime;

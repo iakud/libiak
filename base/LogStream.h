@@ -40,9 +40,9 @@ public:
 	int length() const { return static_cast<int>(cur_ - data_); }
 	void reset() { cur_ = data_; }
 
-	void append(const char* data, size_t len) {
+	void append(const char* buf, size_t len) {
 		if (static_cast<size_t>(avail()) > len) {
-			::memcpy(cur_, data, len);
+			::memcpy(cur_, buf, len);
 			cur_ += len;
 		}
 	}
@@ -51,7 +51,7 @@ private:
 	template<typename T>
 	void formatInteger(T);
 
-	int avail() const { return end_ - cur_; }
+	int avail() const { return static_cast<int>(end_ - cur_); }
 
 	char data_[LOGSTREAM_SIZE];
 	char* cur_;

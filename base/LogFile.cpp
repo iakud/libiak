@@ -141,7 +141,7 @@ std::string LogFile::getLogFileName(const std::string& basename, time_t* now) {
 	filename = basename;
 
 	char timebuf[32];
-	char pidbuf[32];
+//	char pidbuf[32];
 	struct tm tm;
 	*now = ::time(NULL);
 	::gmtime_r(now, &tm); // FIXME: localtime_r ?

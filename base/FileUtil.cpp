@@ -2,7 +2,8 @@
 
 #include <assert.h>
 #include <errno.h>
-//#include <fcntl.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 
 using namespace iak;
@@ -28,7 +29,7 @@ int FileReader::readToString(std::string& content, size_t size) {
 
 	char buf[65536];
 	while (content.size() < size) {
-		size_t toRead = std::min(size, sizeof buf);
+		size_t toRead = std::min(size - content.size(), sizeof buf);
 		ssize_t nRead = ::read(fd_, buf, toRead);
 		if (nRead > 0) {
 			content.append(buf, nRead);
