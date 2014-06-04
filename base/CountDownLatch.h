@@ -30,13 +30,13 @@ public:
 		}
 	}
 
-	int count() const {
+	int getCount() const {
 		MutexGuard lock(mutex_);
 		return count_;
 	}
 
 private:
-	mutable MutexLock mutex_;
+	mutable Mutex mutex_;
 	Condition condition_;
 	int count_;
 }; // end class CountDownLatch

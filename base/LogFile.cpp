@@ -1,6 +1,6 @@
 #include "LogFile.h"
 #include "Logger.h" // strerror_tl
-//#include <muduo/base/ProcessInfo.h>
+#include "ProcessInfo.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -141,15 +141,15 @@ std::string LogFile::getLogFileName(const std::string& basename, time_t* now) {
 	filename = basename;
 
 	char timebuf[32];
-//	char pidbuf[32];
+	char pidbuf[32];
 	struct tm tm;
 	*now = ::time(NULL);
-	::gmtime_r(now, &tm); // FIXME: localtime_r ?
+	::localtime_r(now, &tm);
 	::strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S.", &tm);
 	filename += timebuf;
-	//filename += ProcessInfo::hostname();
-	//snprintf(pidbuf, sizeof pidbuf, ".%d", ProcessInfo::pid());
-	//filename += pidbuf;
+	filename += ProcessInfo::hostName();
+	::snprintf(pidbuf, sizeof pidbuf, ".%d", ProcessInfo::pid());
+	filename += pidbuf;
 	filename += ".log";
 
 	return filename;

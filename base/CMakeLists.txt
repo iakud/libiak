@@ -7,6 +7,7 @@ set(base_SRCS
 	LogFile.cpp
 	FileUtil.cpp
 	ProcessInfo.cpp
+	AsyncLogger.cpp
 	)
 
 add_library(iak_base ${base_SRCS})

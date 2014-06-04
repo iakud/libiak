@@ -6,6 +6,8 @@
 #include <sys/resource.h>
 #include <string>
 
+#include <unistd.h>
+
 int kRollSize = 500*1000*1000;
 
 using namespace std;
@@ -18,7 +20,7 @@ void asyncOutput(const char* msg, int len) {
 }
 
 void bench(bool longLog) {
-	Logger::setOutput(asyncOutput);
+	Logger::SetOutput(asyncOutput);
 
 	int cnt = 0;
 	const int kBatch = 1000;
@@ -35,7 +37,7 @@ void bench(bool longLog) {
 			++cnt;
 		}
 		Timestamp end = Timestamp::now();
-		printf("%f\n", (end - start)/1000000*1000000/kBatch);
+		printf("%f\n", static_cast<double>(end.getTime() - start.getTime())/1000000*1000000/kBatch);
 		struct timespec ts = { 0, 500*1000*1000 };
 		nanosleep(&ts, NULL);
 	}

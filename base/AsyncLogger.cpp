@@ -3,8 +3,12 @@
 #include "Timestamp.h"
 
 #include <stdio.h>
+#include <memory.h>
 
 namespace iak {
+
+const uint64_t NANOSEC_PER_SEC = 1e9;
+const int BUFFER_SIZE = 4096 * 1024;
 
 class AsyncLogger::Buffer : public NonCopyable {
 public:
@@ -17,7 +21,7 @@ public:
 	}
 
 	void append(const char* buf, size_t len) {
-		if ((size_t)avail() > len) {
+		if (static_cast<size_t>(avail()) > len) {
 			::memcpy(cur_, buf, len);
 			cur_ += len;
 		}
@@ -31,13 +35,12 @@ public:
 		return static_cast<int>(cur_ - data_);
 	}
 
-	int avail() const { end_ - cur_; }
+	int avail() const { return static_cast<int>(end_ - cur_); }
 
-	void reset() { cur_ = data_;}
+	void reset() { cur_ = data_; }
 	//void bzero() { ::bzero(data_, sizeof(data_); }
-private:
-	const int BUFFER_SIZE = 4096 * 1024;
 
+private:
 	char data_[BUFFER_SIZE];
 	char* cur_;
 	char* end_;
@@ -47,7 +50,7 @@ private:
 
 using namespace iak;
 
-AsyncLogger::AsyncLogger(const string& basename,
+AsyncLogger::AsyncLogger(const std::string& basename,
 						size_t rollSize,
 						int flushInterval)
 	: flushInterval_(flushInterval)
@@ -71,10 +74,10 @@ void AsyncLogger::append(const char* logline, int len) {
 	if (currentBuffer_->avail() > len) {
 		currentBuffer_->append(logline, len);
 	} else {
-		buffers_.push_back(currentBuffer_.release());
-
+		buffers_.push_back(currentBuffer_);
 		if (nextBuffer_) {
-			currentBuffer_ = &&nextBuffer_;
+			currentBuffer_.reset();
+			currentBuffer_.swap(nextBuffer_);
 		} else {
 			currentBuffer_.reset(new Buffer); // Rarely happens
 		}
@@ -99,15 +102,17 @@ void AsyncLogger::threadFunc() {
 		assert(buffersToWrite.empty());
 
 		{
-			muduo::MutexLockGuard lock(mutex_);
+			MutexGuard lock(mutex_);
 			if (buffers_.empty()) {  // unusual usage!
-				cond_.waitForSeconds(flushInterval_);
+				cond_.timedwait(flushInterval_ * NANOSEC_PER_SEC);
 			}
-			buffers_.push_back(currentBuffer_.release());
-			currentBuffer_ = &&newBuffer1;
+			buffers_.push_back(currentBuffer_);
+			currentBuffer_.reset();
+			currentBuffer_.swap(newBuffer1);
 			buffersToWrite.swap(buffers_);
 			if (!nextBuffer_) {
-				nextBuffer_ = &&newBuffer2;
+				nextBuffer_ = newBuffer2;
+				newBuffer2.reset();
 			}
 		}
 
@@ -122,7 +127,7 @@ void AsyncLogger::threadFunc() {
 		}
 
 		for (size_t i = 0; i < buffersToWrite.size(); ++i) {
-			output.append(buffersToWrite[i].data(), buffersToWrite[i].length());
+			output.append(buffersToWrite[i]->data(), buffersToWrite[i]->length());
 		}
 
 		if (buffersToWrite.size() > 2) {
@@ -132,14 +137,14 @@ void AsyncLogger::threadFunc() {
 		if (!newBuffer1) {
 			assert(!buffersToWrite.empty());
 			newBuffer1 = buffersToWrite.back();
-			buffersToWrite.pop_back()
+			buffersToWrite.pop_back();
 			newBuffer1->reset();
 		}
 
 		if (!newBuffer2) {
 			assert(!buffersToWrite.empty());
 			newBuffer2 = buffersToWrite.back();
-			buffersToWrite.pop_back()
+			buffersToWrite.pop_back();
 			newBuffer2->reset();
 		}
 

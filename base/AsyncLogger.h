@@ -9,12 +9,13 @@
 
 #include <memory>
 #include <vector>
+#include <string>
 
 namespace iak {
 
 class AsyncLogger : public NonCopyable {
 public:
-	AsyncLogger(const string& basename,
+	AsyncLogger(const std::string& basename,
 				size_t rollSize,
 				int flushInterval = 3);
 
@@ -49,7 +50,7 @@ private:
 
 	const int flushInterval_;
 	bool running_;
-	string basename_;
+	std::string basename_;
 	size_t rollSize_;
 
 	Thread thread_;
