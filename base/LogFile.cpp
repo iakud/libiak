@@ -8,8 +8,8 @@
 
 namespace iak {
 
-#define ROLLFILE_CHECKTIMES	1024;
-#define ROLLFILE_PERSECONDS	60*60*24;
+#define ROLLFILE_CHECKTIMES	1024
+#define ROLLFILE_PERSECONDS	60*60*24
 
 // not thread safe
 class LogFile::File : public NonCopyable {
@@ -103,7 +103,7 @@ void LogFile::flush() {
 
 void LogFile::append_unlocked(const char* logline, int len) {
 	file_->append(logline, len);
-	if (file_->GetWrittenBytes() > rollSize_) {
+	if (file_->writtenBytes() > rollSize_) {
 		rollFile();
 	} else {
 		if (count_ > ROLLFILE_CHECKTIMES) {

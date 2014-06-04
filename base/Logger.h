@@ -40,7 +40,7 @@ private:
 template <typename T>
 T* CheckNotNull(const char* filename, int line, const char *name, T* ptr) {
 	if (ptr == NULL) {
-		Logger(filename, line, Logger::FATAL).GetStream() << name;
+		Logger(filename, line, Logger::FATAL).stream() << name;
 	}
 	return ptr;
 }

@@ -61,7 +61,7 @@ void Thread::cacheTid() {
 }
 
 bool Thread::isMainThread() {
-	return GetTid() == ::getpid();
+	return tid() == ::getpid();
 }
 
 void sleepUsec(int64_t usec) {

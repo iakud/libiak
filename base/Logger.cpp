@@ -53,12 +53,12 @@ Logger::FlushFunc Logger::s_flush_ = defaultFlush;
 using namespace iak;
 
 Logger::Logger(const char* filename, int line, LogLevel level)
-	: time_(Timestamp::Now())
+	: time_(Timestamp::now())
 	, stream_()
 	, filename_(filename)
 	, line_(line)
 	, level_(level) {
-	int64_t time = time_.GetTime();
+	int64_t time = time_.getTime();
 	time_t seconds = static_cast<time_t>(time / MICROSEC_PER_SEC);
 	int microseconds = static_cast<int>(time % MICROSEC_PER_SEC);
 	if (seconds != t_lastSecond) {
@@ -73,8 +73,8 @@ Logger::Logger(const char* filename, int line, LogLevel level)
 	}
 	LogFormat us(".%06dZ ", microseconds);
 	assert(us.length() == 9);
-	stream_ << t_time <<us.GetData();
-	stream_ << Thread::GetTidString();
+	stream_ << t_time <<us.data();
+	stream_ << Thread::tidString();
 	stream_ << LogLevelName[level];
 }
 
@@ -85,8 +85,6 @@ Logger::Logger(const char* filename, int line, LogLevel level, const char* func)
 
 Logger::Logger(const char* filename, int line, bool toAbort)
 	: Logger(filename, line, toAbort?FATAL:ERROR) {
-	stream_ << Thread::GetTidString();
-	stream_ << LogLevelName[level_];
 	int savedErrno = errno;
 	if (savedErrno != 0) {
 		stream_ << strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
