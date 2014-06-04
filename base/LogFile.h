@@ -17,8 +17,8 @@ public:
 		int flushInterval = 3);
 	~LogFile();
 
-	void Append(const char* logline, int len);
-	void Flush();
+	void append(const char* logline, int len);
+	void flush();
 
 private:
 	void append_unlocked(const char* logline, int len);
@@ -38,9 +38,6 @@ private:
 
 	class File;
 	std::unique_ptr<File> file_;
-
-	const static int kCheckTimeRoll_ = 1024;
-	const static int kRollPerSeconds_ = 60*60*24;
 }; // end class LogFile
 
 } // end namespace iak

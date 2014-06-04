@@ -4,7 +4,7 @@ using namespace iak;
 
 #define NANOSEC_PER_SEC ((uint64_t)1e9)
 
-bool Condition::TimedWait(uint64_t timeout) {
+bool Condition::timedwait(uint64_t timeout) {
 	struct timespec abstime;
 	::clock_gettime(CLOCK_REALTIME, &abstime);
 	timeout += (abstime.tv_sec * NANOSEC_PER_SEC + abstime.tv_nsec);

@@ -20,26 +20,26 @@ private:
 	typedef std::function<void()> ThreadFunc;
 
 public:
-	static int GetTid() {
+	static int tid() {
 		if (t_tid == 0) {
 			cacheTid();
 		}
 		return t_tid;
 	}
 
-	static const char* GetTidString() {
+	static const char* tidString() {
 		if (t_tid == 0) {
 			cacheTid();
 		}
 		return t_tidstr;
 	}
 
-	static const char* GetName() {
+	static const char* name() {
 		return t_name;
 	}
 
-	static bool IsMainThread();
-	static void SleepUsec(int64_t usec);
+	static bool isMainThread();
+	static void sleepUsec(int64_t usec);
 private:
 	static void cacheTid();
 
@@ -47,8 +47,8 @@ public:
 	explicit Thread(ThreadFunc&& func, const std::string& name);
 	~Thread();
 
-	void Start();
-	void Join();
+	void start();
+	void join();
 
 private:
 	std::atomic_flag started_;

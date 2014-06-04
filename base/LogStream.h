@@ -29,18 +29,18 @@ public:
 
 	LogStream& operator<<(float v) { *this << static_cast<double>(v); return *this; }
 	LogStream& operator<<(double v);
-	LogStream& operator<<(char v) { Append(&v, 1); return *this; }
+	LogStream& operator<<(char v) { append(&v, 1); return *this; }
 	//LogStream& operator<<(unsigned char v) { Append(&v, 1); return *this; }
-	LogStream& operator<<(const char* v) { Append(v, strlen(v)); return *this; }
-	LogStream& operator<<(const std::string& v) { Append(v.c_str(), v.size()); return *this; }
-	LogStream& operator<<(bool v) { Append(v ? "1" : "0", 1); return *this; }
+	LogStream& operator<<(const char* v) { append(v, strlen(v)); return *this; }
+	LogStream& operator<<(const std::string& v) { append(v.c_str(), v.size()); return *this; }
+	LogStream& operator<<(bool v) { append(v ? "1" : "0", 1); return *this; }
 	LogStream& operator<<(const void*);
 
-	const char* GetData() const { return data_; }
-	int GetLength() const { return static_cast<int>(cur_ - data_); }
-	void Reset() { cur_ = data_; }
+	const char* data() const { return data_; }
+	int length() const { return static_cast<int>(cur_ - data_); }
+	void reset() { cur_ = data_; }
 
-	void Append(const char* data, size_t len) {
+	void append(const char* data, size_t len) {
 		if (static_cast<size_t>(avail()) > len) {
 			::memcpy(cur_, data, len);
 			cur_ += len;
@@ -63,8 +63,8 @@ public:
 	template<typename T>
 	LogFormat(const char* fmt, T val);
 
-	const char* GetData() const { return data_; }
-	int GetLength() const { return length_; }
+	const char* data() const { return data_; }
+	int length() const { return length_; }
 
 private:
 	char data_[LOGFORMAT_SIZE];
@@ -72,7 +72,7 @@ private:
 }; // end class LogFormat
 
 inline LogStream& operator<<(LogStream& stream, const LogFormat& fmt) {
-	stream.Append(fmt.GetData(), fmt.GetLength());
+	stream.append(fmt.data(), fmt.length());
 	return stream; 
 }
 

@@ -17,19 +17,19 @@ public:
 		::pthread_mutex_destroy(&mutex_);
 	}
 
-	void Lock() {
+	void lock() {
 		::pthread_mutex_lock(&mutex_);
 	}
 
-	bool TryLock() {
+	bool trylock() {
 		return !(::pthread_mutex_trylock(&mutex_));// ret : EBUSY
 	}
 
-	void Unlock() {
+	void unlock() {
 		::pthread_mutex_unlock(&mutex_);
 	}
 
-	pthread_mutex_t& GetPthreadMutex() {
+	pthread_mutex_t& getPthreadMutex() {
 		return mutex_;
 	}
 
@@ -41,11 +41,11 @@ class MutexGuard : public NonCopyable {
 public:
 	explicit MutexGuard(Mutex& mutex)
 		: mutex_(mutex) {
-		mutex_.Lock();
+		mutex_.lock();
 	}
 
 	~MutexGuard() {
-		mutex_.Unlock();
+		mutex_.unlock();
 	}
 
 private:

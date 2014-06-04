@@ -21,7 +21,7 @@ FileReader::~FileReader() {
 	}
 }
 
-int FileReader::ReadToString(std::string& content, size_t size) {
+int FileReader::readToString(std::string& content, size_t size) {
 	if (fd_ < 0) {
 		return err_;
 	}

@@ -12,14 +12,14 @@ public:
 			std::string& content,
 			size_t size) {
 		FileReader file(filename);
-		return file.ReadToString(content, size);
+		return file.readToString(content, size);
 	}
 
 public:
 	FileReader(const char* filename);
 	~FileReader();
 
-	int ReadToString(std::string& content, size_t size);
+	int readToString(std::string& content, size_t size);
 
 private:
 	int fd_;

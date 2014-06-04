@@ -7,7 +7,7 @@ using namespace iak;
 
 #define MICROSEC_PER_SEC ((uint32_t)1e6)
 
-Timestamp Timestamp::Now() {
+Timestamp Timestamp::now() {
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	return Timestamp(tv.tv_sec * MICROSEC_PER_SEC + tv.tv_usec);

@@ -11,14 +11,11 @@ namespace iak {
 template<typename T>
 class Singleton : public NonCopyable {
 public:
-	static T& Instance() {
+	static T& GetInstance() {
 		::pthread_once(&s_once_, &Singleton::init);
 		return *s_value_;
 	}
 
-	void Destroy() {
-		delete s_value_;
-	}
 private:
 	Singleton();
 	~Singleton();

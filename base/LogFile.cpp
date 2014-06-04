@@ -7,6 +7,10 @@
 #include <time.h>
 
 namespace iak {
+
+#define ROLLFILE_CHECKTIMES	1024;
+#define ROLLFILE_PERSECONDS	60*60*24;
+
 // not thread safe
 class LogFile::File : public NonCopyable {
 public:
@@ -22,7 +26,7 @@ public:
 		::fclose(fp_);
 	}
 
-	void Append(const char* logline, const size_t len) {
+	void append(const char* logline, const size_t len) {
 		size_t n = write(logline, len);
 		size_t remain = len - n;
 		while (remain > 0) {
@@ -40,11 +44,11 @@ public:
 		writtenBytes_ += len;
 	}
 
-	void Flush() {
+	void flush() {
 		::fflush(fp_);
 	}
 
-	size_t GetWrittenBytes() const { return writtenBytes_; }
+	size_t writtenBytes() const { return writtenBytes_; }
 
 private:
 	size_t write(const char* logline, size_t len) {
@@ -79,7 +83,7 @@ LogFile::LogFile(const std::string& basename,
 LogFile::~LogFile() {
 }
 
-void LogFile::Append(const char* logline, int len) {
+void LogFile::append(const char* logline, int len) {
 	if (mutex_) {
 		MutexGuard lock(*mutex_);
 		append_unlocked(logline, len);
@@ -88,29 +92,29 @@ void LogFile::Append(const char* logline, int len) {
 	}
 }
 
-void LogFile::Flush() {
+void LogFile::flush() {
 	if (mutex_) {
 		MutexGuard lock(*mutex_);
-		file_->Flush();
+		file_->flush();
 	} else {
-		file_->Flush();
+		file_->flush();
 	}
 }
 
 void LogFile::append_unlocked(const char* logline, int len) {
-	file_->Append(logline, len);
+	file_->append(logline, len);
 	if (file_->GetWrittenBytes() > rollSize_) {
 		rollFile();
 	} else {
-		if (count_ > kCheckTimeRoll_) {
+		if (count_ > ROLLFILE_CHECKTIMES) {
 			count_ = 0;
 			time_t now = ::time(NULL);
-			time_t thisPeriod_ = now / kRollPerSeconds_ * kRollPerSeconds_;
+			time_t thisPeriod_ = now / ROLLFILE_PERSECONDS * ROLLFILE_PERSECONDS;
 			if (thisPeriod_ != startOfPeriod_) {
 				rollFile();
 			} else if (now - lastFlush_ > flushInterval_) {
 				lastFlush_ = now;
-				file_->Flush();
+				file_->flush();
 			}
 		} else {
 			++count_;
@@ -121,7 +125,7 @@ void LogFile::append_unlocked(const char* logline, int len) {
 void LogFile::rollFile() {
 	time_t now = 0;
 	std::string filename = getLogFileName(basename_, &now);
-	time_t start = now / kRollPerSeconds_ * kRollPerSeconds_;
+	time_t start = now / ROLLFILE_PERSECONDS * ROLLFILE_PERSECONDS;
 
 	if (now > lastRoll_) {
 		lastRoll_ = now;

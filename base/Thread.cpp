@@ -34,10 +34,10 @@ public:
 		, tid_(tid) {
 	}
 
-	void Run() {
+	void run() {
 		std::shared_ptr<int> tid = tid_.lock();
 		if (tid) {
-			*tid = Thread::GetTid();
+			*tid = Thread::tid();
 		}
 		t_name = name_.c_str();
 		func_();
@@ -60,11 +60,11 @@ void Thread::cacheTid() {
 	assert(n == 6);
 }
 
-bool Thread::IsMainThread() {
+bool Thread::isMainThread() {
 	return GetTid() == ::getpid();
 }
 
-void SleepUsec(int64_t usec) {
+void sleepUsec(int64_t usec) {
 	struct timespec ts = {
 		static_cast<time_t>(usec / MICROSEC_PER_SEC),
 		static_cast<long>(usec % MICROSEC_PER_SEC * NANOSEC_PER_MICROSEC)
@@ -72,9 +72,9 @@ void SleepUsec(int64_t usec) {
 	::nanosleep(&ts, NULL);
 }
 
-void* StartRoutine(void* arg) {
+void* start_routine(void* arg) {
 	std::unique_ptr<ThreadRoutine> routine(static_cast<ThreadRoutine*>(arg));
-	routine->Run();
+	routine->run();
 	return NULL;
 }
 
@@ -93,18 +93,18 @@ Thread::~Thread() {
 	}
 }
 
-void Thread::Start() {
+void Thread::start() {
 	if (started_.test_and_set()) {
 		return;
 	}
 	ThreadRoutine* routine = new ThreadRoutine(func_, name_, tid_);
-	if (::pthread_create(&thread_, NULL, StartRoutine, routine)) {
+	if (::pthread_create(&thread_, NULL, start_routine, routine)) {
 		delete routine;
 		// LOG
 	}
 }
 
-void Thread::Join() {
+void Thread::join() {
 	if (joined_.test_and_set()) {
 		return;
 	}

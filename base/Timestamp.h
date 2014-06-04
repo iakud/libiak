@@ -7,7 +7,7 @@ namespace iak {
 
 class Timestamp {
 public:
-	static Timestamp Now();
+	static Timestamp now();
 
 public:
 	Timestamp()

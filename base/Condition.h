@@ -20,19 +20,19 @@ public:
 		::pthread_cond_destroy(&cond_);
 	}
 
-	void Signal() {
+	void signal() {
 		::pthread_cond_signal(&cond_);
 	}
 
-	void Broadcast() {
+	void broadcast() {
 		::pthread_cond_broadcast(&cond_);
 	}
 
-	void Wait() {
+	void wait() {
 		::pthread_cond_wait(&cond_, &mutex_.GetPthreadMutex());
 	}
 
-	bool TimedWait(uint64_t timeout);
+	bool timedwait(uint64_t timeout);
 
 private:
 	Mutex& mutex_;

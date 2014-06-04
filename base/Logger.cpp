@@ -72,7 +72,7 @@ Logger::Logger(const char* filename, int line, LogLevel level)
 		assert(len == 17); (void)len;
 	}
 	LogFormat us(".%06dZ ", microseconds);
-	assert(us.GetLength() == 9);
+	assert(us.length() == 9);
 	stream_ << t_time <<us.GetData();
 	stream_ << Thread::GetTidString();
 	stream_ << LogLevelName[level];
@@ -100,7 +100,7 @@ Logger::~Logger() {
 	}
 	stream_ << " - " << filename_ << ':' << line_ << '\n';
 
-	s_output_(stream_.GetData(), stream_.GetLength());
+	s_output_(stream_.data(), stream_.length());
 	if (level_ == FATAL) {
 		s_flush_();
 		::abort();
