@@ -23,7 +23,7 @@ public:
 	/* Return the number of microseconds since
 	 * January 1, 1970, 00:00:00 GMT
 	 * represented by this Timestamp object.*/
-	int64_t GetTime() const {
+	int64_t getTime() const {
 		return time_;
 	}
 
@@ -36,27 +36,27 @@ private:
 }; // end class Timestamp
 
 inline bool operator==(Timestamp& lhs, Timestamp& rhs) {
-	return lhs.GetTime() == rhs.GetTime();
+	return lhs.getTime() == rhs.getTime();
 }
 
 inline bool operator!=(Timestamp& lhs, Timestamp& rhs) {
-	return lhs.GetTime() != rhs.GetTime();
+	return lhs.getTime() != rhs.getTime();
 }
 
 inline bool operator<(Timestamp& lhs, Timestamp& rhs) {
-	return lhs.GetTime() < rhs.GetTime();
+	return lhs.getTime() < rhs.getTime();
 }
 
 inline bool operator<=(Timestamp& lhs, Timestamp& rhs) {
-	return lhs.GetTime() <= rhs.GetTime();
+	return lhs.getTime() <= rhs.getTime();
 }
 
 inline bool operator>(Timestamp& lhs, Timestamp& rhs) {
-	return lhs.GetTime() > rhs.GetTime();
+	return lhs.getTime() > rhs.getTime();
 }
 
 inline bool operator>=(Timestamp& lhs, Timestamp& rhs) {
-	return lhs.GetTime() >= rhs.GetTime();
+	return lhs.getTime() >= rhs.getTime();
 }
 
 } // end namespace iak

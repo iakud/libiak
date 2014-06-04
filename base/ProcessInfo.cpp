@@ -41,50 +41,50 @@ Timestamp g_startTime = Timestamp::Now();
 
 using namespace iak;
 
-pid_t ProcessInfo::Pid() {
+pid_t ProcessInfo::pid() {
 	return ::getpid();
 }
 
-string ProcessInfo::PidString() {
+string ProcessInfo::pidString() {
 	char buf[32];
 	::snprintf(buf, sizeof buf, "%d", pid());
 }
 
-uid_t ProcessInfo::Uid() {
+uid_t ProcessInfo::uid() {
 	return ::getuid();
 }
 
-std::string ProcessInfo::UserName() {
+std::string ProcessInfo::userName() {
 	struct passwd pwd;
 	struct passwd* result = NULL;
 	char buf[8192];
 	const char* name = "unknownuser";
 
-	::getpwuid_r(Uid(), &pwd, buf, sizeof buf, &result);
+	::getpwuid_r(uid(), &pwd, buf, sizeof buf, &result);
 	if (result) {
 		name = pwd.pw_name;
 	}
 	return name;
 }
 
-uid_t ProcessInfo::Euid() {
+uid_t ProcessInfo::euid() {
 	return ::geteuid();
 }
 
-Timestamp ProcessInfo::StartTime() {
+Timestamp ProcessInfo::startTime() {
 	return g_startTime;
 }
 
-std::string ProcessInfo::HostName() {
+std::string ProcessInfo::hostName() {
 	char buf[64] = "unknownhost";
 	buf[sizeof buf - 1] = '\0';
 	::gethostname(buf, sizeof buf);
 	return buf;
 }
 
-std::string ProcessInfo::ProcName() {
+std::string ProcessInfo::procName() {
 	string name;
-	str stat = ProcStat();
+	str stat = procStat();
 	size_t lp = stat.find('(');
 	size_t rp = stat.find(')');
 	if (lp != std::string::npos && rp != std::string::npos) {
@@ -93,19 +93,19 @@ std::string ProcessInfo::ProcName() {
 	return name;
 }
 
-std::string ProcessInfo::ProcStatus() {
+std::string ProcessInfo::procStatus() {
 	std::string result;
-	FileReader::ReadFile("/proc/self/status", result, 65536);
+	FileReader::readFile("/proc/self/status", result, 65536);
 	return result;
 }
 
-std::string ProcessInfo::ProcStat() {
+std::string ProcessInfo::procStat() {
 	std::string result;
-	FileReader::ReadFile("/proc/self/stat", result, 65536);
+	FileReader::readFile("/proc/self/stat", result, 65536);
 	return result;
 }
 
-std::string ProcessInfo::ExePath() {
+std::string ProcessInfo::exePath() {
 	std::string result;
 	char buf[1024];
 	ssize_t nRead = ::readlink("/proc/self/exe", buf, sizeof buf);

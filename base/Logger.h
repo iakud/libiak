@@ -26,9 +26,6 @@ public:
 	LogStream& stream() { return stream_; }
 
 private:
-	void formatTime();
-	void finish();
-
 	static LogLevel s_level_;
 	static OutputFunc s_output_;
 	static FlushFunc s_flush_;

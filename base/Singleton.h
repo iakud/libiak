@@ -11,7 +11,7 @@ namespace iak {
 template<typename T>
 class Singleton : public NonCopyable {
 public:
-	static T& GetInstance() {
+	static T& getInstance() {
 		::pthread_once(&s_once_, &Singleton::init);
 		return *s_value_;
 	}

@@ -8,25 +8,25 @@ namespace iak {
 
 class ProcessInfo {
 public:
-	static pid_t Pid();
-	static string PidString();
-	static uid_t Uid();
-	static string UserName();
-	static uid_t Euid();
-	static Timestamp StartTime();
+	static pid_t pid();
+	static string pidString();
+	static uid_t uid();
+	static string userName();
+	static uid_t euid();
+	static Timestamp startTime();
 
-	static string HostName();
-	static string ProcName();
+	static string hostName();
+	static string procName();
 
-	static string ProcStatus();
-	static string ProcStat();
-	static string ExePath();
+	static string procStatus();
+	static string procStat();
+	static string exePath();
 
-	static int OpenedFiles();
-	static int MaxOpenFiles();
+	static int openedFiles();
+	static int maxOpenFiles();
 
-	static NumThreads();
-	static std::vector<pid_t> Threads();
+	static numThreads();
+	static std::vector<pid_t> threads();
 }; // end class ProcessInfo
 
 } // end namespace iak

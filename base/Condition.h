@@ -29,7 +29,7 @@ public:
 	}
 
 	void wait() {
-		::pthread_cond_wait(&cond_, &mutex_.GetPthreadMutex());
+		::pthread_cond_wait(&cond_, &mutex_.getPthreadMutex());
 	}
 
 	bool timedwait(uint64_t timeout);
