@@ -1,50 +1,46 @@
-#include <muduo/base/AsyncLogging.h>
-#include <muduo/base/LogFile.h>
-#include <muduo/base/Timestamp.h>
+#include "AsyncLogger.h"
+#include "LogFile.h"
+#include "Timestamp.h"
 
 #include <stdio.h>
-
-#define ASYNCLOGGER_BUFFER_SIZE 4096 * 1024
 
 namespace iak {
 
 class AsyncLogger::Buffer : public NonCopyable {
 public:
 	Buffer()
-		: cur_(data_) {
+		: cur_(data_)
+		, end_(data_ + sizeof data_) {
 	}
 
 	~Buffer() {
 	}
 
-	void Append(const char* buf, size_t len) {
+	void append(const char* buf, size_t len) {
 		if ((size_t)avail() > len) {
-			memcpy(cur_, buf, len);
+			::memcpy(cur_, buf, len);
 			cur_ += len;
 		}
 	}
 
-	const char* GetData() const {
+	const char* data() const {
 		return data_;
 	}
 
-	int GetLength() const {
+	int length() const {
 		return static_cast<int>(cur_ - data_);
 	}
 
-	char* Current() { return cur_; }
-	int Avail() const { return end() - cur_; }
-	void Add(size_t len) { cur_ += len; }
+	int avail() const { end_ - cur_; }
 
-	void Reset() { cur_ = data_;}
-	void Zero() { ::bzero(data_, sizeof(data_); }
+	void reset() { cur_ = data_;}
+	//void bzero() { ::bzero(data_, sizeof(data_); }
 private:
-	const char* end() const {
-		return data_ + sizeof(data_);
-	}
+	const int BUFFER_SIZE = 4096 * 1024;
 
-	char data_[ASYNCLOGGER_BUFFER_SIZE];
+	char data_[BUFFER_SIZE];
 	char* cur_;
+	char* end_;
 }; // end class AsyncLogger::Buffer
 
 } // end namespace iak
@@ -55,35 +51,35 @@ AsyncLogger::AsyncLogger(const string& basename,
 						size_t rollSize,
 						int flushInterval)
 	: flushInterval_(flushInterval)
-	, running_(false),
-    basename_(basename),
-    rollSize_(rollSize),
-    thread_(std::bind(&AsyncLogger::threadFunc, this), "Logging"),
-    latch_(1),
-    mutex_(),
-    cond_(mutex_)
+	, running_(false)
+	, basename_(basename)
+	, rollSize_(rollSize)
+	, thread_(std::bind(&AsyncLogger::threadFunc, this), "Logger")
+	, latch_(1)
+	, mutex_()
+	, cond_(mutex_)
 	, currentBuffer_(std::make_shared<Buffer>())
     , nextBuffer_(std::make_shared<Buffer>())
     , buffers_() {
-	currentBuffer_->Zero();
-	nextBuffer_->Zero();
+	//currentBuffer_->bzero();
+	//nextBuffer_->bzero();
 	buffers_.reserve(16);
 }
 
 void AsyncLogger::append(const char* logline, int len) {
 	MutexGuard lock(mutex_);
-	if (currentBuffer_->Avail() > len) {
-		currentBuffer_->Append(logline, len);
+	if (currentBuffer_->avail() > len) {
+		currentBuffer_->append(logline, len);
 	} else {
 		buffers_.push_back(currentBuffer_.release());
 
 		if (nextBuffer_) {
-			currentBuffer_ = boost::ptr_container::move(nextBuffer_);
+			currentBuffer_ = &&nextBuffer_;
 		} else {
 			currentBuffer_.reset(new Buffer); // Rarely happens
 		}
 		currentBuffer_->append(logline, len);
-		cond_.Notify();
+		cond_.signal();
 	}
 }
 
@@ -93,73 +89,63 @@ void AsyncLogger::threadFunc() {
 	LogFile output(basename_, rollSize_, false);
 	BufferPtr newBuffer1(new Buffer);
 	BufferPtr newBuffer2(new Buffer);
-  newBuffer1->bzero();
-  newBuffer2->bzero();
-  BufferVector buffersToWrite;
-  buffersToWrite.reserve(16);
-  while (running_)
-  {
-    assert(newBuffer1 && newBuffer1->length() == 0);
-    assert(newBuffer2 && newBuffer2->length() == 0);
-    assert(buffersToWrite.empty());
+	//newBuffer1->bzero();
+	//newBuffer2->bzero();
+	std::vector<BufferPtr> buffersToWrite;
+	buffersToWrite.reserve(16);
+	while (running_) {
+		assert(newBuffer1 && newBuffer1->length() == 0);
+		assert(newBuffer2 && newBuffer2->length() == 0);
+		assert(buffersToWrite.empty());
 
-    {
-      muduo::MutexLockGuard lock(mutex_);
-      if (buffers_.empty())  // unusual usage!
-      {
-        cond_.waitForSeconds(flushInterval_);
-      }
-      buffers_.push_back(currentBuffer_.release());
-      currentBuffer_ = boost::ptr_container::move(newBuffer1);
-      buffersToWrite.swap(buffers_);
-      if (!nextBuffer_)
-      {
-        nextBuffer_ = boost::ptr_container::move(newBuffer2);
-      }
-    }
+		{
+			muduo::MutexLockGuard lock(mutex_);
+			if (buffers_.empty()) {  // unusual usage!
+				cond_.waitForSeconds(flushInterval_);
+			}
+			buffers_.push_back(currentBuffer_.release());
+			currentBuffer_ = &&newBuffer1;
+			buffersToWrite.swap(buffers_);
+			if (!nextBuffer_) {
+				nextBuffer_ = &&newBuffer2;
+			}
+		}
 
-    assert(!buffersToWrite.empty());
+		assert(!buffersToWrite.empty());
+		if (buffersToWrite.size() > 25) {
+			char buf[256];
+			::snprintf(buf, sizeof buf, "Dropped log messages at %s, %zd larger buffers\n",
+				Timestamp::now().toFormattedString().c_str(), buffersToWrite.size()-2);
+			::fputs(buf, stderr);
+			output.append(buf, static_cast<int>(strlen(buf)));
+			buffersToWrite.erase(buffersToWrite.begin()+2, buffersToWrite.end());
+		}
 
-    if (buffersToWrite.size() > 25)
-    {
-      char buf[256];
-      snprintf(buf, sizeof buf, "Dropped log messages at %s, %zd larger buffers\n",
-               Timestamp::now().toFormattedString().c_str(),
-               buffersToWrite.size()-2);
-      fputs(buf, stderr);
-      output.append(buf, static_cast<int>(strlen(buf)));
-      buffersToWrite.erase(buffersToWrite.begin()+2, buffersToWrite.end());
-    }
+		for (size_t i = 0; i < buffersToWrite.size(); ++i) {
+			output.append(buffersToWrite[i].data(), buffersToWrite[i].length());
+		}
 
-    for (size_t i = 0; i < buffersToWrite.size(); ++i)
-    {
-      // FIXME: use unbuffered stdio FILE ? or use ::writev ?
-      output.append(buffersToWrite[i].data(), buffersToWrite[i].length());
-    }
+		if (buffersToWrite.size() > 2) {
+			buffersToWrite.resize(2);
+		}
 
-    if (buffersToWrite.size() > 2)
-    {
-      // drop non-bzero-ed buffers, avoid trashing
-      buffersToWrite.resize(2);
-    }
+		if (!newBuffer1) {
+			assert(!buffersToWrite.empty());
+			newBuffer1 = buffersToWrite.back();
+			buffersToWrite.pop_back()
+			newBuffer1->reset();
+		}
 
-    if (!newBuffer1)
-    {
-      assert(!buffersToWrite.empty());
-      newBuffer1 = buffersToWrite.pop_back();
-      newBuffer1->reset();
-    }
+		if (!newBuffer2) {
+			assert(!buffersToWrite.empty());
+			newBuffer2 = buffersToWrite.back();
+			buffersToWrite.pop_back()
+			newBuffer2->reset();
+		}
 
-    if (!newBuffer2)
-    {
-      assert(!buffersToWrite.empty());
-      newBuffer2 = buffersToWrite.pop_back();
-      newBuffer2->reset();
-    }
-
-    buffersToWrite.clear();
-    output.flush();
-  }
-  output.flush();
+		buffersToWrite.clear();
+		output.flush();
+	}
+	output.flush();
 }
 

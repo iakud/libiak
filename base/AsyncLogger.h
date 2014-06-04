@@ -2,18 +2,13 @@
 #define IAK_BASE_ASYNCLOGGGER_H
 
 #include "NonCopyable.h"
-#include <muduo/base/BlockingQueue.h>
-#include <muduo/base/BoundedBlockingQueue.h>
-#include <muduo/base/CountDownLatch.h>
+#include "BlockingQueue.h"
+#include "CountDownLatch.h"
 #include "Mutex.h"
 #include "Thread.h"
 
-#include <muduo/base/LogStream.h>
-
-#include <boost/bind.hpp>
-#include <boost/noncopyable.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <boost/ptr_container/ptr_vector.hpp>
+#include <memory>
+#include <vector>
 
 namespace iak {
 
@@ -29,9 +24,9 @@ public:
 		}
 	}
 
-	void Append(const char* logline, int len);
+	void append(const char* logline, int len);
 
-	void Start() {
+	void start() {
 		running_ = true;
 		thread_.start();
 		latch_.wait();
@@ -39,29 +34,29 @@ public:
 
 	void stop() {
 		running_ = false;
-		cond_.notify();
+		cond_.signal();
 		thread_.join();
 	}
 
- private:
-
-  // declare but not define, prevent compiler-synthesized functions
-  AsyncLogging(const AsyncLogging&);  // ptr_container
-  void operator=(const AsyncLogging&);  // ptr_container
+private:
+	AsyncLogger(const AsyncLogger&);  // ptr_container
+	void operator=(const AsyncLogger&);  // ptr_container
 
 	void threadFunc();
 
 	class Buffer;
 	typedef std::shared_ptr<Buffer> BufferPtr;
 
-  const int flushInterval_;
-  bool running_;
-  string basename_;
-  size_t rollSize_;
-  muduo::Thread thread_;
-  muduo::CountDownLatch latch_;
-  muduo::MutexLock mutex_;
-  muduo::Condition cond_;
+	const int flushInterval_;
+	bool running_;
+	string basename_;
+	size_t rollSize_;
+
+	Thread thread_;
+	CountDownLatch latch_;
+	Mutex mutex_;
+	Condition cond_;
+
 	BufferPtr currentBuffer_;
 	BufferPtr nextBuffer_;
 	std::vector<BufferPtr> buffers_;
