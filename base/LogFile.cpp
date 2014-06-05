@@ -8,9 +8,6 @@
 
 namespace iak {
 
-#define ROLLFILE_CHECKTIMES	1024
-#define ROLLFILE_PERSECONDS	60*60*24
-
 // not thread safe
 class LogFile::File : public NonCopyable {
 public:
@@ -106,10 +103,10 @@ void LogFile::append_unlocked(const char* logline, int len) {
 	if (file_->writtenBytes() > rollSize_) {
 		rollFile();
 	} else {
-		if (count_ > ROLLFILE_CHECKTIMES) {
+		if (count_ > kCheckTimeRoll_) {
 			count_ = 0;
 			time_t now = ::time(NULL);
-			time_t thisPeriod_ = now / ROLLFILE_PERSECONDS * ROLLFILE_PERSECONDS;
+			time_t thisPeriod_ = now / kRollPerSeconds_ * kRollPerSeconds_;
 			if (thisPeriod_ != startOfPeriod_) {
 				rollFile();
 			} else if (now - lastFlush_ > flushInterval_) {
@@ -125,7 +122,7 @@ void LogFile::append_unlocked(const char* logline, int len) {
 void LogFile::rollFile() {
 	time_t now = 0;
 	std::string filename = getLogFileName(basename_, &now);
-	time_t start = now / ROLLFILE_PERSECONDS * ROLLFILE_PERSECONDS;
+	time_t start = now / kRollPerSeconds_ * kRollPerSeconds_;
 
 	if (now > lastRoll_) {
 		lastRoll_ = now;

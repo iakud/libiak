@@ -1,13 +1,11 @@
 #include <base/Date.h>
 #include <stdio.h>  // snprintf
 
-namespace iak
-{
+namespace iak {
 
 char require_32_bit_integer_at_least[sizeof(int) >= sizeof(int32_t) ? 1 : -1];
 
-int getJulianDayNumber(int year, int month, int day)
-{
+int getJulianDayNumber(int year, int month, int day) {
 	(void) require_32_bit_integer_at_least; // no warning please
 	int a = (14 - month) / 12;
 	int y = year + 4800 - a;
@@ -15,8 +13,7 @@ int getJulianDayNumber(int year, int month, int day)
 	return day + (153*m + 2) / 5 + y*365 + y/4 - y/100 + y/400 - 32045;
 }
 
-struct Date::YearMonthDay getYearMonthDay(int julianDayNumber)
-{
+struct Date::YearMonthDay getYearMonthDay(int julianDayNumber) {
 	int a = julianDayNumber + 32044;
 	int b = (4 * a + 3) / 146097;
 	int c = a - ((b * 146097) / 4);

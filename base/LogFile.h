@@ -21,9 +21,12 @@ public:
 	void flush();
 
 private:
+	static const int kCheckTimeRoll_ = 1024;
+	static const int kRollPerSeconds_ = 60*60*24;
+	static std::string getLogFileName(const std::string& basename, time_t* now);
+
 	void append_unlocked(const char* logline, int len);
 	void rollFile();
-	static std::string getLogFileName(const std::string& basename, time_t* now);
 
 	const std::string basename_;
 	const size_t rollSize_;

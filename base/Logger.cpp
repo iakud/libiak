@@ -10,8 +10,6 @@
 
 namespace iak {
 
-const uint32_t MICROSEC_PER_SEC = 1e6;
-
 __thread char t_errnobuf[512];
 __thread char t_time[32];
 __thread time_t t_lastSecond;
@@ -59,8 +57,8 @@ Logger::Logger(const char* filename, int line, LogLevel level)
 	, line_(line)
 	, level_(level) {
 	int64_t time = time_.getTime();
-	time_t seconds = static_cast<time_t>(time / MICROSEC_PER_SEC);
-	int microseconds = static_cast<int>(time % MICROSEC_PER_SEC);
+	time_t seconds = static_cast<time_t>(time / Timestamp::kMicroSecondsPerSecond);
+	int microseconds = static_cast<int>(time % Timestamp::kMicroSecondsPerSecond);
 	if (seconds != t_lastSecond) {
 		t_lastSecond = seconds;
 		struct tm tm_time;

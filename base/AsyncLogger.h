@@ -43,10 +43,12 @@ private:
 	AsyncLogger(const AsyncLogger&);  // ptr_container
 	void operator=(const AsyncLogger&);  // ptr_container
 
-	void threadFunc();
+	static const uint64_t kMicroSecondsPerSecond = 1e6;
 
 	class Buffer;
 	typedef std::shared_ptr<Buffer> BufferPtr;
+
+	void threadFunc();
 
 	const int flushInterval_;
 	bool running_;

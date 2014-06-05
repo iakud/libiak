@@ -51,6 +51,8 @@ public:
 	void join();
 
 private:
+	static const uint32_t kMicroSecondsPerSecond = 1e6;
+
 	std::atomic_flag started_;
 	std::atomic_flag joined_;
 	pthread_t thread_;

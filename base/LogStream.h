@@ -8,9 +8,6 @@
 
 namespace iak {
 
-#define LOGSTREAM_SIZE 4096
-#define LOGFORMAT_SIZE 32
-
 class LogStream : public NonCopyable {
 public:
 	LogStream()
@@ -48,12 +45,17 @@ public:
 	}
 
 private:
+	static const int kBufferSize = 4096;
+	static const int kMaxNumericSize = 32;
+
+	void static_check(); // for static_assert
+
 	template<typename T>
 	void formatInteger(T);
 
 	int avail() const { return static_cast<int>(end_ - cur_); }
 
-	char data_[LOGSTREAM_SIZE];
+	char data_[kBufferSize];
 	char* cur_;
 	char* end_;
 }; // end class LogStream
@@ -67,7 +69,9 @@ public:
 	int length() const { return length_; }
 
 private:
-	char data_[LOGFORMAT_SIZE];
+	static const int kBufferSize = 32;
+
+	char data_[kBufferSize];
 	int length_;
 }; // end class LogFormat
 

@@ -1,6 +1,6 @@
 #include "TimeZone.h"
-#include "Date.h"
 #include "NonCopyable.h"
+#include "Date.h"
 
 #include <algorithm>
 #include <stdexcept>

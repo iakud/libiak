@@ -12,7 +12,6 @@
 
 namespace iak {
 
-
 Timestamp g_startTime = Timestamp::now();
 
 __thread int t_numOpenedFiles = 0;

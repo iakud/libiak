@@ -7,9 +7,6 @@
 
 namespace iak {
 
-const uint64_t NANOSEC_PER_SEC = 1e9;
-const int BUFFER_SIZE = 4096 * 1024;
-
 class AsyncLogger::Buffer : public NonCopyable {
 public:
 	Buffer()
@@ -38,10 +35,11 @@ public:
 	int avail() const { return static_cast<int>(end_ - cur_); }
 
 	void reset() { cur_ = data_; }
-	//void bzero() { ::bzero(data_, sizeof(data_); }
 
 private:
-	char data_[BUFFER_SIZE];
+	static const int kBufferSize = 4096 * 1024;
+
+	char data_[kBufferSize];
 	char* cur_;
 	char* end_;
 }; // end class AsyncLogger::Buffer
@@ -104,7 +102,7 @@ void AsyncLogger::threadFunc() {
 		{
 			MutexGuard lock(mutex_);
 			if (buffers_.empty()) {  // unusual usage!
-				cond_.timedwait(flushInterval_ * NANOSEC_PER_SEC);
+				cond_.timedwait(flushInterval_ * kMicroSecondsPerSecond);
 			}
 			buffers_.push_back(currentBuffer_);
 			currentBuffer_.reset();

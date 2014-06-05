@@ -61,14 +61,14 @@ size_t convertHex(char buf[], uintptr_t value) {
 
 } // end namespace iak
 
-#define NUMERICSIZE_MAX 32
-
 using namespace iak;
 
-static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<double>::digits10, "NUMERICSIZE_MAX - 10 > std::numeric_limits<double>::digits10");
-static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<long double>::digits10, "NUMERICSIZE_MAX - 10 > std::numeric_limits<long double>::digits10");
-static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<long>::digits10, "NUMERICSIZE_MAX - 10 > std::numeric_limits<long>::digits10");
-static_assert(NUMERICSIZE_MAX - 10 > std::numeric_limits<long long>::digits10, "NUMERICSIZE_MAX - 10 > std::numeric_limits<long long>::digits10");
+void LogStream::static_check() {
+	static_assert(kMaxNumericSize - 10 > std::numeric_limits<double>::digits10, "kMaxNumericSize - 10 > std::numeric_limits<double>::digits10");
+	static_assert(kMaxNumericSize - 10 > std::numeric_limits<long double>::digits10, "kMaxNumericSize - 10 > std::numeric_limits<long double>::digits10");
+	static_assert(kMaxNumericSize - 10 > std::numeric_limits<long>::digits10, "kMaxNumericSize - 10 > std::numeric_limits<long>::digits10");
+	static_assert(kMaxNumericSize - 10 > std::numeric_limits<long long>::digits10, "kMaxNumericSize - 10 > std::numeric_limits<long long>::digits10");
+}
 
 LogStream& LogStream::operator<<(short v) {
 	formatInteger(static_cast<int>(v));
@@ -112,22 +112,22 @@ LogStream& LogStream::operator<<(unsigned long long v) {
 
 template<typename T>
 void LogStream::formatInteger(T v) {
-	if (avail() >= NUMERICSIZE_MAX) {
+	if (avail() >= kMaxNumericSize) {
 		cur_ += convert(cur_, v);
 	}
 }
 
 // FIXME: replace this with Grisu3 by Florian Loitsch.
 LogStream& LogStream::operator<<(double v) {
-	if (avail() >= NUMERICSIZE_MAX) {
-		cur_ += ::snprintf(cur_, NUMERICSIZE_MAX, "%.12g", v);
+	if (avail() >= kMaxNumericSize) {
+		cur_ += ::snprintf(cur_, kMaxNumericSize, "%.12g", v);
 	}
 	return *this;
 }
 
 LogStream& LogStream::operator<<(const void* p) {
 	uintptr_t v = reinterpret_cast<uintptr_t>(p);
-	if (avail() >= NUMERICSIZE_MAX) {
+	if (avail() >= kMaxNumericSize) {
 		cur_[0] = '0';
 		cur_[1] = 'x';
 		cur_ += 2;

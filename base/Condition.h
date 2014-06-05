@@ -32,9 +32,13 @@ public:
 		::pthread_cond_wait(&cond_, &mutex_.getPthreadMutex());
 	}
 
+	/* timedwait using
+	 * a microseconds time value.*/
 	bool timedwait(uint64_t timeout);
 
 private:
+	static const uint64_t kNanoSecondsPerSecond = 1e9;
+
 	Mutex& mutex_;
 	pthread_cond_t cond_;
 };
