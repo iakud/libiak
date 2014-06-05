@@ -61,7 +61,7 @@ bool Thread::isMainThread() {
 	return tid() == ::getpid();
 }
 
-void sleepUsec(int64_t usec) {
+void Thread::sleepUsec(int64_t usec) {
 	struct timespec ts = {
 		static_cast<time_t>(usec / kMicroSecondsPerSecond),
 		static_cast<long>(usec % kMicroSecondsPerSecond * 1000)

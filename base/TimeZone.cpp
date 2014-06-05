@@ -8,8 +8,9 @@
 #include <vector>
 
 //#define _BSD_SOURCE
-#include <endian.h>
+//#include <endian.h>
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <strings.h>
@@ -76,10 +77,10 @@ const int kSecondsPerDay = 24*60*60;
 using namespace iak;
 
 struct TimeZone::Data {
-	vector<Transition> transitions;
-	vector<Localtime> localtimes;
-	vector<string> names;
-	string abbreviation;
+	std::vector<Transition> transitions;
+	std::vector<Localtime> localtimes;
+	std::vector<std::string> names;
+	std::string abbreviation;
 };
 
 namespace iak {
@@ -98,19 +99,19 @@ public:
 
 	bool valid() const { return fp_; }
 
-	string readBytes(int n) {
+	std::string readBytes(int n) {
 		char buf[n];
 		ssize_t nr = ::fread(buf, 1, n, fp_);
 		if (nr != n)
-			throw logic_error("no enough data");
-		return string(buf, n);
+			throw std::logic_error("no enough data");
+		return std::string(buf, n);
 	}
 
 	int32_t readInt32() {
 		int32_t x = 0;
 		ssize_t nr = ::fread(&x, 1, sizeof(int32_t), fp_);
 		if (nr != sizeof(int32_t))
-			throw logic_error("bad int32_t data");
+			throw std::logic_error("bad int32_t data");
 		return be32toh(x);
 	}
 
@@ -118,7 +119,7 @@ public:
 		uint8_t x = 0;
 		ssize_t nr = ::fread(&x, 1, sizeof(uint8_t), fp_);
 		if (nr != sizeof(uint8_t))
-			throw logic_error("bad uint8_t data");
+			throw std::logic_error("bad uint8_t data");
 		return x;
 	}
 
@@ -130,10 +131,11 @@ bool readTimeZoneFile(const char* zonefile, struct TimeZone::Data* data) {
 	File f(zonefile);
 	if (f.valid()) {
 		try {
-			string head = f.readBytes(4);
-			if (head != "TZif")
-			throw logic_error("bad head");
-			string version = f.readBytes(1);
+			std::string head = f.readBytes(4);
+			if (head != "TZif") {
+				throw std::logic_error("bad head");
+			}
+			std::string version = f.readBytes(1);
 			f.readBytes(15);
 
 			int32_t isgmtcnt = f.readInt32();
@@ -143,8 +145,8 @@ bool readTimeZoneFile(const char* zonefile, struct TimeZone::Data* data) {
 			int32_t typecnt = f.readInt32();
 			int32_t charcnt = f.readInt32();
 
-			vector<int32_t> trans;
-			vector<int> localtimes;
+			std::vector<int32_t> trans;
+			std::vector<int> localtimes;
 			trans.reserve(timecnt);
 			for (int i = 0; i < timecnt; ++i) {
 				trans.push_back(f.readInt32());
@@ -180,7 +182,7 @@ bool readTimeZoneFile(const char* zonefile, struct TimeZone::Data* data) {
 			(void) isstdcnt;
 			(void) isgmtcnt;
 		}
-		catch (logic_error& e)
+		catch (std::logic_error& e)
 		{
 			fprintf(stderr, "%s\n", e.what());
 		}
@@ -195,7 +197,7 @@ const Localtime* findLocaltime(const TimeZone::Data& data, Transition sentry, Co
 		// FIXME: should be first non dst time zone
 		local = &data.localtimes.front();
 	} else {
-		vector<Transition>::const_iterator transI = lower_bound(data.transitions.begin(),
+		std::vector<Transition>::const_iterator transI = lower_bound(data.transitions.begin(),
 				data.transitions.end(), sentry, comp);
 		if (transI != data.transitions.end()) {
 			if (!comp.equal(sentry, *transI)) {
@@ -215,20 +217,19 @@ const Localtime* findLocaltime(const TimeZone::Data& data, Transition sentry, Co
 
 TimeZone::TimeZone(const char* zonefile)
 	: data_(new TimeZone::Data) {
-	if (!detail::readTimeZoneFile(zonefile, data_.get()))
-	{
+	if (!readTimeZoneFile(zonefile, data_.get())) {
 		data_.reset();
 	}
 }
 
 struct tm TimeZone::toLocalTime(time_t seconds) const {
 	struct tm localTime;
-	bzero(&localTime, sizeof(localTime));
+	::bzero(&localTime, sizeof(localTime));
 	assert(data_ != NULL);
 	const Data& data(*data_);
 
 	Transition sentry(seconds, 0, 0);
-	const Localtime* local = findLocaltime(data, sentry, detail::Comp(true));
+	const Localtime* local = findLocaltime(data, sentry, Comp(true));
 
 	if (local) {
 		time_t localSeconds = seconds + local->gmtOffset;
@@ -248,7 +249,7 @@ time_t TimeZone::fromLocalTime(const struct tm& localTm) const {
 	struct tm tmp = localTm;
 	time_t seconds = ::timegm(&tmp); // FIXME: toUtcTime
 	Transition sentry(0, seconds, 0);
-	const detail::Localtime* local = findLocaltime(data, sentry, detail::Comp(false));
+	const Localtime* local = findLocaltime(data, sentry, Comp(false));
 	if (localTm.tm_isdst) {
 		struct tm tryTm = toLocalTime(seconds - local->gmtOffset);
 		if (!tryTm.tm_isdst

@@ -8,6 +8,8 @@ set(base_SRCS
 	FileUtil.cpp
 	ProcessInfo.cpp
 	AsyncLogger.cpp
+	Date.cpp
+	TimeZone.cpp
 	)
 
 add_library(iak_base ${base_SRCS})

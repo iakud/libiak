@@ -1,4 +1,5 @@
-#include <base/Date.h>
+#include "Date.h"
+
 #include <stdio.h>  // snprintf
 
 namespace iak {
@@ -27,7 +28,7 @@ struct Date::YearMonthDay getYearMonthDay(int julianDayNumber) {
 	return ymd;
 }
 
-const int Date::kJulianDayOf1970_01_01 = detail::getJulianDayNumber(1970, 1, 1);
+const int Date::kJulianDayOf1970_01_01 = getJulianDayNumber(1970, 1, 1);
 
 } // end namespace iak
 

@@ -4,9 +4,9 @@
 
 #include <string>
 
-namespace iak {
-
 struct tm;
+
+namespace iak {
 
 // 1900..2500
 class Date {
@@ -67,7 +67,7 @@ public:
 	}
 
 	bool operator==(Date& rhs) {
-		return julianDayNumber_ == y.julianDayNumber_;
+		return julianDayNumber_ == rhs.julianDayNumber_;
 	}
 
 private:
