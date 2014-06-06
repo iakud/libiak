@@ -2,7 +2,8 @@ set(net_SRCS
 	Watcher.cpp
 	EventLoop.cpp
 	EPollLoop.cpp
-
+	InetAddress.cpp
+	Connector.cpp
 	)
 
 add_library(iak_net ${net_SRCS})
@@ -13,6 +14,7 @@ install(TARGETS iak_net DESTINATION lib)
 
 set(HEADERS
   EventLoop.h
+  InetAddress.h
   )
 
 install(FILES ${HEADERS} DESTINATION include/iak/net)

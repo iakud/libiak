@@ -9,8 +9,10 @@
 #include <unistd.h>
 #include <errno.h>
 
+using namespace iak;
+
 Connector::Connector(
-	EventLoop* loop, const struct sockaddr_in& remoteSockAddr)
+		EventLoop* loop, const struct sockaddr_in& remoteSockAddr)
 	: loop_(loop)
 	, remoteSockAddr_(remoteSockAddr)
 	, connect_(false)
@@ -21,7 +23,7 @@ Connector::~Connector() {
 }
 
 ConnectorPtr Connector::create(
-	EventLoop* loop, const struct sockaddr_in& remoteSockAddr) {
+		EventLoop* loop, const struct sockaddr_in& remoteSockAddr) {
 	return std::make_shared<Connector>(loop, remoteSockAddr);
 }
 
@@ -40,15 +42,19 @@ void Connector::connect() {
 		return;
 	}
 
-	int sockFd = ::socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC, IPPROTO_TCP);
-	int ret = ::connect(sockFd, (const struct sockaddr*)&remoteSockAddr_, 
+	int sockFd = ::socket(AF_INET, 
+			SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC, IPPROTO_TCP);
+	int ret = ::connect(sockFd, 
+			reinterpret_cast<const struct sockaddr*>(&remoteSockAddr_), 
 		static_cast<socklen_t>(sizeof remoteSockAddr_));
 	if (ret == 0) {
 		//connecting(sockFd);
 		//connected(sockFd); //not here?
 		struct sockaddr_in localSockAddr;
 		socklen_t localSockAddrLen = static_cast<socklen_t>(sizeof localSockAddr);
-		::getsockname(sockFd, (struct sockaddr*)&localSockAddr, &localSockAddrLen);
+		::getsockname(sockFd, 
+				reinterpret_cast<struct sockaddr*>(&localSockAddr), 
+				&localSockAddrLen);
 		if (connectCallback_) {
 			connectCallback_(sockFd, localSockAddr);
 		}
@@ -66,7 +72,7 @@ void Connector::connect() {
 		::close(sockFd); // close first
 		// retry
 		if (err == EAGAIN || err == EADDRINUSE || err == EADDRNOTAVAIL 
-			|| err == ECONNREFUSED || err == ENETUNREACH) {
+				|| err == ECONNREFUSED || err == ENETUNREACH) {
 			loop_->runInLoop(std::bind(&Connector::connect, shared_from_this()));
 		}
 	}
@@ -96,10 +102,11 @@ void Connector::handleWrite() {
 	int optval;
 	socklen_t optlen = static_cast<socklen_t>(sizeof optval);
 	if (::getsockopt(sockFd, SOL_SOCKET, SO_ERROR, 
-		&optval, &optlen) == 0 && optval == 0) {
+				&optval, &optlen) == 0 && optval == 0) {
 		struct sockaddr_in localSockAddr;
 		socklen_t localSockAddrLen = static_cast<socklen_t>(sizeof localSockAddr);
-		::getsockname(sockFd, (struct sockaddr*)&localSockAddr, &localSockAddrLen);
+		::getsockname(sockFd, reinterpret_cast<struct sockaddr*>(&localSockAddr), 
+				&localSockAddrLen);
 		if (connectCallback_) {
 			connectCallback_(sockFd, localSockAddr);
 		}

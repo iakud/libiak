@@ -18,19 +18,19 @@ public:
 	static EventLoop* create();
 	static void release(EventLoop*);
 	
-	void quit() { quit_ = true; }
-	void loop();
-
-protected:
-	EventLoop();
-	virtual ~EventLoop();
-
 	typedef std::function<void()> Functor;
 
 	void runInLoop(Functor&& functor) {
 		MutexGuard lock(mutex_);
 		pendingFunctors_.push_back(functor);
 	}
+
+	void quit() { quit_ = true; }
+	void loop();
+
+protected:
+	EventLoop();
+	virtual ~EventLoop();
 
 	// actived watchers
 	void activeWatcher(Watcher* watcher);
@@ -48,9 +48,6 @@ protected:
 
 	// friend class
 	friend class Watcher;
-	friend class TcpAcceptor;
-	friend class TcpConnector;
-	friend class TcpConnection;
 }; // end class EventLoop
 
 } // end namespace iak
