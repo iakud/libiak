@@ -4,6 +4,7 @@ set(net_SRCS
 	EPollLoop.cpp
 	InetAddress.cpp
 	Connector.cpp
+	Acceptor.cpp
 	)
 
 add_library(iak_net ${net_SRCS})

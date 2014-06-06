@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <errno.h>
 
+using namespace iak;
+
 Acceptor::Acceptor(EventLoop* loop, 
 		const struct sockaddr_in& localSockAddr)
 	: loop_(loop)
@@ -17,10 +19,10 @@ Acceptor::Acceptor(EventLoop* loop,
 	, watcher_(new Watcher(loop, sockFd_))
 	, listenning_(false)
 	, accept_(false) {
-	::bind(sockFd_, (const struct sockaddr*)&localSockAddr_, 
+	::bind(sockFd_, reinterpret_cast<const struct sockaddr*>(&localSockAddr_),
 		static_cast<socklen_t>(sizeof localSockAddr_));
 	watcher_->setReadCallback(std::bind(&Acceptor::handleRead, this));
-	watcher_->enableRead(EV_READ);
+	watcher_->enableRead();
 }
 
 Acceptor::~Acceptor() {
@@ -87,5 +89,5 @@ void Acceptor::handleRead() {
 		::close(sockFd);
 	}
 	// continue accept in next loop
-	loop_->runInLoop(std::bind(&Acceptor::handleRead, this))
+	loop_->runInLoop(std::bind(&Acceptor::handleRead, this));
 }
