@@ -1,6 +1,8 @@
 #include "Watcher.h"
 #include "EventLoop.h"
 
+using namespace iak;
+
 void Watcher::start() {
 	loop_->addWatcher(this);
 }
@@ -18,19 +20,19 @@ void Watcher::stop() {
 //	}
 //}
 
-void Watcher::active(int events) {
-	events &= wevents_;
-	if (events & EV_READ && !readable_) {
+void Watcher::active(int revents) {
+	revents &= events_;
+	if (revents & EV_READ && !readable_) {
 		readable_ = true;
 		revents_ |= EV_READ;
 		loop_->activeWatcher(this);
 	}
-	if (events & EV_WRITE && ! writeable_) {
+	if (revents & EV_WRITE && ! writeable_) {
 		writeable_ = true;
 		revents_ |= EV_WRITE;
 		loop_->activeWatcher(this);
 	}
-	if (events & EV_CLOSE && closed_) {
+	if (revents & EV_CLOSE && closed_) {
 		closed_ = true;
 		revents_ |= EV_CLOSE;
 		loop_->activeWatcher(this);

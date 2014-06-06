@@ -6,6 +6,8 @@
 
 #include <functional>
 
+namespace iak {
+
 class EventLoop;
 
 class Watcher : public NonCopyable {
@@ -26,7 +28,7 @@ public:
 	typedef std::function<void()> EventCallback;
 
 	// watch fd
-	int fd() { return m_fd; }
+	int getFd() { return fd_; }
 	// watch events
 	int events() { return events_; }
 
@@ -34,12 +36,12 @@ public:
 	void setReadCallback(EventCallback&& cb) { readCallback_ = cb; }
 	void setWriteCallback(EventCallback&& cb) { writeCallback_ = cb; }
 	void setCloseCallback(EventCallback&& cb) { closeCallback_ = cb; }
-	void enableRead() { wevents_ |= EV_READ; }
-	void disableRead() { wevents_ &= ~EV_READ; }
-	void enableWrite() { wevents_ |= EV_WRITE; }
-	void disableWrite() { wevents_ &= ~EV_WRITE; }
-	void enableClose() { wevents_ |= EV_CLOSE; }
-	void disableClose() { wevents_ &= ~EV_CLOSE; }
+	void enableRead() { events_ |= EV_READ; }
+	void disableRead() { events_ &= ~EV_READ; }
+	void enableWrite() { events_ |= EV_WRITE; }
+	void disableWrite() { events_ &= ~EV_WRITE; }
+	void enableClose() { events_ |= EV_CLOSE; }
+	void disableClose() { events_ &= ~EV_CLOSE; }
 
 	// watched & actived
 	bool isActived() { return actived_; }
@@ -55,7 +57,7 @@ public:
 	void start();
 	void stop();
 
-	void active(int events);
+	void active(int revents);
 	void handleEvents();
 
 private:
@@ -71,6 +73,8 @@ private:
 	EventCallback closeCallback_;
 	EventCallback readCallback_;
 	EventCallback writeCallback_;
-};
+}; // end class Watcher
+
+} // end namespace iak
 
 #endif // IAK_NET_WATCHER_H

@@ -5,6 +5,8 @@
 
 struct epoll_event;
 
+namespace iak {
+
 class EPollLoop : public EventLoop {
 public:
 	EPollLoop();
@@ -21,6 +23,8 @@ protected:
 	int epollfd_;
 	int eventsize_;
 	struct epoll_event* events_;
-};
+}; // end class EPollLoop
+
+} // end namespace iak
 
 #endif // IAK_NET_EPOLLLOOP_H

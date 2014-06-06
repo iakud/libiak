@@ -5,11 +5,13 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
+using namespace iak;
+
 EPollLoop::EPollLoop()
 	: EventLoop()
 	, epollfd_(::epoll_create1(EPOLL_CLOEXEC))
 	, eventsize_(kEventSizeInit) {
-	events_ = (struct epoll_event*)::malloc(eventsize_ * sizeof struct epoll_event);
+	events_ = static_cast<struct epoll_event*>(::malloc(eventsize_ * sizeof(struct epoll_event)));
 }
 
 EPollLoop::~EPollLoop() {
@@ -22,7 +24,7 @@ void EPollLoop::poll(int timeout) {
 	if (nfd > 0) {
 		for (int i=0; i<nfd; ++i) {
 			struct epoll_event& event = events_[i];
-			Watcher* watcher = (Watcher*)event.data.ptr;
+			Watcher* watcher = static_cast<Watcher*>(event.data.ptr);
 			int events = (event.events & (EPOLLRDHUP)?EV_CLOSE:EV_NONE) // close
 				| (event.events & (EPOLLIN|EPOLLERR|EPOLLHUP)?EV_READ:EV_NONE) // read
 				| (event.events & (EPOLLOUT|EPOLLERR|EPOLLHUP)?EV_WRITE:EV_NONE); // write
@@ -31,7 +33,7 @@ void EPollLoop::poll(int timeout) {
 		if (nfd == eventsize_) {
 			::free(events_);
 			eventsize_ = eventsize_ << 1; // eventsize extend
-			events_ = (struct epoll_event*)::malloc(eventsize_ * sizeof struct epoll_event);
+			events_ = static_cast<struct epoll_event*>(::malloc(eventsize_ * sizeof(struct epoll_event)));
 		}
 	}
 	else if (nfd == 0) {
@@ -44,13 +46,19 @@ void EPollLoop::poll(int timeout) {
 
 void EPollLoop::addWatcher(Watcher* watch) {
 	struct epoll_event event;
-	int events = watch->watchEvents();
+	int events = watch->events();
 	event.events = EPOLLET;	// edge trigger
-		| (events & EV_CLOSE ? EPOLLRDHUP : 0)// close
-		| (events & EV_READ ? EPOLLIN : 0)	// read
-		| (events & EV_WRITE ? EPOLLOUT : 0);	// write
+	if (events & EV_CLOSE) {
+		event.events &= EPOLLRDHUP;
+	}
+	if (events & EV_READ) {
+		event.events &= EPOLLIN;
+	}
+	if (events & EV_WRITE) {
+		event.events &= EPOLLOUT;
+	}
 	event.data.ptr = watch;
-	if (::epoll_ctl(epollfd_, EPOLL_CTL_ADD, watch->fd(), &event) < 0) {
+	if (::epoll_ctl(epollfd_, EPOLL_CTL_ADD, watch->getFd(), &event) < 0) {
 		// on error
 		return;
 	}
@@ -61,7 +69,7 @@ void EPollLoop::updateWatcher(Watcher* watcher) {
 }
 
 void EPollLoop::removeWatcher(Watcher* watch) {
-	if (::epoll_ctl(epollfd_, EPOLL_CTL_DEL, watch->fd(),NULL) < 0) {
+	if (::epoll_ctl(epollfd_, EPOLL_CTL_DEL, watch->getFd(),NULL) < 0) {
 		// on error
 		return;
 	}

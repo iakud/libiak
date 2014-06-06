@@ -6,7 +6,10 @@
 #include <base/Mutex.h>
 
 #include <vector>
+#include <memory>
 #include <functional>
+
+namespace iak {
 
 class Watcher;
 
@@ -20,7 +23,7 @@ public:
 
 protected:
 	EventLoop();
-	~EventLoop();
+	virtual ~EventLoop();
 
 	typedef std::function<void()> Functor;
 
@@ -48,6 +51,8 @@ protected:
 	friend class TcpAcceptor;
 	friend class TcpConnector;
 	friend class TcpConnection;
-};
+}; // end class EventLoop
+
+} // end namespace iak
 
 #endif // IAK_NET_EVENTLOOP_H

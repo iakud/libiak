@@ -4,6 +4,7 @@
 #include <base/NonCopyable.h>
 
 #include <stdint.h>
+#include <stdio.h>
 
 namespace iak {
 

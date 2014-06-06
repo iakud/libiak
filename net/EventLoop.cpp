@@ -3,6 +3,8 @@
 #include "Watcher.h"
 #include "Buffer.h"
 
+using namespace iak;
+
 EventLoop::EventLoop()
 	: quit_(false)
 	, mutex_()
@@ -23,10 +25,9 @@ void EventLoop::release(EventLoop* loop) {
 }
 
 // blocking until quit
-void EventLoop::Loop() {
+void EventLoop::loop() {
 	quit_ = false;
 	while(!quit_) {
-		std::vector<Functor> functors;
 		poll(10);	// poll network event
 		std::vector<Functor> functors;
 		{
