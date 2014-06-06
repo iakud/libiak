@@ -1,55 +1,53 @@
-#ifndef TOT_EVENTLOOP_H
-#define TOT_EVENTLOOP_H
+#ifndef IAK_NET_EVENTLOOP_H
+#define IAK_NET_EVENTLOOP_H
+
+#include "Buffer.h"
+#include <base/NonCopyable.h>
+#include <base/Mutex.h>
 
 #include <vector>
 #include <functional>
-#include "NonCopyable.h"
-#include "Thread.h"
-#include "BufferPool.h"
 
 class Watcher;
 
-class EventLoop : public NonCopyable
-{
+class EventLoop : public NonCopyable {
+public:
+	static EventLoop* create();
+	static void release(EventLoop*);
+	
+	void quit() { quit_ = true; }
+	void loop();
+
 protected:
 	EventLoop();
 	~EventLoop();
-public:
+
+	typedef std::function<void()> Functor;
+
+	void runInLoop(Functor&& functor) {
+		MutexGuard lock(mutex_);
+		pendingFunctors_.push_back(functor);
+	}
+
+	// actived watchers
+	void activeWatcher(Watcher* watcher);
+	void handleWatchers();
+	virtual void poll(int timeout)=0;
+	virtual void addWatcher(Watcher* watcher) = 0;
+	virtual void updateWatcher(Watcher* watcher) = 0;
+	virtual void removeWatcher(Watcher* watcher) = 0;
+	
+	bool quit_;
+	Mutex mutex_;
+	std::vector<Functor> pendingFunctors_;
+	std::vector<Watcher*> activedWatchers_;
+	std::shared_ptr<BufferPool> bufferPool_; // buffer
+
 	// friend class
 	friend class Watcher;
 	friend class TcpAcceptor;
 	friend class TcpConnector;
 	friend class TcpConnection;
-	friend class ReadBuffer;
-	friend class WriteBuffer;
-
-	typedef std::function<void()> Functor;
-
-	static EventLoop* Create();
-	static void Release(EventLoop*);
-	
-	void Loop();
-	void Quit();
-
-protected:
-	void runInLoop(Functor&& functor)
-	{ MutexGuard lock(m_mutex); m_pendingFunctors.push_back(functor); }
-	void swapPendingFunctors(std::vector<Functor>& functors)
-	{ MutexGuard lock(m_mutex); functors.swap(m_pendingFunctors); }
-	void doPendingFunctors(std::vector<Functor>& functors);
-	// actived watchers
-	void activeWatcher(Watcher* watcher);
-	void handleActivedWatchers();
-	virtual void addWatcher(Watcher* watcher)=0;
-	virtual void removeWatcher(Watcher* watcher)=0;
-	virtual void poll(int timeout)=0;
-	
-	bool m_bQuit;
-	std::vector<Functor> m_pendingFunctors;
-	std::vector<Watcher*> m_activedWatchers;
-	Mutex m_mutex;
-	// buffer
-	BufferPoolPtr m_bufferPool;
 };
 
-#endif // TOT_EVENTLOOP_H
+#endif // IAK_NET_EVENTLOOP_H

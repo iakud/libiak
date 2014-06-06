@@ -4,71 +4,57 @@
 #include "Buffer.h"
 
 EventLoop::EventLoop()
-	: m_bufferPool(BufferPool::Create(1024*4, 64))
-{
-
+	: quit_(false)
+	, mutex_()
+	, pendingFunctors_()
+	, activedWatchers_()
+	, bufferPool_(new BufferPool(1024*4, 64)) {
 }
 
-EventLoop::~EventLoop()
-{
-
+EventLoop::~EventLoop() {
 }
 
-EventLoop* EventLoop::Create()
-{
+EventLoop* EventLoop::create() {
 	return new EPollLoop();
 }
 
-void EventLoop::Release(EventLoop* loop)
-{
+void EventLoop::release(EventLoop* loop) {
 	delete loop;
 }
 
-// block until quit loop
-void EventLoop::Loop()
-{
-	m_bQuit = false;
-	std::vector<Functor> functors;
-	while(!m_bQuit)
-	{
+// blocking until quit
+void EventLoop::Loop() {
+	quit_ = false;
+	while(!quit_) {
+		std::vector<Functor> functors;
 		poll(10);	// poll network event
-		swapPendingFunctors(functors);
-		doPendingFunctors(functors);
-		handleActivedWatchers();
+		std::vector<Functor> functors;
+		{
+			MutexGuard lock(mutex_);
+			functors.swap(pendingFunctors_);
+		}
+		for (Functor functor : functors) {
+			functor();
+		}
+		handleWatchers();
 		// clear at last (for watchers safe)
-		functors.clear();
+		// functors.clear();
 	}
 }
 
-// Quit loop
-void EventLoop::Quit()
-{
-	m_bQuit = true;
-}
-
-// do all pending function
-void EventLoop::doPendingFunctors(std::vector<Functor>& functors)
-{
-	for (Functor functor : functors)
-	{
-		functor();
+void EventLoop::activeWatcher(Watcher* watch) {
+	if (watch->isActived()) {
+		return;
 	}
+	activedWatchers_.push_back(watch);
+	watch->setActived(true);
 }
 
-void EventLoop::activeWatcher(Watcher* watcher)
-{
-	if (watcher->IsActived()) return;
-	m_activedWatchers.push_back(watcher);
-	watcher->SetActived(true);
-}
-
-void EventLoop::handleActivedWatchers()
-{
-	std::vector<Watcher*> activedWatchers;
-	activedWatchers.swap(m_activedWatchers);
-	for (Watcher* watcher : activedWatchers)
-	{
-		watcher->SetActived(false);
-		watcher->HandleEvents();
+void EventLoop::handleWatchers() {
+	std::vector<Watcher*> watchers;
+	watchers.swap(activedWatchers_);
+	for (Watcher* watch : watchers) {
+		watch->setActived(false);
+		watch->handleEvents();
 	}
 }

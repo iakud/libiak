@@ -1,65 +1,76 @@
-#ifndef TOT_WATCHER_H
-#define TOT_WATCHER_H
+#ifndef IAK_NET_WATCHER_H
+#define IAK_NET_WATCHER_H
 
+#include "Event.h"
 #include <base/NonCopyable.h>
-#include <functional>
 
-#define EV_NONE 0x00
-#define EV_READ 0x01
-#define EV_WRITE 0x02
-#define EV_CLOSE 0x04
+#include <functional>
 
 class EventLoop;
 
 class Watcher : public NonCopyable {
 public:
-	Watcher(EventLoop* loop, const int fd);
-	virtual ~Watcher();
+	Watcher(EventLoop* loop, const int fd)
+		: loop_(loop)
+		, fd_(fd)
+		, events_(EV_NONE)
+		, revents_(EV_NONE)
+		, started_(false)
+		, actived_(false)
+		, closed_(false) {
+	}
+
+	~Watcher() {
+	}
 
 	typedef std::function<void()> EventCallback;
+
 	// watch fd
-	int GetFd() { return m_fd; }
-	// callback
-	void SetReadCallback(EventCallback&& cb)
-	{ m_readCallback = cb; }
-	void SetWriteCallback(EventCallback&& cb)
-	{ m_writeCallback = cb; }
-	void SetCloseCallback(EventCallback&& cb)
-	{ m_closeCallback = cb; }
+	int fd() { return m_fd; }
 	// watch events
-	void SetWatchEvents(int events) { m_watchevents = events; }
-	int GetWatchEvents() { return m_watchevents; }
+	int events() { return events_; }
+
+	// callback
+	void setReadCallback(EventCallback&& cb) { readCallback_ = cb; }
+	void setWriteCallback(EventCallback&& cb) { writeCallback_ = cb; }
+	void setCloseCallback(EventCallback&& cb) { closeCallback_ = cb; }
+	void enableRead() { wevents_ |= EV_READ; }
+	void disableRead() { wevents_ &= ~EV_READ; }
+	void enableWrite() { wevents_ |= EV_WRITE; }
+	void disableWrite() { wevents_ &= ~EV_WRITE; }
+	void enableClose() { wevents_ |= EV_CLOSE; }
+	void disableClose() { wevents_ &= ~EV_CLOSE; }
+
 	// watched & actived
-	bool IsWatched() { return m_watched; }
-	void SetWatched(bool watched) { m_watched = watched; }
-	bool IsActived() { return m_actived; }
-	void SetActived(bool actived) { m_actived = actived; }
+	bool isActived() { return actived_; }
+	void setActived(bool actived) { actived_ = actived; }
 	// readable & writeable
-	bool IsReadable() { return m_readable; }
-	void SetReadable(bool readable) { m_readable = readable; }
-	bool IsWriteable() { return m_writeable; }
-	void SetWriteable(bool writeable) { m_writeable = writeable; }
+	bool isReadable() { return readable_; }
+	void setReadable(bool readable) { readable_ = readable; }
+	bool isWriteable() { return writeable_; }
+	void setWriteable(bool writeable) { writeable_ = writeable; }
+	bool isClosed() { return closed_; }
+	void setClosed(bool closed) { closed_ = closed; }
 
-	void Start();
-	void Stop();
-	void ActiveEvents(int events);
-	void ActiveWatcher(int events);
-	void HandleEvents();
+	void start();
+	void stop();
+
+	void active(int events);
+	void handleEvents();
+
 private:
-	EventLoop* m_loop;
-	const int m_fd;
-
-	int m_watchevents;
-	int m_activeevents;
-	bool m_watched;
-	bool m_actived;	// in active watchers list?
-
-	bool m_readable;
-	bool m_writeable;
-	
-	EventCallback m_readCallback;
-	EventCallback m_writeCallback;
-	EventCallback m_closeCallback;
+	EventLoop* loop_;
+	const int fd_;
+	int events_;
+	int revents_;
+	bool started_;
+	bool actived_;	// in active list
+	bool readable_;
+	bool writeable_;
+	bool closed_;
+	EventCallback closeCallback_;
+	EventCallback readCallback_;
+	EventCallback writeCallback_;
 };
 
-#endif // TOT_WATCHER_H
+#endif // IAK_NET_WATCHER_H

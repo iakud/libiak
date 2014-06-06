@@ -1,4 +1,7 @@
 set(net_SRCS
+	Buffer.cpp
+	EventLoop.cpp
+	EPollLoop.cpp
 
 	)
 
@@ -8,7 +11,10 @@ set_target_properties(iak_base PROPERTIES COMPILE_FLAGS "-std=c++11")
 
 install(TARGETS iak_net DESTINATION lib)
 
-file(GLOB HEADERS "*.h")
+set(HEADERS
+  EventLoop.h
+  )
+
 install(FILES ${HEADERS} DESTINATION include/iak/net)
 
 if (NOT CMAKE_BUILD_NO_EXAMPLES)

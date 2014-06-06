@@ -16,12 +16,13 @@ struct Buffer {
 	Buffer* next = NULL;
 }; // end struct Buffer
 
-class BufferPool : public NonCopyable
+class BufferPool : public NonCopyable {
 public:
 	BufferPool(const uint32_t capacity, const uint32_t size)
-		: m_capacity(capacity)
-		, m_size(size)
-		, m_count(0) {
+		: capacity_(capacity)
+		, size_(size)
+		, count_(0) {
+	}
 
 	~BufferPool() {
 	}

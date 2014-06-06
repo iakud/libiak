@@ -1,68 +1,59 @@
 #include "Watcher.h"
 #include "EventLoop.h"
 
-Watcher::Watcher(EventLoop* loop, const int fd)
-	: m_loop(loop)
-	, m_fd(fd)
-	, m_watchevents(EV_NONE)
-	, m_activeevents(EV_NONE)
-	, m_watched(false)
-	, m_actived(false)
-{
+void Watcher::start() {
+	loop_->addWatcher(this);
 }
 
-Watcher::~Watcher()
-{
+void Watcher::stop() {
+	loop_->removeWatcher(this);
 }
 
-void Watcher::Start()
-{
-	m_loop->addWatcher(this);
-}
+//void Watcher::ActiveEvents(int events)
+//{
+//	if (events)
+//	{
+//		m_activeevents |= events;
+//		m_loop->activeWatcher(this);
+//	}
+//}
 
-void Watcher::Stop()
-{
-	m_loop->removeWatcher(this);
-}
-
-void Watcher::ActiveEvents(int events)
-{
-	if (events)
-	{
-		m_activeevents |= events;
-		m_loop->activeWatcher(this);
+void Watcher::active(int events) {
+	events &= wevents_;
+	if (events & EV_READ && !readable_) {
+		readable_ = true;
+		revents_ |= EV_READ;
+		loop_->activeWatcher(this);
+	}
+	if (events & EV_WRITE && ! writeable_) {
+		writeable_ = true;
+		revents_ |= EV_WRITE;
+		loop_->activeWatcher(this);
+	}
+	if (events & EV_CLOSE && closed_) {
+		closed_ = true;
+		revents_ |= EV_CLOSE;
+		loop_->activeWatcher(this);
 	}
 }
 
-void Watcher::ActiveWatcher(int events)
-{
-	events &= m_watchevents;
-	if (events)
-	{
-		if (events & EV_READ)
-			m_readable = true;
-		if (events & EV_WRITE)
-			m_writeable = true;
-		m_activeevents |= events;
-		m_loop->activeWatcher(this);
+void Watcher::handleEvents() {
+	if (revents_ & EV_CLOSE) {
+		revents_ &= ~EV_CLOSE;
+		if (closeCallback_) {
+			closeCallback_();
+		}
 	}
-}
-
-void Watcher::HandleEvents()
-{
-	if (m_activeevents & EV_CLOSE && m_closeCallback)
-	{
-		m_activeevents &= ~EV_CLOSE;
-		m_closeCallback();
+	if (revents_ & EV_READ) {
+		revents_ &= ~EV_READ;
+		if (readCallback_) {
+			readCallback_();
+		}
 	}
-	if (m_activeevents & EV_READ && m_readCallback)
-	{
-		m_activeevents &= ~EV_READ;
-		m_readCallback();
-	}
-	if (m_activeevents & EV_WRITE && m_writeCallback)
-	{
-		m_activeevents &= ~EV_WRITE;
-		m_writeCallback();
+	if (revents_ & EV_WRITE) {
+		revents_ &= ~EV_WRITE;
+		if (writeCallback_) {
+			writeCallback_();
+		}
 	}
 }
