@@ -12,6 +12,8 @@
 #include <unistd.h>
 #include <errno.h>
 
+using namespace iak;
+
 TcpConnection::TcpConnection(EventLoop* loop, int sockFd, 
 		const InetAddress& localAddr, const InetAddress& remoteAddr)
 	: loop_(loop)
@@ -111,7 +113,7 @@ void TcpConnection::destroy() {
 	watcher_->stop();
 }
 
-void TcpConnection::send(PacketPtr packet) {
+void TcpConnection::sendData(PacketPtr packet) {
 	if (close_) {
 		return;
 	}
@@ -280,7 +282,7 @@ bool TcpConnection::writeData(const char* data, const uint32_t size) {
 				buffer += writecount;
 				rearsize -= writecount;
 			} else {
-				memcpy(writeTail_->buffer, buffer, rearsize);
+				::memcpy(writeTail_->buffer, buffer, rearsize);
 				writeTail_->push = writeTail_->count = rearsize;
 				break;
 			}
@@ -291,7 +293,7 @@ bool TcpConnection::writeData(const char* data, const uint32_t size) {
 }
 
 void TcpConnection::handleRead() {
-	if (!watcher_->IsReadable()) {
+	if (!watcher_->isReadable()) {
 		return;
 	}
 
@@ -345,7 +347,7 @@ void TcpConnection::handleRead() {
 		}
 	}
 	// add readsize
-	readSize_ += readsize;
+	readSize_ = static_cast<uint32_t>(readSize_ + readsize);
 
 	if (receiveCallback_) { // callback
 		while (true) {
@@ -427,13 +429,13 @@ void TcpConnection::handleWrite() {
 		}
 	}
 	// remove size
-	writeSize_ -= writesize;
+	writeSize_ = static_cast<uint32_t>(writeSize_ - writesize);
 	//if (m_sendCallback) { // callback
 	//	m_sendCallback(shared_from_this(), writesize);
 	//}
 	// send buffer not empty, continue write
 	if (writesize == size && writeSize_ > 0) {
-		watcher_->activeWrite()
+		watcher_->activeWrite();
 	}
 }
 

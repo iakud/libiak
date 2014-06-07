@@ -5,6 +5,8 @@ set(net_SRCS
 	InetAddress.cpp
 	Connector.cpp
 	Acceptor.cpp
+	Packet.cpp
+	TcpConnection.cpp
 	)
 
 add_library(iak_net ${net_SRCS})

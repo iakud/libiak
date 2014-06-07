@@ -2,6 +2,8 @@
 
 #include <netinet/in.h>
 
+using namespace iak;
+
 PacketPtr Packet::create() {
 	return std::make_shared<Packet>();
 }
@@ -11,13 +13,13 @@ uint16_t Packet::getSize() {
 }
 
 void Packet::setDataSize(uint16_t size) {
-	int infoLen = sizeof(uint32_t) + sizeof(uint16_t);
-	*pSize_ = htons(size + static_cast<uint16_t>(infoLen));
+	*pSize_ = htons(static_cast<uint16_t>(size 
+				+ sizeof(uint32_t) + sizeof(uint16_t)));
 }
 
 uint16_t Packet::getDataSize() {
-	int infoLen = sizeof(uint32_t) + sizeof(uint16_t);
-	return ntohs(*pSize_) - static_cast<uint16_t>(infoLen);
+	return static_cast<uint16_t>(ntohs(*pSize_)
+			- (sizeof(uint32_t) + sizeof(uint16_t)));
 }
 
 void Packet::setCmd(uint16_t cmd) {

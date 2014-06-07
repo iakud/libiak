@@ -4,6 +4,8 @@
 #include <memory>
 #include <stdint.h>
 
+namespace iak {
+
 class Packet;
 typedef std::shared_ptr<Packet> PacketPtr;
 
@@ -36,6 +38,8 @@ private:
 	uint32_t* pHead_;
 	uint16_t* pCmd_;
 	char* pData_;
-};
+}; // end class Packet
+
+} // end namespace iak
 
 #endif // IAK_NET_PACKET_H

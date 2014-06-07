@@ -1,18 +1,21 @@
 #ifndef TOT_TCPCONNECTION_H
 #define TOT_TCPCONNECTION_H
 
-#include <base/NonCopyable.h>
 #include "InetAddress.h"
-#include "DataSocket.h"
 #include "Packet.h"
+
+#include <base/NonCopyable.h>
 
 #include <memory>
 #include <functional>
 
 #include <stdint.h>
 
+namespace iak {
+
 class EventLoop;
 class Watcher;
+class Buffer;
 class BufferPool;
 
 class TcpConnection;
@@ -54,7 +57,7 @@ public:
 	void establishAsync();
 	void shutdownAsync();
 	void closeAsync();
-	void send(PacketPtr packet);
+	void sendData(PacketPtr packet);
 
 private:
 	// for tcpserver and tcpclient
@@ -104,6 +107,8 @@ private:
 	// friend class only TcpServer & TcpClient
 	friend class TcpServer;
 	friend class TcpClient;
-};
+}; // end class TcpConnection
 
-#endif // TOT_TCPCONNECTION_H
+} // end namespace iak
+
+#endif // IAK_NET_TCPCONNECTION_H
