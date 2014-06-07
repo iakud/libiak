@@ -351,12 +351,12 @@ void TcpConnection::handleRead() {
 
 	if (receiveCallback_) { // callback
 		while (true) {
-			uint16_t size;
-			if (!PeekData((char*)&size, sizeof(uint16_t))) {
+			uint16_t packSize;
+			if (!PeekData(reinterpret_cast<char*>(&packSize), sizeof(uint16_t))) {
 				break;
 			}
-			size = ntohs(size);
-			if (size + sizeof(uint16_t) < readSize_) {
+			packSize = ntohs(packSize);
+			if (packSize + sizeof(uint16_t) < readSize_) {
 				break;
 			}
 			PacketPtr packet = Packet::create();
