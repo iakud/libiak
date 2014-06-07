@@ -11,12 +11,12 @@ uint16_t Packet::getSize() {
 }
 
 void Packet::setDataSize(uint16_t size) {
-	uint16_t infoLen = sizeof(uint32_t) + sizeof(uint16_t);
+	int infoLen = sizeof(uint32_t) + sizeof(uint16_t);
 	*pSize_ = htons(size + infoLen);
 }
 
 uint16_t Packet::getDataSize() {
-	uint16_t infoLen = sizeof(uint32_t) + sizeof(uint16_t);
+	int infoLen = sizeof(uint32_t) + sizeof(uint16_t);
 	return ntohs(*pSize_) - infoLen;
 }
 
