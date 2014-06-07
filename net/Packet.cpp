@@ -11,8 +11,8 @@ uint16_t Packet::getSize() {
 }
 
 void Packet::setDataSize(uint16_t size) {
-	size += sizeof(uint32_t);
-	size += sizeof(uint16_t);
+	size += static_cast<uint16_t>(sizeof(uint32_t));
+	size += static_cast<uint16_t>(sizeof(uint16_t));
 	*pSize_ = htons(size);
 }
 
