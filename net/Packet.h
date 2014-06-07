@@ -31,6 +31,10 @@ public:
 	uint16_t getCmd();
 
 private:
+	static const int kSizeLen = sizeof uint16_t;
+	static const int kHeadLen = sizeof uint32_t;
+	static const int kCmdLen = sizeof uint16_t;
+
 	char buffer_[1024*12];
 	uint16_t* pSize_;
 	uint32_t* pHead_;
