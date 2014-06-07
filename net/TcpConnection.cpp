@@ -154,7 +154,7 @@ bool TcpConnection::PeekData(const char* data, const size_t size) {
 		if (size > readcount) { // read other
 			buffer += readcount;
 			Buffer* readhead = readHead_->next;
-			uint32_t rearsize = static_cast<uint32_t>(size - readcount);
+			uint32_t rearsize = static_cast<uint32_t>(size) - readcount;
 			do {
 				readcount = readhead->count;
 				if (rearsize < readcount) {
@@ -187,13 +187,13 @@ bool TcpConnection::ReadData(const char* data, const size_t size) {
 	if (size < readcount) { // less head count
 		if (size > rearcount) { //read both sides
 			::memcpy(buffer, readHead_->buffer + readHead_->pop, rearcount); // pop -> end
-			readHead_->pop = static_cast<uint32_t>(size - rearcount); // move pop
+			readHead_->pop = static_cast<uint32_t>(size) - rearcount; // move pop
 			::memcpy(buffer + rearcount, readHead_->buffer, readHead_->pop); // begin -> new pop
 		} else { //read immediately
 			::memcpy(buffer, readHead_->buffer + readHead_->pop, size); // pop -> pop +size
 			readHead_->pop = (readHead_->pop + static_cast<uint32_t>(size)) % readHead_->capacity;
 		}
-		readHead_->count -= size; // buffer not empty
+		readHead_->count -= static_cast<uint32_t>(size); // buffer not empty
 	} else { // read head and other
 		if (readcount > rearcount) { //read both sides
 			::memcpy(buffer, readHead_->buffer + readHead_->pop, rearcount); // pop -> pop + rearcount
@@ -205,7 +205,7 @@ bool TcpConnection::ReadData(const char* data, const size_t size) {
 		if (size > readcount) { // read other
 			buffer += readcount;
 			readHead_ = bufferPool_->putNext(readHead_);
-			uint32_t rearsize = size - readcount;
+			uint32_t rearsize = static_cast<uint32_t>(size) - readcount;
 			do {
 				readcount = readHead_->count;
 				if (rearsize < readcount) {
@@ -255,11 +255,11 @@ bool TcpConnection::writeData(const char* data, const size_t size) {
 			::memcpy(writeTail_->buffer, buffer + rearcount, writeTail_->push);
 		} else {
 			::memcpy(writeTail_->buffer + writeTail_->push, buffer, writecount);
-			writeTail_->push = (writeTail_->push + size) % writeTail_->capacity;
+			writeTail_->push = (writeTail_->push + static_cast<uint32_t>(size)) % writeTail_->capacity;
 		}
-		writeTail_->count += size;
+		writeTail_->count += static_cast<uint32_t>(size);
 	} else {
-		uint32_t rearsize = size;
+		uint32_t rearsize = static_cast<uint32_t>(size);
 		if (writecount > 0) {
 			uint32_t rearcount = writeTail_->capacity - writeTail_->push;
 			if (writecount > rearcount) {
@@ -336,13 +336,13 @@ void TcpConnection::handleRead() {
 	}
 	// fill tail
 	if (readsize < rearcount) {
-		readTail_->push = (readTail_->push + readsize) % readTail_->capacity;
-		readTail_->count += readsize;
+		readTail_->push = (readTail_->push + static_cast<uint32_t>(readsize)) % readTail_->capacity;
+		readTail_->count += static_cast<uint32_t>(readsize);
 	} else { // tail full
 		readTail_->push = readTail_->pop;
 		readTail_->count = readTail_->capacity;
 		if (readsize > rearcount) {// fill next
-			next->count = next->push = readsize - rearcount;
+			next->count = next->push = static_cast<uint32_t>(readsize) - rearcount;
 			readTail_ = next;
 		}
 	}
@@ -415,10 +415,10 @@ void TcpConnection::handleWrite() {
 		return;
 	}
 	if (writesize < writecount) {
-		writeHead_->pop = (writeHead_->pop + writesize) % writeHead_->capacity;
-		writeHead_->count -= writesize;
+		writeHead_->pop = (writeHead_->pop + static_cast<uint32_t>(writesize)) % writeHead_->capacity;
+		writeHead_->count -= static_cast<uint32_t>(writesize);
 	} else if (writesize > writecount) {
-		next->pop = writesize - writecount;
+		next->pop = static_cast<uint32_t>(writesize) - writecount;
 		next->count -= writeHead_->pop;
 		writeHead_ = bufferPool_->putNext(writeHead_);
 	} else { // writesize == rearcount
