@@ -128,14 +128,14 @@ void TcpConnection::send(PacketPtr packet) {
 	}
 };
 
-bool TcpConnection::PeekData(const char* data, const uint32_t size) {
+bool TcpConnection::PeekData(const char* data, const int size) {
 	if (!data || 0 == size || size > readSize_) {
 		return false;
 	}
 
 	char* buffer = (char*)data;
-	uint32_t readcount = readHead_->count; // head read count
-	uint32_t rearcount = readHead_->capacity - readHead_->pop; // head rear count
+	int readcount = readHead_->count; // head read count
+	int rearcount = readHead_->capacity - readHead_->pop; // head rear count
 	if (size < readcount) { // less head count
 		if (size > rearcount) { //read both sides
 			::memcpy(buffer, readHead_->buffer + readHead_->pop, rearcount); // pop -> end
@@ -154,7 +154,7 @@ bool TcpConnection::PeekData(const char* data, const uint32_t size) {
 		if (size > readcount) { // read other
 			buffer += readcount;
 			Buffer* readhead = readHead_->next;
-			uint32_t rearsize = size - readcount;
+			int rearsize = size - readcount;
 			do {
 				readcount = readhead->count;
 				if (rearsize < readcount) {
@@ -176,14 +176,14 @@ bool TcpConnection::PeekData(const char* data, const uint32_t size) {
 	return true;
 }
 
-bool TcpConnection::ReadData(const char* data, const uint32_t size) {
+bool TcpConnection::ReadData(const char* data, const int size) {
 	if (!data || 0 == size || size > readSize_) {
 		return false;
 	}
 
 	char* buffer = (char*)data;
-	uint32_t readcount = readHead_->count; // head read count
-	uint32_t rearcount = readHead_->capacity - readHead_->pop; // head rear count
+	int readcount = readHead_->count; // head read count
+	int rearcount = readHead_->capacity - readHead_->pop; // head rear count
 	if (size < readcount) { // less head count
 		if (size > rearcount) { //read both sides
 			::memcpy(buffer, readHead_->buffer + readHead_->pop, rearcount); // pop -> end
@@ -205,7 +205,7 @@ bool TcpConnection::ReadData(const char* data, const uint32_t size) {
 		if (size > readcount) { // read other
 			buffer += readcount;
 			readHead_ = bufferPool_->putNext(readHead_);
-			uint32_t rearsize = size - readcount;
+			int rearsize = size - readcount;
 			do {
 				readcount = readHead_->count;
 				if (rearsize < readcount) {
@@ -240,15 +240,15 @@ bool TcpConnection::ReadData(const char* data, const uint32_t size) {
 	return true;
 }
 
-bool TcpConnection::writeData(const char* data, const uint32_t size) {
+bool TcpConnection::writeData(const char* data, const int size) {
 	if (!data || 0 == size) {
 		return false;
 	}
 
 	char* buffer = (char*)data;
-	uint32_t writecount = writeTail_->capacity - writeTail_->count;
+	int writecount = writeTail_->capacity - writeTail_->count;
 	if (size < writecount) {
-		uint32_t rearcount = writeTail_->capacity - writeTail_->push;
+		int rearcount = writeTail_->capacity - writeTail_->push;
 		if (writecount > rearcount) {
 			::memcpy(writeTail_->buffer + writeTail_->push, buffer, rearcount);
 			writeTail_->push = writecount - rearcount;
@@ -259,9 +259,9 @@ bool TcpConnection::writeData(const char* data, const uint32_t size) {
 		}
 		writeTail_->count += size;
 	} else {
-		uint32_t rearsize = size;
+		int rearsize = size;
 		if (writecount > 0) {
-			uint32_t rearcount = writeTail_->capacity - writeTail_->push;
+			int rearcount = writeTail_->capacity - writeTail_->push;
 			if (writecount > rearcount) {
 				::memcpy(writeTail_->buffer + writeTail_->push, buffer, rearcount);
 				::memcpy(writeTail_->buffer, buffer + rearcount, writecount - rearcount);
@@ -299,7 +299,7 @@ void TcpConnection::handleRead() {
 
 	struct iovec iov[3];
 	int iovcnt = 0;
-	uint32_t rearcount = readTail_->capacity - readTail_->count;
+	int rearcount = readTail_->capacity - readTail_->count;
 	if (rearcount > 0) { // tail buffer
 		if (readTail_->push < readTail_->pop) { // less(Tail<Head)
 			iov[iovcnt].iov_base = readTail_->buffer + readTail_->push;
@@ -329,7 +329,7 @@ void TcpConnection::handleRead() {
 		return;
 	}
 	// read successful
-	uint32_t size = rearcount + next->capacity;
+	int size = rearcount + next->capacity;
 	if (readsize > size) { // error?
 		watcher_->setReadable(false);
 		return;
@@ -347,7 +347,7 @@ void TcpConnection::handleRead() {
 		}
 	}
 	// add readsize
-	readSize_ = static_cast<uint32_t>(readSize_ + readsize);
+	readSize_ += readsize;
 
 	if (receiveCallback_) { // callback
 		while (true) {
@@ -379,7 +379,7 @@ void TcpConnection::handleWrite() {
 
 	struct iovec iov[3];
 	int iovcnt = 0;
-	uint32_t writecount = writeHead_->count;
+	int writecount = writeHead_->count;
 	if (writeHead_->pop < writeHead_->push) { // less(Head<Tail)
 		iov[iovcnt].iov_base = writeHead_->buffer + writeHead_->pop;
 		iov[iovcnt].iov_len = writecount;
@@ -394,7 +394,7 @@ void TcpConnection::handleWrite() {
 			++ iovcnt; // iovcnt = 2
 		}
 	}
-	uint32_t size = writecount;
+	int size = writecount;
 	Buffer* next = writeHead_->next;
 	if (next) {
 		iov[iovcnt].iov_base = next->buffer;
@@ -429,7 +429,7 @@ void TcpConnection::handleWrite() {
 		}
 	}
 	// remove size
-	writeSize_ = static_cast<uint32_t>(writeSize_ - writesize);
+	writeSize_ -= writesize;
 	//if (m_sendCallback) { // callback
 	//	m_sendCallback(shared_from_this(), writesize);
 	//}

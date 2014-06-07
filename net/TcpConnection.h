@@ -41,10 +41,10 @@ public:
 	const InetAddress& getRemoteAddress() const { return remoteAddr_; }
 	// IO
 	uint32_t GetReadBufferSize() { return readSize_; }
-	bool PeekData(const char* data, const uint32_t size);
-	bool ReadData(const char* data, const uint32_t size);
+	bool PeekData(const char* data, const int size);
+	bool ReadData(const char* data, const int size);
 	uint32_t GetWriteBufferSize() { return writeSize_; }
-	bool writeData(const char* data, const uint32_t size);
+	bool writeData(const char* data, const int size);
 	// callback function
 	void setConnectCallback(ConnectCallback&& cb) { connectCallback_ = cb; }
 	void setReceiveCallback(ReceiveCallback&& cb) { receiveCallback_ = cb; }
@@ -89,10 +89,10 @@ private:
 	// read write buffer
 	Buffer* readHead_;	// read head buffer
 	Buffer* readTail_;	// read tail buffer
-	uint32_t readSize_;
+	int readSize_;
 	Buffer* writeHead_;// write head buffer
 	Buffer* writeTail_;// write tail buffer
-	uint32_t writeSize_;
+	int writeSize_;
 
 	// callback
 	ConnectCallback connectCallback_;

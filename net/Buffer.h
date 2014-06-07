@@ -10,16 +10,16 @@ namespace iak {
 
 struct Buffer {
 	char* buffer = NULL;
-	uint32_t capacity = 0;
-	uint32_t count = 0;
-	uint32_t push = 0;
-	uint32_t pop = 0;
+	int capacity = 0;
+	int count = 0;
+	int push = 0;
+	int pop = 0;
 	Buffer* next = NULL;
 }; // end struct Buffer
 
 class BufferPool : public NonCopyable {
 public:
-	BufferPool(const uint32_t capacity, const uint32_t size)
+	BufferPool(const int capacity, const int size)
 		: capacity_(capacity)
 		, size_(size)
 		, count_(0) {
@@ -59,8 +59,8 @@ public:
 	}
 
 private:
-	const uint32_t capacity_;
-	const uint32_t size_;
+	const int capacity_;
+	const int size_;
 	uint32_t count_;
 	Buffer* head_;		// head buffer
 	Buffer* tail_;		// tail buffer
