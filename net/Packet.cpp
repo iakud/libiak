@@ -11,11 +11,11 @@ uint16_t Packet::getSize() {
 }
 
 void Packet::setDataSize(uint16_t size) {
-	*pSize_ = htons(size + (sizeof(uint32_t) + sizeof(uint16_t)));
+	*pSize_ = htons(size + static_cast<uint16_t>(sizeof(uint32_t) + sizeof(uint16_t)));
 }
 
 uint16_t Packet::getDataSize() {
-	return ntohs(*pSize_) - (sizeof(uint32_t) + sizeof(uint16_t));
+	return ntohs(*pSize_) - static_cast<uint16_t>(sizeof(uint32_t) + sizeof(uint16_t));
 }
 
 void Packet::setCmd(uint16_t cmd) {
