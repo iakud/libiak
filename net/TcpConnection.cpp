@@ -154,7 +154,7 @@ bool TcpConnection::PeekData(const char* data, const size_t size) {
 		if (size > readcount) { // read other
 			buffer += readcount;
 			Buffer* readhead = readHead_->next;
-			int rearsize = size - readcount;
+			uint32_t rearsize = size - readcount;
 			do {
 				readcount = readhead->count;
 				if (rearsize < readcount) {
@@ -205,7 +205,7 @@ bool TcpConnection::ReadData(const char* data, const size_t size) {
 		if (size > readcount) { // read other
 			buffer += readcount;
 			readHead_ = bufferPool_->putNext(readHead_);
-			int rearsize = size - readcount;
+			uint32_t rearsize = size - readcount;
 			do {
 				readcount = readHead_->count;
 				if (rearsize < readcount) {
@@ -248,7 +248,7 @@ bool TcpConnection::writeData(const char* data, const size_t size) {
 	char* buffer = (char*)data;
 	uint32_t writecount = writeTail_->capacity - writeTail_->count;
 	if (size < writecount) {
-		int rearcount = writeTail_->capacity - writeTail_->push;
+		uint32_t rearcount = writeTail_->capacity - writeTail_->push;
 		if (writecount > rearcount) {
 			::memcpy(writeTail_->buffer + writeTail_->push, buffer, rearcount);
 			writeTail_->push = writecount - rearcount;
@@ -259,9 +259,9 @@ bool TcpConnection::writeData(const char* data, const size_t size) {
 		}
 		writeTail_->count += size;
 	} else {
-		int rearsize = size;
+		uint32_t rearsize = size;
 		if (writecount > 0) {
-			int rearcount = writeTail_->capacity - writeTail_->push;
+			uint32_t rearcount = writeTail_->capacity - writeTail_->push;
 			if (writecount > rearcount) {
 				::memcpy(writeTail_->buffer + writeTail_->push, buffer, rearcount);
 				::memcpy(writeTail_->buffer, buffer + rearcount, writecount - rearcount);
