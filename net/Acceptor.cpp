@@ -89,5 +89,5 @@ void Acceptor::handleRead() {
 		::close(sockFd);
 	}
 	// continue accept in next loop
-	loop_->runInLoop(std::bind(&Acceptor::handleRead, this));
+	watcher_->activeRead();
 }

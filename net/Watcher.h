@@ -57,6 +57,8 @@ public:
 	void start();
 	void stop();
 
+	void activeRead();
+	void activeWrite();
 	void active(int revents);
 	void handleEvents();
 

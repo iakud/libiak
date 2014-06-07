@@ -20,6 +20,10 @@ public:
 	
 	typedef std::function<void()> Functor;
 
+	std::shared_ptr<BufferPool>& getBufferPool() {
+		return bufferPool_;
+	}
+
 	void runInLoop(Functor&& functor) {
 		MutexGuard lock(mutex_);
 		pendingFunctors_.push_back(functor);

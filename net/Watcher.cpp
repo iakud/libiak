@@ -19,6 +19,15 @@ void Watcher::stop() {
 //		m_loop->activeWatcher(this);
 //	}
 //}
+void Watcher::activeRead() {
+	revents_ |= EV_READ;
+	loop_->activeWatcher(this);
+}
+
+void Watcher::activeWrite() {
+	revents_ |= EV_WRITE;
+	loop_->activeWatcher(this);
+}
 
 void Watcher::active(int revents) {
 	revents &= events_;
