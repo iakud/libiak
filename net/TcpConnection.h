@@ -40,10 +40,10 @@ public:
 	const InetAddress& getLocalAddress() const { return localAddr_; }
 	const InetAddress& getRemoteAddress() const { return remoteAddr_; }
 	// IO
-	uint32_t GetReadBufferSize() { return readSize_; }
+	size_t GetReadBufferSize() { return readSize_; }
 	bool PeekData(const char* data, const size_t size);
 	bool ReadData(const char* data, const size_t size);
-	uint32_t GetWriteBufferSize() { return writeSize_; }
+	size_t GetWriteBufferSize() { return writeSize_; }
 	bool writeData(const char* data, const size_t size);
 	// callback function
 	void setConnectCallback(ConnectCallback&& cb) { connectCallback_ = cb; }

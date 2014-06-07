@@ -133,7 +133,7 @@ bool TcpConnection::PeekData(const char* data, const size_t size) {
 		return false;
 	}
 
-	char* buffer = (char*)data;
+	char* buffer = const_cast<char*>(data);
 	uint32_t readcount = readHead_->count; // head read count
 	uint32_t rearcount = readHead_->capacity - readHead_->pop; // head rear count
 	if (size < readcount) { // less head count
@@ -154,7 +154,7 @@ bool TcpConnection::PeekData(const char* data, const size_t size) {
 		if (size > readcount) { // read other
 			buffer += readcount;
 			Buffer* readhead = readHead_->next;
-			uint32_t rearsize = size - readcount;
+			uint32_t rearsize = static_cast<uint32_t>(size - readcount);
 			do {
 				readcount = readhead->count;
 				if (rearsize < readcount) {
@@ -181,17 +181,17 @@ bool TcpConnection::ReadData(const char* data, const size_t size) {
 		return false;
 	}
 
-	char* buffer = (char*)data;
+	char* buffer = const_cast<char*>(data);
 	uint32_t readcount = readHead_->count; // head read count
 	uint32_t rearcount = readHead_->capacity - readHead_->pop; // head rear count
 	if (size < readcount) { // less head count
 		if (size > rearcount) { //read both sides
 			::memcpy(buffer, readHead_->buffer + readHead_->pop, rearcount); // pop -> end
-			readHead_->pop = size - rearcount; // move pop
+			readHead_->pop = static_cast<uint32_t>(size - rearcount); // move pop
 			::memcpy(buffer + rearcount, readHead_->buffer, readHead_->pop); // begin -> new pop
 		} else { //read immediately
 			::memcpy(buffer, readHead_->buffer + readHead_->pop, size); // pop -> pop +size
-			readHead_->pop = (readHead_->pop + size) % readHead_->capacity;
+			readHead_->pop = (readHead_->pop + static_cast<uint32_t>(size)) % readHead_->capacity;
 		}
 		readHead_->count -= size; // buffer not empty
 	} else { // read head and other
@@ -245,7 +245,7 @@ bool TcpConnection::writeData(const char* data, const size_t size) {
 		return false;
 	}
 
-	char* buffer = (char*)data;
+	char* buffer = const_cast<char*>(data);
 	uint32_t writecount = writeTail_->capacity - writeTail_->count;
 	if (size < writecount) {
 		uint32_t rearcount = writeTail_->capacity - writeTail_->push;
