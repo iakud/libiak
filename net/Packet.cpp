@@ -1,6 +1,6 @@
 #include "Packet.h"
 
-#include<netinet/in.h>
+#include <netinet/in.h>
 
 PacketPtr Packet::create() {
 	return std::make_shared<Packet>();
