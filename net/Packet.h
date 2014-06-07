@@ -10,9 +10,9 @@ typedef std::shared_ptr<Packet> PacketPtr;
 class Packet {
 public:
 	Packet()
-		: pSize_((uint16_t*)buffer_)
-		, pHead_((uint32_t*)(buffer_ + sizeof(uint16_t)))
-		, pCmd_((uint16_t*)(buffer_ + sizeof(uint16_t) + sizeof(uint32_t)))
+		: pSize_(reinterpret_cast<uint16_t*>(buffer_))
+		, pHead_(reinterpret_cast<uint32_t*>(buffer_ + sizeof(uint16_t)))
+		, pCmd_(reinterpret_cast<uint16_t*>(buffer_ + sizeof(uint16_t) + sizeof(uint32_t)))
 		, pData_(buffer_ + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint16_t)) {
 	}
 
