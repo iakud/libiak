@@ -366,8 +366,11 @@ void TcpConnection::handleRead() {
 			receiveCallback_(shared_from_this(), packet);
 		}
 	}
-	// socket receive buffer not empty may be,  at use EPOLL ET
-	if (readsize == size) {
+
+	if (readsize < size) {
+		watcher_->setReadable(false);
+	} else if (readsize == size) {
+		// socket receive buffer not empty may be, at use EPOLL ET
 		watcher_->activeRead();
 	}
 }
@@ -414,6 +417,7 @@ void TcpConnection::handleWrite() {
 		watcher_->setWriteable(false);
 		return;
 	}
+	
 	if (writesize < writecount) {
 		writeHead_->pop = (writeHead_->pop + static_cast<uint32_t>(writesize)) % writeHead_->capacity;
 		writeHead_->count -= static_cast<uint32_t>(writesize);
@@ -433,8 +437,10 @@ void TcpConnection::handleWrite() {
 	//if (m_sendCallback) { // callback
 	//	m_sendCallback(shared_from_this(), writesize);
 	//}
-	// send buffer not empty, continue write
-	if (writesize == size && writeSize_ > 0) {
+	if (writesize < size) {
+		watcher_->setWriteable(false);
+	} else if (writesize == size && writeSize_ > 0) {
+		// send buffer not empty, continue write
 		watcher_->activeWrite();
 	}
 }
