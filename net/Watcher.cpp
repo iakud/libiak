@@ -4,7 +4,7 @@
 
 using namespace iak;
 
-Watcher(EventLoop* loop, const int fd)
+Watcher::Watcher(EventLoop* loop, const int fd)
 	: loop_(loop)
 	, fd_(fd)
 	, events_(EV_NONE)
