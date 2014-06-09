@@ -291,8 +291,6 @@ bool TcpConnection::writeData(const char* data, const size_t size) {
 	writeSize_ += size;
 	return true;
 }
-#include <iostream>
-using namespace std;
 
 void TcpConnection::handleRead() {
 	if (!watcher_->isReadable()) {
@@ -325,7 +323,6 @@ void TcpConnection::handleRead() {
 	++ iovcnt; // iovcnt <= 3
 	// read fd
 	const ssize_t readsize = ::readv(sockFd_, iov, iovcnt);
-	cout<<"readsize:"<<readsize<<endl;
 	if (readsize < 0) {
 		// error
 		watcher_->setReadable(false);
@@ -354,16 +351,16 @@ void TcpConnection::handleRead() {
 
 	if (receiveCallback_) { // callback
 		while (true) {
-			uint16_t packSize;
-			if (!PeekData(reinterpret_cast<char*>(&packSize), sizeof(uint16_t))) {
+			uint16_t packsize;
+			if (!PeekData(reinterpret_cast<char*>(&packsize), sizeof(uint16_t))) {
 				break;
 			}
-			packSize = ntohs(packSize);
-			if (packSize + sizeof(uint16_t) < readSize_) {
+			packsize = ntohs(packsize);
+			if (packsize + sizeof(uint16_t) < readSize_) {
 				break;
 			}
 			PacketPtr packet = Packet::create();
-			if (!ReadData(packet->getPacket(), size + sizeof(uint16_t))) {
+			if (!ReadData(packet->getPacket(), packsize + sizeof(uint16_t))) {
 				break;
 			}
 			receiveCallback_(shared_from_this(), packet);
