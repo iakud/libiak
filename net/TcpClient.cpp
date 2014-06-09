@@ -47,7 +47,7 @@ void TcpClient::connectAsync() {
 void TcpClient::handleConnect(const int sockFd, 
 		const struct sockaddr_in& localSockAddr) {
 	InetAddress localAddr(localSockAddr);
-	TcpConnectionPtr connection = TcpConnection::Create(loop_, 
+	TcpConnectionPtr connection = TcpConnection::create(loop_, 
 			sockFd, localAddr, remoteAddr_);
 	connection_ = connection;
 	connection->setCloseCallback(std::bind(&TcpClient::handleClose, 
@@ -69,7 +69,7 @@ void TcpClient::handleClose(TcpConnectionPtr connection) {
 	}
 
 	if (retry_) { // retry?
-		connector_->ConnectAsync();	// connect again
+		connector_->connectAsync();	// connect again
 	} else {
 		connect_ = false;	// disconnect
 	}

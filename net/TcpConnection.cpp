@@ -113,7 +113,7 @@ void TcpConnection::destroy() {
 	watcher_->stop();
 }
 
-void TcpConnection::sendData(PacketPtr packet) {
+void TcpConnection::sendPack(PacketPtr packet) {
 	if (close_) {
 		return;
 	}

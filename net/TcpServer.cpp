@@ -39,7 +39,7 @@ TcpServer::~TcpServer() {
 	}
 }
 
-TcpServerPtr TcpServer::Create(EventLoop* loop, 
+TcpServerPtr TcpServer::create(EventLoop* loop, 
 		const InetAddress& localAddr) {
 	return std::make_shared<TcpServer>(loop, localAddr);
 }
@@ -58,10 +58,11 @@ void TcpServer::handleAccept(const int sockFd,
 	InetAddress remoteAddr(remoteSockAddr);
 	EventLoop* loop;
 	if (loopThreadPool_) {
-		indexLoop_ = ++indexLoop_ % loopThreadPool_->getCount();
-		loopThreadPool_->getLoop(indexLoop_)
+		++indexLoop_;
+		indexLoop_ %= loopThreadPool_->getCount();
+		loopThreadPool_->getLoop(indexLoop_);
 	} else {
-		loop = loop_
+		loop = loop_;
 	}
 	
 	TcpConnectionPtr connection = TcpConnection::create(loop, 

@@ -7,6 +7,9 @@ set(net_SRCS
 	Acceptor.cpp
 	Packet.cpp
 	TcpConnection.cpp
+	EventLoopThreadPool.cpp
+	TcpClient.cpp
+	TcpServer.cpp
 	)
 
 add_library(iak_net ${net_SRCS})
@@ -23,5 +26,5 @@ set(HEADERS
 install(FILES ${HEADERS} DESTINATION include/iak/net)
 
 if (NOT CMAKE_BUILD_NO_EXAMPLES)
-#	add_subdirectory(tests)
+	add_subdirectory(tests)
 endif()

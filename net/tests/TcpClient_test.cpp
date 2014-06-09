@@ -1,55 +1,53 @@
 #ifndef TOT_TCPCLIENT_TEST_H
 #define TOT_TCPCLIENT_TEST_H
 
+#include <net/EventLoop.h>
+#include <net/TcpClient.h>
+
 #include <iostream>
 #include <string>
 #include <stdio.h>
 #include <string.h>
-#include "tot.h"
 
 using namespace std;
+using namespace iak;
 
-void onDisconnect(TcpConnectionPtr connection)
-{
+void onDisconnect(TcpConnectionPtr connection) {
 	cout<<"on disconnect"<<endl;
 }
 
-void onReceive(TcpConnectionPtr connection, PacketPtr packet)
-{
-	string msg(packet->GetData(), packet->GetDataSize());
+void onReceive(TcpConnectionPtr connection, PacketPtr packet) {
+	string msg(packet->getData(), packet->getDataSize());
 	cout<<"receive:"<<msg<<endl;
-	connection->Send(packet);
+	connection->sendPack(packet);
 }
 
-void onConnect(TcpConnectionPtr connection)
-{
+void onConnect(TcpConnectionPtr connection) {
 	cout<<"on connect"<<endl;
 	char data[] = "hello world!";
-	PacketPtr packet = Packet::Create();
-	memcpy((char*)packet->GetData(), data, strlen(data));
-	packet->SetDataSize(strlen(data));
-	connection->Send(packet);
+	PacketPtr packet = Packet::create();
+	memcpy(packet->getData(), data, static_cast<uint16_t>(strlen(data)));
+	packet->setDataSize(static_cast<uint16_t>(strlen(data)));
+	connection->sendPack(packet);
 	cout<<"send:"<<data<<endl;
 }
 
-void onConnection(TcpConnectionPtr connection)
-{
+void onConnection(TcpConnectionPtr connection) {
 	cout<<"connect to server"<<endl;
-	connection->SetConnectCallback(std::bind(onConnect, std::placeholders::_1));
-	connection->SetReceiveCallback(std::bind(onReceive, std::placeholders::_1, std::placeholders::_2));
-	connection->SetDisconnectCallback(std::bind(onDisconnect, std::placeholders::_1));
-	connection->EstablishAsync();
+	connection->setConnectCallback(std::bind(onConnect, std::placeholders::_1));
+	connection->setReceiveCallback(std::bind(onReceive, std::placeholders::_1, std::placeholders::_2));
+	connection->setDisconnectCallback(std::bind(onDisconnect, std::placeholders::_1));
+	connection->establishAsync();
 }
 
-int main()
-{
-	EventLoop* loop = EventLoop::Create();
+int main() {
+	EventLoop* loop = EventLoop::create();
 	InetAddress remoteAddr(9999,"127.0.0.1");
-	TcpClientPtr tcpclient = TcpClient::Create(loop, remoteAddr);
-	tcpclient->SetConnectCallback(std::bind(onConnection, std::placeholders::_1));
-	tcpclient->ConnectAsync();
+	TcpClientPtr tcpclient = TcpClient::create(loop, remoteAddr);
+	tcpclient->setConnectCallback(std::bind(onConnection, std::placeholders::_1));
+	tcpclient->connectAsync();
 	cout<<"tcpclient connect"<<endl;
-	loop->Loop();
+	loop->loop();
 
 	return 0;
 }

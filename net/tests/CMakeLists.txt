@@ -1,5 +1,5 @@
 add_executable(TcpClient_test TcpClient_test.cpp)
-target_link_libraries(TcpClient_test iak_base)
+target_link_libraries(TcpClient_test iak_base iak_net)
 
 add_executable(TcpServer_test TcpServer_test.cpp)
-target_link_libraries(TcpServer_test iak_base)
+target_link_libraries(TcpServer_test iak_base iak_net)

@@ -57,7 +57,7 @@ public:
 	void establishAsync();
 	void shutdownAsync();
 	void closeAsync();
-	void sendData(PacketPtr packet);
+	void sendPack(PacketPtr packet);
 
 private:
 	// for tcpserver and tcpclient
