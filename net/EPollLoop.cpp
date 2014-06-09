@@ -19,8 +19,10 @@ EPollLoop::~EPollLoop() {
 	::free(events_);
 	::close(epollfd_);
 }
-
+#include <iostream>
+using namespace std;
 void EPollLoop::poll(int timeout) {
+	cout<<"poll"<<endl;
 	int nfd = ::epoll_wait(epollfd_, events_, eventsize_, timeout);
 	if (nfd > 0) {
 		for (int i=0; i<nfd; ++i) {
@@ -50,6 +52,7 @@ void EPollLoop::poll(int timeout) {
 void EPollLoop::addWatcher(Watcher* watch) {
 	struct epoll_event event;
 	int events = watch->events();
+	cout<<"addWatcher "<<events<<endl;
 	event.events = EPOLLET;	// edge trigger
 	if (events & EV_CLOSE) {
 		event.events &= EPOLLRDHUP;
