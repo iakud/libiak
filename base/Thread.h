@@ -44,7 +44,8 @@ private:
 	static void cacheTid();
 
 public:
-	explicit Thread(ThreadFunc&& func, const std::string& name);
+	explicit Thread(ThreadFunc&& func, 
+			const std::string& name = std::string());
 	~Thread();
 
 	void start();
