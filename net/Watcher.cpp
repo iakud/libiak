@@ -60,8 +60,10 @@ void Watcher::activeWrite() {
 	revents_ |= EV_WRITE;
 	loop_->activeWatcher(this);
 }
-
+#include <iostream>
+using namespace std;
 void Watcher::active(int revents) {
+	cout<<"active"<<endl;
 	revents &= events_;
 	if (revents & EV_READ && !readable_) {
 		readable_ = true;
@@ -79,8 +81,7 @@ void Watcher::active(int revents) {
 		loop_->activeWatcher(this);
 	}
 }
-#include <iostream>
-using namespace std;
+
 
 void Watcher::handleEvents() {
 	if (revents_ & EV_CLOSE) {
