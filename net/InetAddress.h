@@ -17,11 +17,11 @@ public:
 		: addr_(addr) {
 	}
 
-	const struct sockaddr_in& GetSockAddr() const {
+	const struct sockaddr_in& getSockAddr() const {
 		return addr_;
 	}
 
-	void SetSockAddr(const struct sockaddr_in& addr) {
+	void setSockAddr(const struct sockaddr_in& addr) {
 		addr_ = addr;
 	}
 
