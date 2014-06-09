@@ -11,7 +11,8 @@ EPollLoop::EPollLoop()
 	: EventLoop()
 	, epollfd_(::epoll_create1(EPOLL_CLOEXEC))
 	, eventsize_(kEventSizeInit) {
-	events_ = static_cast<struct epoll_event*>(::malloc(eventsize_ * sizeof(struct epoll_event)));
+	events_ = static_cast<struct epoll_event*>(
+			::malloc(eventsize_ * sizeof(struct epoll_event)));
 }
 
 EPollLoop::~EPollLoop() {
@@ -30,10 +31,12 @@ void EPollLoop::poll(int timeout) {
 				| (event.events & (EPOLLOUT|EPOLLERR|EPOLLHUP)?EV_WRITE:EV_NONE); // write
 			watcher->active(events);
 		}
+
 		if (nfd == eventsize_) {
 			::free(events_);
 			eventsize_ = eventsize_ << 1; // eventsize extend
-			events_ = static_cast<struct epoll_event*>(::malloc(eventsize_ * sizeof(struct epoll_event)));
+			events_ = static_cast<struct epoll_event*>(
+					::malloc(eventsize_ * sizeof(struct epoll_event)));
 		}
 	}
 	else if (nfd == 0) {

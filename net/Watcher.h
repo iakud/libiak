@@ -1,7 +1,6 @@
 #ifndef IAK_NET_WATCHER_H
 #define IAK_NET_WATCHER_H
 
-#include "Event.h"
 #include <base/NonCopyable.h>
 
 #include <functional>
@@ -12,18 +11,8 @@ class EventLoop;
 
 class Watcher : public NonCopyable {
 public:
-	Watcher(EventLoop* loop, const int fd)
-		: loop_(loop)
-		, fd_(fd)
-		, events_(EV_NONE)
-		, revents_(EV_NONE)
-		, started_(false)
-		, actived_(false)
-		, closed_(false) {
-	}
-
-	~Watcher() {
-	}
+	Watcher(EventLoop* loop, const int fd);
+	~Watcher();
 
 	typedef std::function<void()> EventCallback;
 
@@ -36,13 +25,7 @@ public:
 	void setReadCallback(EventCallback&& cb) { readCallback_ = cb; }
 	void setWriteCallback(EventCallback&& cb) { writeCallback_ = cb; }
 	void setCloseCallback(EventCallback&& cb) { closeCallback_ = cb; }
-	void enableRead() { events_ |= EV_READ; }
-	void disableRead() { events_ &= ~EV_READ; }
-	void enableWrite() { events_ |= EV_WRITE; }
-	void disableWrite() { events_ &= ~EV_WRITE; }
-	void enableClose() { events_ |= EV_CLOSE; }
-	void disableClose() { events_ &= ~EV_CLOSE; }
-
+	
 	// watched & actived
 	bool isActived() { return actived_; }
 	void setActived(bool actived) { actived_ = actived; }
@@ -53,6 +36,13 @@ public:
 	void setWriteable(bool writeable) { writeable_ = writeable; }
 	bool isClosed() { return closed_; }
 	void setClosed(bool closed) { closed_ = closed; }
+
+	void enableRead();
+	void disableRead();
+	void enableWrite();
+	void disableWrite();
+	void enableClose();
+	void disableClose();
 
 	void start();
 	void stop();

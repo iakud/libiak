@@ -35,13 +35,17 @@ AcceptorPtr Acceptor::create(EventLoop* loop,
 }
 
 void Acceptor::listenAsync() {
-	if (accept_) return;
+	if (accept_) {
+		return;
+	}
 	accept_ = true;
 	loop_->runInLoop(std::bind(&Acceptor::listen, shared_from_this()));
 }
 
 void Acceptor::closeAsync() {
-	if (!accept_) return;
+	if (!accept_) {
+		return;
+	}
 	accept_ = false;
 	loop_->runInLoop(std::bind(&Acceptor::close, shared_from_this()));
 }
