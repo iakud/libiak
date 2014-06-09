@@ -21,7 +21,7 @@ Acceptor::Acceptor(EventLoop* loop,
 	, accept_(false) {
 	::bind(sockFd_, reinterpret_cast<const struct sockaddr*>(&localSockAddr_),
 		static_cast<socklen_t>(sizeof localSockAddr_));
-	watcher_->setReadCallback(std::bind(&Acceptor::handleRead, this));
+	watcher_->setReadCallback(std::bind(&Acceptor::onRead, this));
 	watcher_->enableRead();
 }
 
@@ -68,7 +68,7 @@ void Acceptor::close() {
 	watcher_->stop();
 }
 
-void Acceptor::handleRead() {
+void Acceptor::onRead() {
 	if (!accept_) {
 		return;
 	}

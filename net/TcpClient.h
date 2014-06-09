@@ -36,9 +36,9 @@ public:
 
 	void connectAsync();
 private:
-	void handleConnect(const int sockFd,
+	void onConnect(const int sockFd,
 			const struct sockaddr_in& localSockAddr);
-	void handleClose(TcpConnectionPtr connection);
+	void onClose(TcpConnectionPtr connection);
 
 	EventLoop* loop_;
 	InetAddress remoteAddr_;

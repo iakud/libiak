@@ -17,7 +17,7 @@ TcpClient::TcpClient(EventLoop* loop, const InetAddress& remoteAddr)
 	, connector_(Connector::create(loop, remoteAddr_.getSockAddr()))
 	, connect_(false)
 	, retry_(false) {
-	connector_->setConnectCallback(std::bind(&TcpClient::handleConnect, 
+	connector_->setConnectCallback(std::bind(&TcpClient::onConnect, 
 			this, std::placeholders::_1, std::placeholders::_2));
 }
 
@@ -44,20 +44,20 @@ void TcpClient::connectAsync() {
 	connector_->connectAsync();
 }
 
-void TcpClient::handleConnect(const int sockFd, 
+void TcpClient::onConnect(const int sockFd, 
 		const struct sockaddr_in& localSockAddr) {
 	InetAddress localAddr(localSockAddr);
 	TcpConnectionPtr connection = TcpConnection::create(loop_, 
 			sockFd, localAddr, remoteAddr_);
 	connection_ = connection;
-	connection->setCloseCallback(std::bind(&TcpClient::handleClose, 
+	connection->setCloseCallback(std::bind(&TcpClient::onClose, 
 			this, std::placeholders::_1));
 	if (connectCallback_) {
 		connectCallback_(connection);
 	}
 }
 
-void TcpClient::handleClose(TcpConnectionPtr connection) {
+void TcpClient::onClose(TcpConnectionPtr connection) {
 	if (connection_ != connection) {
 		return;	// match connection
 	}

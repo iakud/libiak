@@ -66,7 +66,7 @@ void Connector::connect() {
 		connecting_ = true;
 		watcher_.reset(new Watcher(loop_, sockFd));
 		watcher_->enableWrite();
-		watcher_->setWriteCallback(std::bind(&Connector::handleWrite, this));
+		watcher_->setWriteCallback(std::bind(&Connector::onWrite, this));
 		watcher_->start();
 	} else {
 		::close(sockFd); // close first
@@ -88,7 +88,7 @@ void Connector::close() {
 	::close(sockFd);
 }
 
-void Connector::handleWrite() {
+void Connector::onWrite() {
 	if (!connect_ || !connecting_) {
 		return;
 	}

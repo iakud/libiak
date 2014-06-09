@@ -27,9 +27,9 @@ TcpConnection::TcpConnection(EventLoop* loop, int sockFd,
 	int optval = 1;
 	::setsockopt(sockFd_, SOL_SOCKET, SO_KEEPALIVE, &optval, 
 			static_cast<socklen_t>(sizeof optval));
-	watcher_->setReadCallback(std::bind(&TcpConnection::handleRead, this));
-	watcher_->setWriteCallback(std::bind(&TcpConnection::handleWrite, this));
-	watcher_->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
+	watcher_->setReadCallback(std::bind(&TcpConnection::onRead, this));
+	watcher_->setWriteCallback(std::bind(&TcpConnection::onWrite, this));
+	watcher_->setCloseCallback(std::bind(&TcpConnection::onClose, this));
 	watcher_->enableRead();
 	watcher_->enableWrite();
 	watcher_->enableClose();
@@ -292,7 +292,7 @@ bool TcpConnection::writeData(const char* data, const size_t size) {
 	return true;
 }
 
-void TcpConnection::handleRead() {
+void TcpConnection::onRead() {
 	if (!watcher_->isReadable()) {
 		return;
 	}
@@ -375,7 +375,7 @@ void TcpConnection::handleRead() {
 	}
 }
 
-void TcpConnection::handleWrite() {
+void TcpConnection::onWrite() {
 	if (!watcher_->isWriteable() || 0 == writeSize_) {
 		return;
 	}
@@ -445,7 +445,7 @@ void TcpConnection::handleWrite() {
 	}
 }
 
-void TcpConnection::handleClose() {
+void TcpConnection::onClose() {
 	TcpConnectionPtr sharedthis = shared_from_this();
 	if (disconnectCallback_) {
 		disconnectCallback_(sharedthis);

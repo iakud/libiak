@@ -20,7 +20,7 @@ TcpServer::TcpServer(EventLoop* loop, const InetAddress& localAddr)
 	, listen_(false)
 	, loopThreadPool_(NULL)
 	, indexLoop_(0) {
-	acceptor_->setAcceptCallback(std::bind(&TcpServer::handleAccept, 
+	acceptor_->setAcceptCallback(std::bind(&TcpServer::onAccept, 
 			this, std::placeholders::_1, std::placeholders::_2));
 }
 
@@ -53,7 +53,7 @@ void TcpServer::listenAsync() {
 	acceptor_->listenAsync();
 }
 
-void TcpServer::handleAccept(const int sockFd,
+void TcpServer::onAccept(const int sockFd,
 		const struct sockaddr_in& remoteSockAddr) {
 	InetAddress remoteAddr(remoteSockAddr);
 	EventLoop* loop;
@@ -68,14 +68,14 @@ void TcpServer::handleAccept(const int sockFd,
 	TcpConnectionPtr connection = TcpConnection::create(loop, 
 			sockFd, localAddr_, remoteAddr);
 	connections_.insert(connection);
-	connection->setCloseCallback(std::bind(&TcpServer::handleClose,
+	connection->setCloseCallback(std::bind(&TcpServer::onClose,
 			this, std::placeholders::_1));
 	if (connectCallback_) {
 		connectCallback_(connection);
 	}
 }
 
-void TcpServer::handleClose(TcpConnectionPtr connection) {
+void TcpServer::onClose(TcpConnectionPtr connection) {
 	//std::set<TcpConnectionPtr>::iterator itConnection = m_connections.find(connection);
 	//m_connections.erase(itConnection);
 	// add lock !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

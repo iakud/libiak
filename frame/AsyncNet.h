@@ -1,31 +1,41 @@
-#ifndef TOT_ASYNCNET_H
-#define TOT_ASYNCNET_H
+#ifndef IAK_FRAME_ASYNCNET_H
+#define IAK_FRAME_ASYNCNET_H
 
-#include <list>
-#include "NonCopyable.h"
-#include "tot.h"
 #include "DataSocket.h"
+#include <list>
 
-class AsyncNet : public NonCopyable
-{
+class EventLoopThreadPool;
+
+class AsyncNet {
 public:
-	explicit AsyncNet(uint32_t count);
-	virtual ~AsyncNet();
+	static void init(uint32_t count);
+	static void destroy();
 
-	typedef std::function<bool(DataSocketPtr)> EstablishCallback;
-
-	TcpServerPtr Listen(const InetAddress& localAddr, EstablishCallback callback);
-	TcpClientPtr Connect(const InetAddress& remoteAddr, EstablishCallback callback);
-	// run in main thread, per loop
-	void NetProcess();
-private:
 	typedef std::function<void()> Functor;
 
-	void runInProcess(Functor&& functor)
-	{ MutexGuard lock(m_mutex); m_pendingFunctors.push_back(functor); }
-	void swapPendingFunctors(std::vector<Functor>& functors)
-	{ MutexGuard lock(m_mutex); functors.swap(m_pendingFunctors); }
+	void put(Functor&& functor) {
+		MutexGuard lock(mutex_);
+		s_pendingFunctors_.push_back(functor);
+	}
 
+	// run in main thread, per loop
+	static void dispatch();
+
+	static EventLoop* getEventLoop() {
+		assert(s_loopThreadPool_);
+		if (s_loopThreadPool_) {
+			++s_indexLoop_;
+			s_indexLoop_ %= s_loopThreadPool_->getCount();
+			return s_loopThreadPool_->getLoop(s_indexLoop_);
+		}
+		return NULL;
+	}
+
+	static EventLoopThreadPool* getEventLoopThreadPool() {
+		return s_loopThreadPool_;
+	}
+
+private:
 	void onEstablish(TcpConnectionPtr connection, EstablishCallback callback);
 	void onConnect(TcpConnectionPtr connection);
 	void onMessage(TcpConnectionPtr connection, PacketPtr packet);
@@ -39,10 +49,10 @@ private:
 	std::list<TcpServerPtr> m_servers;
 	std::list<TcpClientPtr> m_clients;
 
-	std::vector<Functor> m_pendingFunctors;
-	Mutex m_mutex;
-	EventLoopThreadPool* m_loopThreadPool;
-	uint32_t m_indexLoop;
+	static std::vector<Functor> s_pendingFunctors_;
+	static Mutex s_mutex_;
+	static EventLoopThreadPool* s_loopThreadPool_;
+	static uint32_t s_indexLoop_;
 };
 
-#endif // TOT_ASYNCNET_H
+#endif // IAK_FRAME_ASYNCNET_H

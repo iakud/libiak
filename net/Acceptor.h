@@ -41,7 +41,7 @@ public:
 private:
 	void listen();		// listen in loop
 	void close();		// close in loop
-	void handleRead();	// read event active
+	void onRead();	// read event active
 
 	EventLoop* loop_;
 	const struct sockaddr_in localSockAddr_;

@@ -40,9 +40,9 @@ public:
 	void listenAsync();
 
 private:
-	void handleAccept(const int sockFd,
+	void onAccept(const int sockFd,
 			const struct sockaddr_in& remoteSockAddr);
-	void handleClose(TcpConnectionPtr connection);
+	void onClose(TcpConnectionPtr connection);
 
 	EventLoop* loop_;
 	InetAddress localAddr_;

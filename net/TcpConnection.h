@@ -73,9 +73,9 @@ private:
 	void destroy();
 	void send(PacketPtr packet);
 	// handle events
-	void handleRead();
-	void handleWrite();
-	void handleClose();
+	void onRead();
+	void onWrite();
+	void onClose();
 
 	EventLoop* loop_;
 	const int sockFd_;

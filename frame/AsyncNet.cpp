@@ -2,15 +2,17 @@
 #include "Thread.h"
 #include "EventLoopThreadPool.h"
 
-AsyncNet::AsyncNet(uint32_t count)
-	: m_loopThreadPool(new EventLoopThreadPool(count))
-{
+std::vector<Functor> AsyncNet::s_pendingFunctors_;
+Mutex AsyncNet::s_mutex_;
+EventLoopThreadPool* AsyncNet::s_loopThreadPool_ = NULL;
+uint32_t AsyncNet::s_indexLoop_ = 0;
 
+AsyncNet::init(uint32_t count) {
+	s_loopThreadPool_ = new EventLoopThreadPool(count);
 }
 
-AsyncNet::~AsyncNet()
-{
-	delete m_loopThreadPool;
+AsyncNet::destroy() {
+	delete s_loopThreadPool_;
 }
 
 TcpServerPtr AsyncNet::Listen(const InetAddress& localAddr, EstablishCallback callback)
@@ -33,12 +35,13 @@ TcpClientPtr AsyncNet::Connect(const InetAddress& remoteAddr, EstablishCallback 
 	return client;
 }
 
-void AsyncNet::NetProcess()
-{
+void AsyncNet::dispatch() {
 	std::vector<Functor> functors;
-	swapPendingFunctors(functors);
-	for (Functor functor : functors)
 	{
+		MutexGuard lock(s_mutex_);
+		functors.swap(s_pendingFunctors_);
+	}
+	for (Functor functor : functors) {
 		functor();
 	}
 }

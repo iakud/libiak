@@ -40,7 +40,7 @@ public:
 private:
 	void connect();	// connect in loop
 	void close();	// close in loop
-	void handleWrite();// write event active
+	void onWrite();// write event active
 
 	EventLoop* loop_;
 	const struct sockaddr_in& remoteSockAddr_;
