@@ -62,5 +62,5 @@ private:
 }; // end class DataSocket
 
 } // end namespace iak
-\
+
 #endif // IAK_FRAME_DATASOCKET_H
