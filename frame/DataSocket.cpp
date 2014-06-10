@@ -1,51 +1,57 @@
 #include "DataSocket.h"
-#include "TcpConnection.h"
 
-DataSocket::DataSocket(std::shared_ptr<TcpConnection> connection)
-	: m_connection(connection)
-{
+#include <net/TcpConnection.h>
+
+using namespace iak;
+
+DataSocket::DataSocket(std::shared_ptr<TcpConnection> connection,
+		CloseCallback&& cb)
+	: connection_(connection)
+	, closeCallback_(cb){
+	connection_->setConnectCallback(std::bind(&DataSocket::onConnect,
+			this, std::placeholders::_1));
+	connection_->setReceiveCallback(std::bind(&DataSocket::onMessage,
+			this, std::placeholders::_1, std::placeholders::_2));
+	connection_->setDisconnectCallback(std::bind(&DataSocket::onDisconnect,
+			this, std::placeholders::_1));
+}
+
+DataSocket::~DataSocket() {
 
 }
 
-DataSocket::~DataSocket()
-{
-
+DataSocketPtr DataSocket::create(std::shared_ptr<TcpConnection> connection,
+		CloseCallback&& cb) {
+	return std::make_shared<DataSocket>(connection, cb);
 }
 
-DataSocketPtr DataSocket::Create(std::shared_ptr<TcpConnection> connection)
-{
-	return std::make_shared<DataSocket>(connection);
+void DataSocket::sendPack(PacketPtr packet) {
+	connection->Send(packet);
 }
 
-void DataSocket::Send(PacketPtr packet)
-{
-	TcpConnectionPtr connection = m_connection.lock();
-	if (connection)
-	{
-		connection->Send(packet);
-	}
+void DataSocket::onConnect(std::shared_ptr<TcpConnection> connection) {
+	AsyncNet::put(std::bind(&DataSocket::handleConnect, this, connection));
 }
 
-void DataSocket::OnConnect()
-{
-	if (m_connectCallback)
-	{
-		m_connectCallback(shared_from_this());
-	}
+void DataSocket::onMessage(std::shared_ptr<TcpConnection> connection,
+		PacketPtr packet) {
+	AsyncNet::put(std::bind(&DataSocket::handleMessage, this, connection));
 }
 
-void DataSocket::OnMessage(PacketPtr packet)
-{
-	if (m_messageCallback)
-	{
-		m_messageCallback(shared_from_this(), packet);
-	}
+void DataSocket::onDisconnect(std::shared_ptr<TcpConnection> connection) {
+	AsyncNet::put(std::bind(&DataSocket::handleDisconnect, this, connection));
 }
 
-void DataSocket::OnDisconnect()
-{
-	if (m_disconnectCallback)
-	{
-		m_disconnectCallback(shared_from_this());
-	}
+void DataSocket::handleConnect(std::shared_ptr<TcpConnection> connection) {
+	connectCallback_(shared_from_this());
+}
+
+void DataSocket::handleMessage(std::shared_ptr<TcpConnection> connection,
+		PacketPtr packet) {
+	messageCallback_(shared_from_this(), packet);
+}
+
+void DataSocket::handleDisconnect(std::shared_ptr<TcpConnection> connection) {
+	closeCallback_(shared_from_this());
+	disconnectCallback_(shared_from_this());
 }

@@ -1,9 +1,13 @@
 #ifndef TOT_DATASOCKET_H
 #define TOT_DATASOCKET_H
 
+#include <base/NonCopyable.h>
+#include <net/InetAddress.h>
+#include <net/Packet.h>
+
 #include <memory>
-#include "NonCopyable.h"
-#include "Packet.h"
+
+namespace iak {
 
 class TcpConnection;
 
@@ -11,39 +15,40 @@ class DataSocket;
 typedef std::shared_ptr<DataSocket> DataSocketPtr;
 
 class DataSocket : public NonCopyable,
-	public std::enable_shared_from_this<DataSocket>
-{
+	public std::enable_shared_from_this<DataSocket> {
 public:
-	DataSocket(std::shared_ptr<TcpConnection> connection);
+	DataSocket(std::shared_ptr<TcpConnection> connection, CloseCallback&& cb);
 	~DataSocket();
-	friend class TcpConnection;
 
 	typedef std::function<void(DataSocketPtr)> ConnectCallback;
 	typedef std::function<void(DataSocketPtr, PacketPtr)> MessageCallback;
 	typedef std::function<void(DataSocketPtr)> DisconnectCallback;
+	typedef std::function<void(DataSocketPtr)> CloseCallback;
 
-	static DataSocketPtr Create(std::shared_ptr<TcpConnection> connection);
-	//void SetConnection(std::shared_ptr<TcpConnection> connection)
-	//{ m_connection = connection; }
+	static DataSocketPtr create(std::shared_ptr<TcpConnection> connection,
+			CloseCallback&& cb);
 
-	void SetConnectCallback(ConnectCallback&& connectCallback)
-	{ m_connectCallback = connectCallback; }
-	void SetMessageCallback(MessageCallback&& messageCallback)
-	{ m_messageCallback = messageCallback; }
-	void SetDisconnectCallback(DisconnectCallback&& disconnectCallback)
-	{ m_disconnectCallback = disconnectCallback; }
+	void setConnectCallback(ConnectCallback&& cb) { connectCallback_ = cb; }
+	void setMessageCallback(MessageCallback&& cb) { messageCallback_ = cb; }
+	void setDisconnectCallback(DisconnectCallback&& cb) { disconnectCallback_ = cb; }
 
-	void Send(PacketPtr packet);
-
-	void OnConnect();
-	void OnMessage(PacketPtr packet);
-	void OnDisconnect();
+	void sendPack(PacketPtr packet);
 private:
-	std::weak_ptr<TcpConnection> m_connection;
+	void onConnect(std::shared_ptr<TcpConnection> connection);
+	void onMessage(std::shared_ptr<TcpConnection> connection, PacketPtr packet);
+	void onDisconnect(std::shared_ptr<TcpConnection> connection);
+	void handleConnect(std::shared_ptr<TcpConnection> connection);
+	void handleMessage(std::shared_ptr<TcpConnection> connection, PacketPtr packet);
+	void handleDisconnect(std::shared_ptr<TcpConnection> connection);
 
-	ConnectCallback m_connectCallback;
-	MessageCallback m_messageCallback;
-	DisconnectCallback m_disconnectCallback;
-};
+	std::shared_ptr<TcpConnection> connection_;
+
+	ConnectCallback connectCallback_;
+	MessageCallback messageCallback_;
+	DisconnectCallback disconnectCallback_;
+	CloseCallback closeCallback_;
+}; // end class DataSocket
+
+} // end namespace iak
 
 #endif // TOT_DATASOCKET_H

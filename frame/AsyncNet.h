@@ -1,8 +1,11 @@
 #ifndef IAK_FRAME_ASYNCNET_H
 #define IAK_FRAME_ASYNCNET_H
 
-#include "DataSocket.h"
-#include <list>
+#include <base/Mutex.h>
+
+#include <vector>
+
+namespace iak {
 
 class EventLoopThreadPool;
 
@@ -13,7 +16,7 @@ public:
 
 	typedef std::function<void()> Functor;
 
-	void put(Functor&& functor) {
+	static void put(Functor&& functor) {
 		MutexGuard lock(mutex_);
 		s_pendingFunctors_.push_back(functor);
 	}
@@ -36,23 +39,12 @@ public:
 	}
 
 private:
-	void onEstablish(TcpConnectionPtr connection, EstablishCallback callback);
-	void onConnect(TcpConnectionPtr connection);
-	void onMessage(TcpConnectionPtr connection, PacketPtr packet);
-	void onDisconnect(TcpConnectionPtr connection);
-
-	void onProcessEstablish(TcpConnectionPtr connection, EstablishCallback callback);
-	void onProcessMessage(DataSocketPtr datasock, PacketPtr packet);
-	void onProcessConnect(DataSocketPtr datasock);
-	void onProcessDisconnect(DataSocketPtr datasock);
-
-	std::list<TcpServerPtr> m_servers;
-	std::list<TcpClientPtr> m_clients;
-
 	static std::vector<Functor> s_pendingFunctors_;
 	static Mutex s_mutex_;
 	static EventLoopThreadPool* s_loopThreadPool_;
 	static uint32_t s_indexLoop_;
-};
+}; // end class AsyncNet
+
+} // end namespace iak
 
 #endif // IAK_FRAME_ASYNCNET_H
