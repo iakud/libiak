@@ -1,6 +1,8 @@
 #ifndef IAK_FRAME_NETFRAME_H
 #define IAK_FRAME_NETFRAME_H
 
+#include <stdint.h>
+
 namespace iak {
 
 class NetFrame {

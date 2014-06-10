@@ -1,4 +1,5 @@
 #include "ListenSocket.h"
+#include "AsyncNet.h"
 
 #include <net/TcpServer.h>
 #include <net/TcpConnection.h>

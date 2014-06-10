@@ -3,14 +3,14 @@
 
 using namespace iak;
 
-AsyncNet::init(uint32_t count) {
+void NetFrame::init(uint32_t count) {
 	AsyncNet::init(count);
 }
 
-AsyncNet::destroy() {
+void NetFrame::destroy() {
 	AsyncNet::destroy();
 }
 
-void AsyncNet::dispatch() {
+void NetFrame::dispatch() {
 	AsyncNet::dispatch();
 }

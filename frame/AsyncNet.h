@@ -4,9 +4,13 @@
 #include <base/Mutex.h>
 
 #include <vector>
+#include <functional>
+
+#include <stdint.h>
 
 namespace iak {
 
+class EventLoop;
 class EventLoopThreadPool;
 
 class AsyncNet {
@@ -17,22 +21,14 @@ public:
 	typedef std::function<void()> Functor;
 
 	static void put(Functor&& functor) {
-		MutexGuard lock(mutex_);
+		MutexGuard lock(s_mutex_);
 		s_pendingFunctors_.push_back(functor);
 	}
 
 	// run in main thread, per loop
 	static void dispatch();
 
-	static EventLoop* getEventLoop() {
-		assert(s_loopThreadPool_);
-		if (s_loopThreadPool_) {
-			++s_indexLoop_;
-			s_indexLoop_ %= s_loopThreadPool_->getCount();
-			return s_loopThreadPool_->getLoop(s_indexLoop_);
-		}
-		return NULL;
-	}
+	static EventLoop* getEventLoop();
 
 	static EventLoopThreadPool* getEventLoopThreadPool() {
 		return s_loopThreadPool_;

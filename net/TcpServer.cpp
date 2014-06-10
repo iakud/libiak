@@ -60,7 +60,7 @@ void TcpServer::onAccept(const int sockFd,
 	if (loopThreadPool_) {
 		++indexLoop_;
 		indexLoop_ %= loopThreadPool_->getCount();
-		loopThreadPool_->getLoop(indexLoop_);
+		loop = loopThreadPool_->getLoop(indexLoop_);
 	} else {
 		loop = loop_;
 	}

@@ -3,7 +3,7 @@ set(frame_SRCS
 	NetFrame.cpp
 	DataSocket.cpp
 	ListenSocket.cpp
-	ConnecSocket.cpp
+	ConnectSocket.cpp
 	)
 
 add_library(iak_frame ${frame_SRCS})
@@ -16,11 +16,11 @@ set(HEADERS
 	NetFrame.h
 	DataSocket.h
 	ListenSocket.h
-	ConnecSocket.h
+	ConnectSocket.h
 	)
 
 install(FILES ${HEADERS} DESTINATION include/iak/frame)
 
 if (NOT CMAKE_BUILD_NO_EXAMPLES)
-	#add_subdirectory(tests)
+	add_subdirectory(tests)
 endif()

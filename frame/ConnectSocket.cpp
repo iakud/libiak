@@ -1,4 +1,5 @@
 #include "ConnectSocket.h"
+#include "AsyncNet.h"
 
 #include <net/TcpClient.h>
 #include <net/TcpConnection.h>
@@ -16,7 +17,7 @@ ConnectSocket::~ConnectSocket() {
 	
 }
 
-ListenSocketPtr ConnectSocket::create(const InetAddress& remoteAddr) {
+ConnectSocketPtr ConnectSocket::create(const InetAddress& remoteAddr) {
 	return std::make_shared<ConnectSocket>(remoteAddr);
 }
 
@@ -30,7 +31,7 @@ void ConnectSocket::onConnect(std::shared_ptr<TcpConnection> connection) {
 
 void ConnectSocket::handleConnect(std::shared_ptr<TcpConnection> connection) {
 	std::shared_ptr<DataSocket> datasocket = DataSocket::create(connection,
-			std::bind(&ListenSocket::onClose, this, std::placeholders::_1));
+			std::bind(&ConnectSocket::onClose, this, std::placeholders::_1));
 	if (connectCallback_(datasocket)) {
 		connection->establishAsync();
 		datasocket_ = datasocket;

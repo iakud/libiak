@@ -1,5 +1,5 @@
-add_executable(AsyncNetClient_test AsyncNetClient_test.cpp)
-target_link_libraries(AsyncNetClient_test iak_base iak_net iak_frame)
+add_executable(ListenSocket_test ListenSocket_test.cpp)
+target_link_libraries(ListenSocket_test iak_base iak_net iak_frame)
 
-add_executable(AsyncNetServer_test AsyncNetServer_test.cpp)
-target_link_libraries(AsyncNetServer_test iak_base iak_net iak_frame)
+add_executable(ConnectSocket_test ConnectSocket_test.cpp)
+target_link_libraries(ConnectSocket_test iak_base iak_net iak_frame)

@@ -1,11 +1,12 @@
 #include "DataSocket.h"
+#include "AsyncNet.h"
 
 #include <net/TcpConnection.h>
 
 using namespace iak;
 
 DataSocket::DataSocket(std::shared_ptr<TcpConnection> connection,
-		CloseCallback&& cb)
+		CloseCallback& cb)
 	: connection_(connection)
 	, closeCallback_(cb){
 	connection_->setConnectCallback(std::bind(&DataSocket::onConnect,
@@ -26,7 +27,7 @@ DataSocketPtr DataSocket::create(std::shared_ptr<TcpConnection> connection,
 }
 
 void DataSocket::sendPack(PacketPtr packet) {
-	connection->Send(packet);
+	connection_->sendPack(packet);
 }
 
 void DataSocket::onConnect(std::shared_ptr<TcpConnection> connection) {
@@ -35,7 +36,8 @@ void DataSocket::onConnect(std::shared_ptr<TcpConnection> connection) {
 
 void DataSocket::onMessage(std::shared_ptr<TcpConnection> connection,
 		PacketPtr packet) {
-	AsyncNet::put(std::bind(&DataSocket::handleMessage, this, connection));
+	AsyncNet::put(std::bind(&DataSocket::handleMessage, this,
+				connection, packet));
 }
 
 void DataSocket::onDisconnect(std::shared_ptr<TcpConnection> connection) {
@@ -52,6 +54,7 @@ void DataSocket::handleMessage(std::shared_ptr<TcpConnection> connection,
 }
 
 void DataSocket::handleDisconnect(std::shared_ptr<TcpConnection> connection) {
-	closeCallback_(shared_from_this());
-	disconnectCallback_(shared_from_this());
+	DataSocketPtr sharedthis = shared_from_this();
+	closeCallback_(sharedthis);
+	disconnectCallback_(sharedthis);
 }
