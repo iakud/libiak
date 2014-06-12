@@ -15,7 +15,7 @@ Timestamp Timestamp::now() {
 	return Timestamp(tv.tv_sec * kMicroSecondsPerSecond + tv.tv_usec);
 }
 
-Timestamp Timestamp invalid() {
+Timestamp Timestamp::invalid() {
 	return Timestamp();
 }
 
