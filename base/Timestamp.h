@@ -9,6 +9,7 @@ namespace iak {
 class Timestamp {
 public:
 	static Timestamp now();
+	static Timestamp invalid();
 	static const uint32_t kMicroSecondsPerSecond = 1e6;
 public:
 	Timestamp()

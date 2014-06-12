@@ -15,6 +15,10 @@ Timestamp Timestamp::now() {
 	return Timestamp(tv.tv_sec * kMicroSecondsPerSecond + tv.tv_usec);
 }
 
+Timestamp Timestamp invalid() {
+	return Timestamp();
+}
+
 std::string Timestamp::toString() const {
 	char buf[32] = {0};
 	int64_t seconds = time_ / kMicroSecondsPerSecond;
