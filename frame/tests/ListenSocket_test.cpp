@@ -32,10 +32,13 @@ public:
 	}
 
 	void onConnect(DataSocketPtr datasock) {
+		std::shared_ptr<int> ud = std::make_shared<int>(1);
+		datasock->setUserData(ud);
 		cout<<"onConnect"<<endl;
 	}
 
 	void onMessage(DataSocketPtr datasock, PacketPtr packet) {
+		std::shared_ptr<int> ud = static_pointer_cast<int>(datasock->getUserData());
 		string msg(packet->getData(), packet->getDataSize());
 		cout<<"message:"<<msg<<endl;
 		datasock->sendPack(packet);

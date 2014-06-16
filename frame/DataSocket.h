@@ -42,7 +42,16 @@ public:
 		disconnectCallback_ = cb;
 	}
 
+	void setUserData(std::shared_ptr<void> userdata) {
+		userdata_ = userdata;
+	}
+
+	std::shared_ptr<void> getUserData() {
+		return userdata_;
+	}
+
 	void sendPack(PacketPtr packet);
+
 private:
 	void onConnect(std::shared_ptr<TcpConnection> connection);
 	void onMessage(std::shared_ptr<TcpConnection> connection,
@@ -59,6 +68,8 @@ private:
 	MessageCallback messageCallback_;
 	DisconnectCallback disconnectCallback_;
 	CloseCallback closeCallback_;
+
+	std::shared_ptr<void> userdata_;
 }; // end class DataSocket
 
 } // end namespace iak
