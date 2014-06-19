@@ -11,10 +11,15 @@
 
 using namespace iak;
 
+TcpClientPtr TcpClient::make(EventLoop* loop, 
+		const InetAddress& remoteAddr) {
+	return std::make_shared<TcpClient>(loop, remoteAddr);
+}
+
 TcpClient::TcpClient(EventLoop* loop, const InetAddress& remoteAddr)
 	: loop_(loop)
 	, remoteAddr_(remoteAddr)
-	, connector_(Connector::create(loop, remoteAddr_.getSockAddr()))
+	, connector_(Connector::make(loop, remoteAddr_.getSockAddr()))
 	, connect_(false)
 	, retry_(false) {
 	connector_->setConnectCallback(std::bind(&TcpClient::onConnect, 
@@ -31,11 +36,6 @@ TcpClient::~TcpClient() {
 	}
 }
 
-TcpClientPtr TcpClient::create(EventLoop* loop, 
-		const InetAddress& remoteAddr) {
-	return std::make_shared<TcpClient>(loop, remoteAddr);
-}
-
 void TcpClient::connectAsync() {
 	if (connect_) {
 		return;
@@ -47,8 +47,8 @@ void TcpClient::connectAsync() {
 void TcpClient::onConnect(const int sockFd, 
 		const struct sockaddr_in& localSockAddr) {
 	InetAddress localAddr(localSockAddr);
-	TcpConnectionPtr connection = TcpConnection::create(loop_, 
-			sockFd, localAddr, remoteAddr_);
+	TcpConnectionPtr connection = TcpConnection::make(
+			loop_, sockFd, localAddr, remoteAddr_);
 	connection_ = connection;
 	connection->setCloseCallback(std::bind(&TcpClient::onClose, 
 			this, std::placeholders::_1));

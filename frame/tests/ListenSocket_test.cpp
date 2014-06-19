@@ -10,7 +10,7 @@ class AsyncServer {
 public:
 	AsyncServer() {
 		InetAddress localAddr(9999,"0.0.0.0");
-		listen_ = ListenSocket::create(localAddr);
+		listen_ = ListenSocket::make(localAddr);
 		listen_->setConnectCallback(std::bind(&AsyncServer::onAccept, 
 					this, std::placeholders::_1));
 		listen_->listen();

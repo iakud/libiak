@@ -11,6 +11,9 @@ typedef std::shared_ptr<Packet> PacketPtr;
 
 class Packet {
 public:
+	static PacketPtr make();
+
+public:
 	Packet()
 		: pSize_(reinterpret_cast<uint16_t*>(buffer_))
 		, pHead_(reinterpret_cast<uint32_t*>(buffer_ + sizeof(uint16_t)))
@@ -20,8 +23,6 @@ public:
 
 	~Packet() {
 	}
-
-	static PacketPtr create();
 
 	const char* getPacket() { return buffer_; }
 	char* getData() { return pData_; }

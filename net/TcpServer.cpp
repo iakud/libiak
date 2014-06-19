@@ -13,10 +13,15 @@
 
 using namespace iak;
 
+TcpServerPtr TcpServer::make(EventLoop* loop, 
+		const InetAddress& localAddr) {
+	return std::make_shared<TcpServer>(loop, localAddr);
+}
+
 TcpServer::TcpServer(EventLoop* loop, const InetAddress& localAddr)
 	: loop_(loop)
 	, localAddr_(localAddr)
-	, acceptor_(Acceptor::create(loop, localAddr_.getSockAddr()))
+	, acceptor_(Acceptor::make(loop, localAddr_.getSockAddr()))
 	, listen_(false)
 	, loopThreadPool_(NULL)
 	, indexLoop_(0) {
@@ -37,11 +42,6 @@ TcpServer::~TcpServer() {
 		delete loopThreadPool_;
 		loopThreadPool_ = NULL;
 	}
-}
-
-TcpServerPtr TcpServer::create(EventLoop* loop, 
-		const InetAddress& localAddr) {
-	return std::make_shared<TcpServer>(loop, localAddr);
 }
 
 void TcpServer::listenAsync() {
@@ -65,7 +65,7 @@ void TcpServer::onAccept(const int sockFd,
 		loop = loop_;
 	}
 	
-	TcpConnectionPtr connection = TcpConnection::create(loop, 
+	TcpConnectionPtr connection = TcpConnection::make(loop,
 			sockFd, localAddr_, remoteAddr);
 	connections_.insert(connection);
 	connection->setCloseCallback(std::bind(&TcpServer::onClose,

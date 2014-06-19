@@ -33,7 +33,7 @@ void onConnection(TcpConnectionPtr connection) {
 int main() {
 	EventLoop* loop = EventLoop::create();
 	InetAddress localAddr(9999,"0.0.0.0");
-	TcpServerPtr tcpserver = TcpServer::create(loop, localAddr);
+	TcpServerPtr tcpserver = TcpServer::make(loop, localAddr);
 	tcpserver->setConnectCallback(std::bind(onConnection, std::placeholders::_1));
 	tcpserver->listenAsync();
 	cout<<"tcpserver listen"<<endl;

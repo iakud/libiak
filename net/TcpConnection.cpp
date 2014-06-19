@@ -14,6 +14,11 @@
 
 using namespace iak;
 
+TcpConnectionPtr TcpConnection::make(EventLoop* loop, int sockFd,
+		const InetAddress& localAddr, const InetAddress& peerAddr) {
+	return std::make_shared<TcpConnection>(loop, sockFd, localAddr, peerAddr);
+}
+
 TcpConnection::TcpConnection(EventLoop* loop, int sockFd, 
 		const InetAddress& localAddr, const InetAddress& remoteAddr)
 	: loop_(loop)
@@ -45,11 +50,6 @@ TcpConnection::~TcpConnection() {
 		writeHead_ = bufferPool_->putNext(writeHead_);
 	}
 	::close(sockFd_);
-}
-
-TcpConnectionPtr TcpConnection::create(EventLoop* loop, int sockFd, 
-	const InetAddress& localAddr, const InetAddress& peerAddr) {
-	return std::make_shared<TcpConnection>(loop, sockFd, localAddr, peerAddr);
 }
 
 void TcpConnection::establishAsync() {
@@ -359,7 +359,7 @@ void TcpConnection::onRead() {
 			if (packsize + sizeof(uint16_t) < readSize_) {
 				break;
 			}
-			PacketPtr packet = Packet::create();
+			PacketPtr packet = Packet::make();
 			if (!ReadData(packet->getPacket(), packsize + sizeof(uint16_t))) {
 				break;
 			}

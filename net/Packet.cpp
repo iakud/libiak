@@ -4,7 +4,7 @@
 
 using namespace iak;
 
-PacketPtr Packet::create() {
+PacketPtr Packet::make() {
 	return std::make_shared<Packet>();
 }
 

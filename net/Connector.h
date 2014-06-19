@@ -19,17 +19,18 @@ typedef std::shared_ptr<Connector> ConnectorPtr;
 
 class Connector : public NonCopyable, 
 	public std::enable_shared_from_this<Connector> {
+
 public:
-	explicit Connector(
-		EventLoop* loop, const struct sockaddr_in& remoteSockAddr);
+	typedef std::function<void(int sockFd,
+			const struct sockaddr_in& localSockAddr)> ConnectCallback;
+	static ConnectorPtr make(EventLoop* loop,
+			const struct sockaddr_in& remoteSockAddr);
 
-	virtual ~Connector();
-
-	typedef std::function<void(int sockFd, 
-		const struct sockaddr_in& localSockAddr)> ConnectCallback;
-
-	static ConnectorPtr create(EventLoop* loop, 
-		const struct sockaddr_in& remoteSockAddr);
+public:
+	explicit Connector(EventLoop* loop,
+			const struct sockaddr_in& remoteSockAddr);
+	~Connector();
+//	friend __gnu_cxx::new_allocator<Connector>;
 
 	void setConnectCallback(ConnectCallback&& cb) {
 		connectCallback_ = cb;
@@ -37,6 +38,7 @@ public:
 
 	void connectAsync();
 	void closeAsync();
+
 private:
 	void connect();	// connect in loop
 	void close();	// close in loop

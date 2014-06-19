@@ -23,19 +23,21 @@ typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
 
 class TcpConnection : public NonCopyable, 
 	public std::enable_shared_from_this<TcpConnection> {
+
 public:
-	explicit TcpConnection(EventLoop* loop, int sockFd, 
-		const InetAddress& localAddr, const InetAddress& remoteAddr);
-	~TcpConnection();
-	
 	// callback typedef
 	typedef std::function<void(TcpConnectionPtr)> ConnectCallback;
 	typedef std::function<void(TcpConnectionPtr, PacketPtr)> ReceiveCallback;
 	//typedef std::function<void(TcpConnectionPtr, uint32_t)> SendCallback;
 	typedef std::function<void(TcpConnectionPtr)> DisconnectCallback;
 
-	static TcpConnectionPtr create(EventLoop* loop, int sockFd,
-		const InetAddress& localAddr, const InetAddress& peerAddr);
+	static TcpConnectionPtr make(EventLoop* loop, int sockFd,
+			const InetAddress& localAddr, const InetAddress& peerAddr);
+
+public:
+	explicit TcpConnection(EventLoop* loop, int sockFd, 
+		const InetAddress& localAddr, const InetAddress& remoteAddr);
+	~TcpConnection();	
 	
 	const InetAddress& getLocalAddress() const { return localAddr_; }
 	const InetAddress& getRemoteAddress() const { return remoteAddr_; }

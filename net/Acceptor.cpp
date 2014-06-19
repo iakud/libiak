@@ -11,7 +11,12 @@
 
 using namespace iak;
 
-Acceptor::Acceptor(EventLoop* loop, 
+AcceptorPtr Acceptor::make(EventLoop* loop,
+		const struct sockaddr_in& localSockAddr) {
+	return std::make_shared<Acceptor>(loop, localSockAddr);
+}
+
+Acceptor::Acceptor(EventLoop* loop,
 		const struct sockaddr_in& localSockAddr)
 	: loop_(loop)
 	, localSockAddr_(localSockAddr)
@@ -20,7 +25,7 @@ Acceptor::Acceptor(EventLoop* loop,
 	, listenning_(false)
 	, accept_(false) {
 	::bind(sockFd_, reinterpret_cast<const struct sockaddr*>(&localSockAddr_),
-		static_cast<socklen_t>(sizeof localSockAddr_));
+			static_cast<socklen_t>(sizeof localSockAddr_));
 	watcher_->setReadCallback(std::bind(&Acceptor::onRead, this));
 	watcher_->enableRead();
 }
@@ -29,10 +34,6 @@ Acceptor::~Acceptor() {
 	::close(sockFd_);
 }
 
-AcceptorPtr Acceptor::create(EventLoop* loop,
-		const struct sockaddr_in& localSockAddr) {
-	return std::make_shared<Acceptor>(loop, localSockAddr);
-}
 
 void Acceptor::listenAsync() {
 	if (accept_) {

@@ -6,8 +6,12 @@
 
 using namespace iak;
 
+ListenSocketPtr ListenSocket::make(const InetAddress& localAddr) {
+	return std::make_shared<ListenSocket>(localAddr);
+}
+
 ListenSocket::ListenSocket(const InetAddress& localAddr)
-	: server_(TcpServer::create(AsyncNet::getEventLoop(), localAddr)) {
+	: server_(TcpServer::make(AsyncNet::getEventLoop(), localAddr)) {
 	server_->setEventLoopThreadPool(AsyncNet::getEventLoopThreadPool());
 	server_->setConnectCallback(std::bind(&ListenSocket::onAccept,
 			this, std::placeholders::_1));
@@ -17,20 +21,16 @@ ListenSocket::~ListenSocket() {
 	
 }
 
-ListenSocketPtr ListenSocket::create(const InetAddress& localAddr) {
-	return std::make_shared<ListenSocket>(localAddr);
-}
-
 void ListenSocket::listen() {
 	server_->listenAsync();
 }
 
-void ListenSocket::onAccept(std::shared_ptr<TcpConnection> connection) {
+void ListenSocket::onAccept(TcpConnectionPtr connection) {
 	AsyncNet::put(std::bind(&ListenSocket::handleAccept, this, connection));
 }
 
-void ListenSocket::handleAccept(std::shared_ptr<TcpConnection> connection) {
-	std::shared_ptr<DataSocket> datasocket = DataSocket::create(connection,
+void ListenSocket::handleAccept(TcpConnectionPtr connection) {
+	DataSocketPtr datasocket = DataSocket::make(connection,
 			std::bind(&ListenSocket::onClose, this, std::placeholders::_1));
 	if (connectCallback_(datasocket)) {
 		connection->establishAsync();
@@ -40,6 +40,6 @@ void ListenSocket::handleAccept(std::shared_ptr<TcpConnection> connection) {
 	}
 }
 
-void ListenSocket::onClose(std::shared_ptr<DataSocket> datasocket) {
+void ListenSocket::onClose(DataSocketPtr datasocket) {
 	datasockets_.erase(datasocket);
 }

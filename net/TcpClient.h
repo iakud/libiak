@@ -17,16 +17,18 @@ class Connector;
 class TcpClient;
 typedef std::shared_ptr<TcpClient> TcpClientPtr;
 
-class TcpClient : public NonCopyable, 
-		public std::enable_shared_from_this<TcpClient> {
+class TcpClient : public NonCopyable,
+	public std::enable_shared_from_this<TcpClient> {
+
 public:
-	explicit TcpClient(EventLoop* loop, const InetAddress& remoteAddr);
-	virtual ~TcpClient();
-
 	typedef std::function<void(TcpConnectionPtr)> ConnectCallback;
+	static TcpClientPtr make(EventLoop* loop,
+			const InetAddress& remoteAddr);
 
-	static TcpClientPtr create(EventLoop* loop, 
-		const InetAddress& remoteAddr);
+public:
+	explicit TcpClient(EventLoop* loop,
+			const InetAddress& remoteAddr);
+	~TcpClient();
 
 	void setRetry(bool retry) { retry_ = retry; }
 

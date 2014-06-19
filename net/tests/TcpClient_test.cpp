@@ -25,7 +25,7 @@ void onReceive(TcpConnectionPtr connection, PacketPtr packet) {
 void onConnect(TcpConnectionPtr connection) {
 	cout<<"on connect"<<endl;
 	char data[] = "hello world!";
-	PacketPtr packet = Packet::create();
+	PacketPtr packet = Packet::make();
 	memcpy(packet->getData(), data, static_cast<uint16_t>(strlen(data)));
 	packet->setDataSize(static_cast<uint16_t>(strlen(data)));
 	connection->sendPack(packet);
@@ -43,7 +43,7 @@ void onConnection(TcpConnectionPtr connection) {
 int main() {
 	EventLoop* loop = EventLoop::create();
 	InetAddress remoteAddr(9999,"127.0.0.1");
-	TcpClientPtr tcpclient = TcpClient::create(loop, remoteAddr);
+	TcpClientPtr tcpclient = TcpClient::make(loop, remoteAddr);
 	tcpclient->setConnectCallback(std::bind(onConnection, std::placeholders::_1));
 	tcpclient->connectAsync();
 	cout<<"tcpclient connect"<<endl;

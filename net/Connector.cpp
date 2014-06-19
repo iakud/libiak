@@ -11,8 +11,13 @@
 
 using namespace iak;
 
-Connector::Connector(
-		EventLoop* loop, const struct sockaddr_in& remoteSockAddr)
+ConnectorPtr Connector::make(EventLoop* loop,
+		const struct sockaddr_in& remoteSockAddr) {
+	return std::make_shared<Connector>(loop, remoteSockAddr);
+}
+
+Connector::Connector(EventLoop* loop,
+		const struct sockaddr_in& remoteSockAddr)
 	: loop_(loop)
 	, remoteSockAddr_(remoteSockAddr)
 	, connect_(false)
@@ -20,11 +25,6 @@ Connector::Connector(
 }
 
 Connector::~Connector() {
-}
-
-ConnectorPtr Connector::create(
-		EventLoop* loop, const struct sockaddr_in& remoteSockAddr) {
-	return std::make_shared<Connector>(loop, remoteSockAddr);
 }
 
 void Connector::connectAsync() {

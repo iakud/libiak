@@ -18,16 +18,17 @@ typedef std::shared_ptr<Acceptor> AcceptorPtr;
 
 class Acceptor : public NonCopyable,
 	public std::enable_shared_from_this<Acceptor> {
+
 public:
-	explicit Acceptor(
-		EventLoop* loop, const struct sockaddr_in& localSockAddr);
-	virtual ~Acceptor();
-
 	typedef std::function<void(int sockFd,
-		const struct sockaddr_in& remoteSockAddr)> AcceptCallback;
+			const struct sockaddr_in& remoteSockAddr)> AcceptCallback;
+	static AcceptorPtr make(EventLoop* loop,
+			const struct sockaddr_in& localSockAddr);
 
-	static AcceptorPtr create(EventLoop* loop,
-		const struct sockaddr_in& localSockAddr);
+public:
+	explicit Acceptor(EventLoop* loop,
+			const struct sockaddr_in& localSockAddr);
+	~Acceptor();
 
 	void setAcceptCallback(AcceptCallback&& acceptCallback) {
 		acceptCallback_ = acceptCallback;

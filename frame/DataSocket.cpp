@@ -5,8 +5,14 @@
 
 using namespace iak;
 
-DataSocket::DataSocket(std::shared_ptr<TcpConnection> connection,
-		CloseCallback& cb)
+DataSocketPtr DataSocket::make(TcpConnectionPtr connection,
+		CloseCallback&& cb) {
+	return std::make_shared<DataSocket>(connection,
+			std::forward<CloseCallback>(cb));
+}
+
+DataSocket::DataSocket(TcpConnectionPtr connection,
+		CloseCallback&& cb)
 	: connection_(connection)
 	, closeCallback_(cb){
 	connection_->setConnectCallback(std::bind(&DataSocket::onConnect,
@@ -18,42 +24,36 @@ DataSocket::DataSocket(std::shared_ptr<TcpConnection> connection,
 }
 
 DataSocket::~DataSocket() {
-
-}
-
-DataSocketPtr DataSocket::create(std::shared_ptr<TcpConnection> connection,
-		CloseCallback&& cb) {
-	return std::make_shared<DataSocket>(connection, cb);
 }
 
 void DataSocket::sendPack(PacketPtr packet) {
 	connection_->sendPack(packet);
 }
 
-void DataSocket::onConnect(std::shared_ptr<TcpConnection> connection) {
+void DataSocket::onConnect(TcpConnectionPtr connection) {
 	AsyncNet::put(std::bind(&DataSocket::handleConnect, this, connection));
 }
 
-void DataSocket::onMessage(std::shared_ptr<TcpConnection> connection,
+void DataSocket::onMessage(TcpConnectionPtr connection,
 		PacketPtr packet) {
 	AsyncNet::put(std::bind(&DataSocket::handleMessage, this,
 				connection, packet));
 }
 
-void DataSocket::onDisconnect(std::shared_ptr<TcpConnection> connection) {
+void DataSocket::onDisconnect(TcpConnectionPtr connection) {
 	AsyncNet::put(std::bind(&DataSocket::handleDisconnect, this, connection));
 }
 
-void DataSocket::handleConnect(std::shared_ptr<TcpConnection> connection) {
+void DataSocket::handleConnect(TcpConnectionPtr connection) {
 	connectCallback_(shared_from_this());
 }
 
-void DataSocket::handleMessage(std::shared_ptr<TcpConnection> connection,
+void DataSocket::handleMessage(TcpConnectionPtr connection,
 		PacketPtr packet) {
 	messageCallback_(shared_from_this(), packet);
 }
 
-void DataSocket::handleDisconnect(std::shared_ptr<TcpConnection> connection) {
+void DataSocket::handleDisconnect(TcpConnectionPtr connection) {
 	DataSocketPtr sharedthis = shared_from_this();
 	closeCallback_(sharedthis);
 	disconnectCallback_(sharedthis);

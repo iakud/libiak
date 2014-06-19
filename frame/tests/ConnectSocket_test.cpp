@@ -11,7 +11,7 @@ class AsyncClient {
 public:
 	AsyncClient() {
 		InetAddress remoteAddr(9999,"127.0.0.1");
-		connect_ = ConnectSocket::create(remoteAddr);
+		connect_ = ConnectSocket::make(remoteAddr);
 		connect_->setConnectCallback(std::bind(&AsyncClient::onConnection, 
 					this, std::placeholders::_1));
 		connect_->connect();
@@ -47,7 +47,7 @@ public:
 
 	void send(string msg) {
 		if (datasocket_) {
-			PacketPtr packet = Packet::create();
+			PacketPtr packet = Packet::make();
 			memcpy(packet->getData(), msg.c_str(), msg.size());
 			packet->setDataSize(static_cast<uint16_t>(msg.size()));
 			datasocket_->sendPack(packet);
