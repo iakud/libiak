@@ -356,7 +356,7 @@ void TcpConnection::onRead() {
 				break;
 			}
 			packsize = ntohs(packsize);
-			if (packsize + sizeof(uint16_t) < readSize_) {
+			if (packsize + sizeof(uint16_t) > readSize_) {
 				break;
 			}
 			PacketPtr packet = Packet::make();

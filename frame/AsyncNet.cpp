@@ -3,6 +3,7 @@
 #include <net/EventLoopThreadPool.h>
 
 #include <assert.h>
+#include <signal.h>
 
 using namespace iak;
 
@@ -15,6 +16,7 @@ void AsyncNet::init(uint32_t count) {
 	if (!s_loopThreadPool_) {
 		s_loopThreadPool_ = new EventLoopThreadPool(count);
 		s_loopThreadPool_->start();
+		::signal(SIGPIPE, SIG_IGN);
 	}
 }
 
