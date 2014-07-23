@@ -447,6 +447,8 @@ void TcpConnection::onWrite() {
 
 void TcpConnection::onClose() {
 	TcpConnectionPtr sharedthis = shared_from_this();
+	watcher_->setReadable(false);//disable read
+	watcher_->setWriteable(false);//disable write
 	if (disconnectCallback_) {
 		disconnectCallback_(sharedthis);
 	}
