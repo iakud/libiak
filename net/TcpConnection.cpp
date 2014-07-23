@@ -423,7 +423,7 @@ void TcpConnection::onWrite() {
 		writeHead_->count -= static_cast<uint32_t>(writesize);
 	} else if (writesize > writecount) {
 		next->pop = static_cast<uint32_t>(writesize) - writecount;
-		next->count -= writeHead_->pop;
+		next->count -= next->pop;
 		writeHead_ = bufferPool_->putNext(writeHead_);
 	} else { // writesize == rearcount
 		if (next) {// push move next
