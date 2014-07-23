@@ -249,12 +249,12 @@ bool TcpConnection::writeData(const char* data, const size_t size) {
 	uint32_t writecount = writeTail_->capacity - writeTail_->count;
 	if (size < writecount) {
 		uint32_t rearcount = writeTail_->capacity - writeTail_->push;
-		if (writecount > rearcount) {
+		if (size > rearcount) {
 			::memcpy(writeTail_->buffer + writeTail_->push, buffer, rearcount);
-			writeTail_->push = writecount - rearcount;
+			writeTail_->push = size - rearcount;
 			::memcpy(writeTail_->buffer, buffer + rearcount, writeTail_->push);
 		} else {
-			::memcpy(writeTail_->buffer + writeTail_->push, buffer, writecount);
+			::memcpy(writeTail_->buffer + writeTail_->push, buffer, size);
 			writeTail_->push = (writeTail_->push + static_cast<uint32_t>(size)) % writeTail_->capacity;
 		}
 		writeTail_->count += static_cast<uint32_t>(size);
