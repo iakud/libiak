@@ -24,6 +24,9 @@ Acceptor::Acceptor(EventLoop* loop,
 	, watcher_(new Watcher(loop, sockFd_))
 	, listenning_(false)
 	, accept_(false) {
+	int optval = 1;
+	::setsockopt(sockFd_, SOL_SOCKET, SO_REUSEADDR,
+			&optval, static_cast<socklen_t>(sizeof optval));
 	::bind(sockFd_, reinterpret_cast<const struct sockaddr*>(&localSockAddr_),
 			static_cast<socklen_t>(sizeof localSockAddr_));
 	watcher_->setReadCallback(std::bind(&Acceptor::onRead, this));
