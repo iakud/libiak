@@ -39,7 +39,6 @@ TcpServer::~TcpServer() {
 		}
 	}
 	if (loopThreadPool_) {
-		delete loopThreadPool_;
 		loopThreadPool_ = NULL;
 	}
 }
