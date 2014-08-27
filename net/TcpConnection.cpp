@@ -29,9 +29,12 @@ TcpConnection::TcpConnection(EventLoop* loop, int sockFd,
 	, close_(false)
 	, watcher_(new Watcher(loop, sockFd))
 	, bufferPool_(loop->getBufferPool()) {
-	int optval = 1;
-	::setsockopt(sockFd_, SOL_SOCKET, SO_KEEPALIVE, &optval, 
-			static_cast<socklen_t>(sizeof optval));
+	int optKeepAlive = 1;
+	::setsockopt(sockFd_, SOL_SOCKET, SO_KEEPALIVE, &optKeepAlive, 
+			static_cast<socklen_t>(sizeof optKeepAlive));
+//	int optKeepIdle = 600;
+//	::setsockopt(sockFd_, SOL_TCP, TCP_KEEPIDLE, &optKeepIdle, 
+//		static_cast<socklen_t>(sizeof optKeepIdle));
 	watcher_->setReadCallback(std::bind(&TcpConnection::onRead, this));
 	watcher_->setWriteCallback(std::bind(&TcpConnection::onWrite, this));
 	watcher_->setCloseCallback(std::bind(&TcpConnection::onClose, this));
