@@ -23,7 +23,8 @@ Acceptor::Acceptor(EventLoop* loop,
 	, sockFd_(::socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC, IPPROTO_TCP))
 	, watcher_(new Watcher(loop, sockFd_))
 	, listenning_(false)
-	, accept_(false) {
+	, accept_(false) 
+	, idleFd_(::open("/dev/null", O_RDONLY | O_CLOEXEC)) {
 	int optval = 1;
 	::setsockopt(sockFd_, SOL_SOCKET, SO_REUSEADDR,
 			&optval, static_cast<socklen_t>(sizeof optval));
@@ -35,6 +36,7 @@ Acceptor::Acceptor(EventLoop* loop,
 
 Acceptor::~Acceptor() {
 	::close(sockFd_);
+	::close(idleFd_);
 }
 
 
@@ -84,10 +86,19 @@ void Acceptor::onRead() {
 		&remoteSockAddrLen, SOCK_NONBLOCK|SOCK_CLOEXEC);
 	if (sockFd < 0) {
 		int err = errno;// on error
-		if (err == EMFILE || err == ENFILE) {
+		if (EAGAIN == err) {
+			watcher_->setReadable(false);
+		} else {
+			if (EMFILE == err) {
+				::close(idleFd_);
+				idleFd_ = ::accept(sockFd_, NULL, NULL);
+				::close(idleFd_);
+				idleFd_ = ::open("/dev/null", O_RDONLY | O_CLOEXEC);
+			} else if (ENFILE == err) {
 
-		}
-		watcher_->setReadable(false);
+			}
+			watcher_->activeRead(); // next accept
+		} 
 		return;
 	}
 	// accept successful

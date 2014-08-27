@@ -50,6 +50,7 @@ private:
 	std::unique_ptr<Watcher> watcher_;
 	bool listenning_;	// is listenning
 	bool accept_;	// is accept new connection?
+	int idleFd_;
 
 	AcceptCallback acceptCallback_;
 }; // end class Acceptor
