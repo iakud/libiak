@@ -251,7 +251,7 @@ bool TcpConnection::writeData(const char* data, const size_t size) {
 		uint32_t rearcount = writeTail_->capacity - writeTail_->push;
 		if (size > rearcount) {
 			::memcpy(writeTail_->buffer + writeTail_->push, buffer, rearcount);
-			writeTail_->push = size - rearcount;
+			writeTail_->push = static_cast<uint32_t>(size) - rearcount;
 			::memcpy(writeTail_->buffer, buffer + rearcount, writeTail_->push);
 		} else {
 			::memcpy(writeTail_->buffer + writeTail_->push, buffer, size);
