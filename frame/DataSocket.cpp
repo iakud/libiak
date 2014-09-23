@@ -26,6 +26,10 @@ DataSocket::DataSocket(TcpConnectionPtr connection,
 DataSocket::~DataSocket() {
 }
 
+void DataSocket::close() {
+	connection_->closeAsync();
+}
+
 void DataSocket::sendPack(PacketPtr packet) {
 	connection_->sendPack(packet);
 }

@@ -47,6 +47,7 @@ public:
 		return userdata_;
 	}
 
+	void close();
 	void sendPack(PacketPtr packet);
 
 private:
