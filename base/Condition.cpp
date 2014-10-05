@@ -2,7 +2,7 @@
 
 using namespace iak;
 
-bool Condition::timedwait(uint64_t timeout) {
+bool Condition::timedwait(unsigned int timeout) {
 	struct timespec abstime;
 	::clock_gettime(CLOCK_REALTIME, &abstime);
 	timeout = timeout * 1000 + abstime.tv_sec * kNanoSecondsPerSecond + abstime.tv_nsec;

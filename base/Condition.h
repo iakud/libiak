@@ -34,10 +34,10 @@ public:
 
 	/* timedwait using
 	 * a microseconds time value.*/
-	bool timedwait(uint64_t timeout);
+	bool timedwait(unsigned int timeout);
 
 private:
-	static const uint64_t kNanoSecondsPerSecond = 1e9;
+	static const unsigned int kNanoSecondsPerSecond = 1e9;
 
 	Mutex& mutex_;
 	pthread_cond_t cond_;
