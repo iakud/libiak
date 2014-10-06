@@ -333,18 +333,18 @@ void TcpConnection::onRead() {
 	}
 	// read successful
 	uint32_t size = rearcount + next->capacity;
-	if (readsize > size) { // error?
+	if (readsize > static_cast<ssize_t>(size)) { // error?
 		watcher_->setReadable(false);
 		return;
 	}
 	// fill tail
-	if (readsize < rearcount) {
+	if (readsize < static_cast<ssize_t>(rearcount)) {
 		readTail_->push = (readTail_->push + static_cast<uint32_t>(readsize)) % readTail_->capacity;
 		readTail_->count += static_cast<uint32_t>(readsize);
 	} else { // tail full
 		readTail_->push = readTail_->pop;
 		readTail_->count = readTail_->capacity;
-		if (readsize > rearcount) {// fill next
+		if (readsize > static_cast<ssize_t>(rearcount)) {// fill next
 			next->count = next->push = static_cast<uint32_t>(readsize) - rearcount;
 			readTail_ = next;
 		}
@@ -370,9 +370,9 @@ void TcpConnection::onRead() {
 		}
 	}
 
-	if (readsize < size) {
+	if (readsize < static_cast<ssize_t>(size)) {
 		watcher_->setReadable(false);
-	} else if (readsize == size) {
+	} else if (readsize == static_cast<ssize_t>(size)) {
 		// socket receive buffer not empty may be, at use EPOLL ET
 		watcher_->activeRead();
 	}
@@ -416,15 +416,15 @@ void TcpConnection::onWrite() {
 		return;
 	}
 	// write successful
-	if (writesize > size) { // error?
+	if (writesize > static_cast<ssize_t>(size)) { // error?
 		watcher_->setWriteable(false);
 		return;
 	}
 	
-	if (writesize < writecount) {
+	if (writesize < static_cast<ssize_t>(writecount)) {
 		writeHead_->pop = (writeHead_->pop + static_cast<uint32_t>(writesize)) % writeHead_->capacity;
 		writeHead_->count -= static_cast<uint32_t>(writesize);
-	} else if (writesize > writecount) {
+	} else if (writesize > static_cast<ssize_t>(writecount)) {
 		next->pop = static_cast<uint32_t>(writesize) - writecount;
 		next->count -= next->pop;
 		writeHead_ = bufferPool_->putNext(writeHead_);
@@ -440,9 +440,9 @@ void TcpConnection::onWrite() {
 	//if (m_sendCallback) { // callback
 	//	m_sendCallback(shared_from_this(), writesize);
 	//}
-	if (writesize < size) {
+	if (writesize < static_cast<ssize_t>(size)) {
 		watcher_->setWriteable(false);
-	} else if (writesize == size && writeSize_ > 0) {
+	} else if (writesize == static_cast<ssize_t>(size) && writeSize_ > 0) {
 		// send buffer not empty, continue write
 		watcher_->activeWrite();
 	}
