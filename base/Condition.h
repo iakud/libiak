@@ -34,7 +34,7 @@ public:
 
 	/* timedwait using
 	 * a microseconds time value.*/
-	bool timedwait(__time_t timeout);
+	bool timedwait(uint32_t timeout);
 
 private:
 	static const uint32_t kNanoSecondsPerSecond = 1e9;
