@@ -43,7 +43,7 @@ private:
 	AsyncLogger(const AsyncLogger&);  // ptr_container
 	void operator=(const AsyncLogger&);  // ptr_container
 
-	static const uint32_t kMicroSecondsPerSecond = 1e6;
+	static const uint32_t kNanoSecondsPerSecond = 1e9;
 
 	class Buffer;
 	typedef std::shared_ptr<Buffer> BufferPtr;

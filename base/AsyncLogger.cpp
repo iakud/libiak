@@ -102,7 +102,7 @@ void AsyncLogger::threadFunc() {
 		{
 			MutexGuard lock(mutex_);
 			if (buffers_.empty()) {  // unusual usage!
-				cond_.timedwait(flushInterval_ * kMicroSecondsPerSecond);
+				cond_.timedwait(flushInterval_ * kNanoSecondsPerSecond);
 			}
 			buffers_.push_back(currentBuffer_);
 			currentBuffer_.reset();
