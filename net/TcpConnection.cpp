@@ -77,9 +77,6 @@ void TcpConnection::closeAsync() {
 }
 
 void TcpConnection::destroyAsync() {
-	if (close_) {
-		return;
-	}
 	loop_->runInLoop(std::bind(&TcpConnection::destroy, shared_from_this()));
 }
 
@@ -103,16 +100,16 @@ void TcpConnection::shutdown() {
 }
 
 void TcpConnection::close() {
+	if (close_) {
+		return;
+	}
+	close_ = true;
 	TcpConnectionPtr sharedthis = shared_from_this();
 	disconnectCallback_(sharedthis);
 	closeCallback_(sharedthis);
 }
 
 void TcpConnection::destroy() {
-	if (close_) {
-		return;
-	}
-	close_ = true;
 	watcher_->stop();
 }
 
@@ -449,9 +446,13 @@ void TcpConnection::onWrite() {
 }
 
 void TcpConnection::onClose() {
-	TcpConnectionPtr sharedthis = shared_from_this();
 	watcher_->setReadable(false);//disable read
 	watcher_->setWriteable(false);//disable write
+	if (close_) {
+		return;
+	}
+	close_ = true;
+	TcpConnectionPtr sharedthis = shared_from_this();
 	if (disconnectCallback_) {
 		disconnectCallback_(sharedthis);
 	}
