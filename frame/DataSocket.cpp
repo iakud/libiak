@@ -35,17 +35,17 @@ void DataSocket::sendPack(PacketPtr packet) {
 }
 
 void DataSocket::onConnect(TcpConnectionPtr connection) {
-	AsyncNet::put(std::bind(&DataSocket::handleConnect, this, connection));
+	AsyncNet::put(std::bind(&DataSocket::handleConnect, shared_from_this(), connection));
 }
 
 void DataSocket::onMessage(TcpConnectionPtr connection,
 		PacketPtr packet) {
-	AsyncNet::put(std::bind(&DataSocket::handleMessage, this,
+	AsyncNet::put(std::bind(&DataSocket::handleMessage, shared_from_this(),
 				connection, packet));
 }
 
 void DataSocket::onDisconnect(TcpConnectionPtr connection) {
-	AsyncNet::put(std::bind(&DataSocket::handleDisconnect, this, connection));
+	AsyncNet::put(std::bind(&DataSocket::handleDisconnect, shared_from_this(), connection));
 }
 
 void DataSocket::handleConnect(TcpConnectionPtr connection) {
