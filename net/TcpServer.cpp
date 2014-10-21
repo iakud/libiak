@@ -33,8 +33,8 @@ TcpServer::~TcpServer() {
 	if (listen_) {
 		acceptor_->closeAsync();	// close first
 		// destroy connections
-		for (TcpConnectionPtr connection : connections_) {
-			connection->destroyAsync();
+		for (auto& pairConn : connections_.) {
+			pairConn.second->destroyAsync();
 			//connection.reset();
 		}
 	}
