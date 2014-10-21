@@ -44,13 +44,13 @@ public:
 private:
 	void onAccept(const int sockFd,
 			const struct sockaddr_in& remoteSockAddr);
-	void onClose(TcpConnectionPtr connection);
+	void onClose(const int sockFd, TcpConnectionPtr connection);
 
 	EventLoop* loop_;
 	InetAddress localAddr_;
 	std::shared_ptr<Acceptor> acceptor_;
 	bool listen_;
-	std::set<TcpConnectionPtr> connections_;
+	std::map<int, TcpConnectionPtr> connections_;
 
 	EventLoopThreadPool* loopThreadPool_;
 	uint32_t indexLoop_;

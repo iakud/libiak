@@ -66,19 +66,19 @@ void TcpServer::onAccept(const int sockFd,
 	
 	TcpConnectionPtr connection = TcpConnection::make(loop,
 			sockFd, localAddr_, remoteAddr);
-	connections_.insert(connection);
+	connections_[sockFd] = connection;
 	connection->setCloseCallback(std::bind(&TcpServer::onClose,
-			this, std::placeholders::_1));
+			this, sockFd, std::placeholders::_1));
 	if (connectCallback_) {
 		connectCallback_(connection);
 	}
 }
 
-void TcpServer::onClose(TcpConnectionPtr connection) {
+void TcpServer::onClose(const int sockFd, TcpConnectionPtr connection) {
 	//std::set<TcpConnectionPtr>::iterator itConnection = m_connections.find(connection);
 	//m_connections.erase(itConnection);
 	// add lock !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	if (connections_.erase(connection)) {
-		connection->destroyAsync();
-	}
+	connections_.erase(sockFd);
+	//assert(n == 1)
+	connection->destroyAsync();
 }
