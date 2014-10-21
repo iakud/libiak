@@ -45,6 +45,7 @@ private:
 	void onAccept(const int sockFd,
 			const struct sockaddr_in& remoteSockAddr);
 	void onClose(const int sockFd, TcpConnectionPtr connection);
+	void removeConnection(const int sockFd, TcpConnectionPtr connection);
 
 	EventLoop* loop_;
 	InetAddress localAddr_;

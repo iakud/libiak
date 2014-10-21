@@ -75,9 +75,12 @@ void TcpServer::onAccept(const int sockFd,
 }
 
 void TcpServer::onClose(const int sockFd, TcpConnectionPtr connection) {
-	//std::set<TcpConnectionPtr>::iterator itConnection = m_connections.find(connection);
-	//m_connections.erase(itConnection);
-	// add lock !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	loop_->runInLoop(std::bind(&TcpServer::removeConnection,
+			this, sockFd, connection));
+}
+
+void TcpServer::removeConnection(const int sockFd,
+		TcpConnectionPtr connection) {
 	connections_.erase(sockFd);
 	//assert(n == 1)
 	connection->destroyAsync();
