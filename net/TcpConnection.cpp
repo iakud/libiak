@@ -317,7 +317,10 @@ void TcpConnection::onRead() {
 		}
 	}
 	// next buffer (for read extra)
-	Buffer* next = bufferPool_->takeNext(readTail_);
+	Buffer* next = readTail_->next;
+	if (!next) {
+		next = bufferPool_->takeNext(readTail_);
+	}
 	iov[iovcnt].iov_base = next->buffer;
 	iov[iovcnt].iov_len = next->capacity;
 	++ iovcnt; // iovcnt <= 3
