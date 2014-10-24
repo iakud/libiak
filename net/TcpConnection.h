@@ -71,7 +71,6 @@ private:
 	// in loop
 	void establish();
 	void shutdown();
-	void close();
 	void destroy();
 	void send(PacketPtr packet);
 	// handle events
