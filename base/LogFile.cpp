@@ -1,5 +1,5 @@
 #include "LogFile.h"
-#include "Logger.h" // strerror_tl
+#include "Logging.h" // strerror_tl
 #include "ProcessInfo.h"
 
 #include <assert.h>

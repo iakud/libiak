@@ -1,5 +1,5 @@
 #include "base/LogFile.h"
-#include "base/Logger.h"
+#include "base/Logging.h"
 #include <unistd.h>
 
 using namespace iak;
@@ -18,8 +18,8 @@ int main(int argc, char* argv[]) {
 	char name[256];
 	strncpy(name, argv[0], 256);
 	g_logFile.reset(new LogFile(::basename(name), 200*1000));
-	Logger::SetOutput(outputFunc);
-	Logger::SetFlush(flushFunc);
+	Logging::SetOutput(outputFunc);
+	Logging::SetFlush(flushFunc);
 
 	std::string line = "1234567890 abcdefg FDAGFSADGASDF   ";
 	for (int i=0; i<1000; ++i) {

@@ -1,5 +1,5 @@
 #include <base/AsyncLogger.h>
-#include <base/Logger.h>
+#include <base/Logging.h>
 #include <base/Timestamp.h>
 
 #include <stdio.h>
@@ -20,7 +20,7 @@ void asyncOutput(const char* msg, int len) {
 }
 
 void bench(bool longLog) {
-	Logger::SetOutput(asyncOutput);
+	Logging::SetOutput(asyncOutput);
 
 	int cnt = 0;
 	const int kBatch = 1000;

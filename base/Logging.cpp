@@ -1,4 +1,4 @@
-#include "Logger.h"
+#include "Logging.h"
 
 #include "Thread.h"
 
@@ -18,18 +18,18 @@ const char* strerror_tl(int savedErrno) {
 	return strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf);
 }
 
-Logger::LogLevel GetLogLevel() {
-	if (::getenv("MUDUO_LOG_TRACE"))
-		return Logger::TRACE;
-	else if (::getenv("MUDUO_LOG_DEBUG"))
-		return Logger::DEBUG;
+Logging::LogLevel GetLogLevel() {
+	if (::getenv("IAK_LOG_TRACE"))
+		return Logging::TRACE;
+	else if (::getenv("IAK_LOG_DEBUG"))
+		return Logging::DEBUG;
 	else
-		return Logger::INFO;
+		return Logging::INFO;
 }
 
-Logger::LogLevel Logger::s_level_ = GetLogLevel();
+Logging::LogLevel Logging::s_level_ = GetLogLevel();
 
-const char* LogLevelName[Logger::NUM_LOG_LEVELS] = {
+const char* LogLevelName[Logging::NUM_LOG_LEVELS] = {
   "TRACE ", "DEBUG ", "INFO  ", "WARN  ", "ERROR ", "FATAL "
 };
 
@@ -43,14 +43,14 @@ void defaultFlush() {
 	::fflush(::stdout);
 }
 
-Logger::OutputFunc Logger::s_output_ = defaultOutput;
-Logger::FlushFunc Logger::s_flush_ = defaultFlush;
+Logging::OutputFunc Logging::s_output_ = defaultOutput;
+Logging::FlushFunc Logging::s_flush_ = defaultFlush;
 
 } // end namespace iak
 
 using namespace iak;
 
-Logger::Logger(const char* filename, int line, LogLevel level)
+Logging::Logging(const char* filename, int line, LogLevel level)
 	: time_(Timestamp::now())
 	, stream_()
 	, filename_(filename)
@@ -76,20 +76,20 @@ Logger::Logger(const char* filename, int line, LogLevel level)
 	stream_ << LogLevelName[level];
 }
 
-Logger::Logger(const char* filename, int line, LogLevel level, const char* func)
-	: Logger(filename, line, level) {
+Logging::Logging(const char* filename, int line, LogLevel level, const char* func)
+	: Logging(filename, line, level) {
 	stream_ << func << ' ';
 }
 
-Logger::Logger(const char* filename, int line, bool toAbort)
-	: Logger(filename, line, toAbort?FATAL:ERROR) {
+Logging::Logging(const char* filename, int line, bool toAbort)
+	: Logging(filename, line, toAbort?FATAL:ERROR) {
 	int savedErrno = errno;
 	if (savedErrno != 0) {
 		stream_ << strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
 	}
 }
 
-Logger::~Logger() {
+Logging::~Logging() {
 	const char* slash = ::strrchr(filename_, '/');
 	if (slash) {
 		filename_ = slash + 1;

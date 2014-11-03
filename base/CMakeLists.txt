@@ -3,7 +3,7 @@ set(base_SRCS
 	Timestamp.cpp
 	Thread.cpp
 	LogStream.cpp
-	Logger.cpp
+	Logging.cpp
 	LogFile.cpp
 	FileUtil.cpp
 	ProcessInfo.cpp
