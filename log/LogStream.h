@@ -77,7 +77,7 @@ private:
 
 inline LogStream& operator<<(LogStream& stream, const LogFormat& fmt) {
 	stream.append(fmt.data(), fmt.length());
-	return stream; 
+	return stream;
 }
 
 } // end namespace iak
