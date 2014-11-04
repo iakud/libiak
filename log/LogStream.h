@@ -1,5 +1,5 @@
-#ifndef IAK_BASE_LOGSTREAM_H
-#define IAK_BASE_LOGSTREAM_H
+#ifndef IAK_LOG_LOGSTREAM_H
+#define IAK_LOG_LOGSTREAM_H
 
 #include <base/NonCopyable.h>
 
@@ -82,5 +82,5 @@ inline LogStream& operator<<(LogStream& stream, const LogFormat& fmt) {
 
 } // end namespace iak
 
-#endif  // IAK_BASE_LOGSTREAM_H
+#endif  // IAK_LOG_LOGSTREAM_H
 

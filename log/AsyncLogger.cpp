@@ -49,13 +49,9 @@ private:
 
 using namespace iak;
 
-AsyncLogger::AsyncLogger(const std::string& basename,
-						size_t rollSize,
-						int flushInterval)
+AsyncLogger::AsyncLogger(int flushInterval)
 	: flushInterval_(flushInterval)
 	, running_(false)
-	, basename_(basename)
-	, rollSize_(rollSize)
 	, thread_(std::bind(&AsyncLogger::threadFunc, this), "Logger")
 	, latch_(1)
 	, mutex_()
@@ -68,7 +64,7 @@ AsyncLogger::AsyncLogger(const std::string& basename,
 	buffers_.reserve(16);
 }
 
-void AsyncLogger::append(const char* logline, int len) {
+void AsyncLogger::append(LogFilePtr logfile, const char* logline, int len) {
 	MutexGuard lock(mutex_);
 	if (currentBuffer_->avail() > len) {
 		currentBuffer_->append(logline, len);
@@ -110,8 +106,7 @@ void AsyncLogger::threadFunc() {
 			currentBuffer_.swap(newBuffer1);
 			buffersToWrite.swap(buffers_);
 			if (!nextBuffer_) {
-				nextBuffer_ = newBuffer2;
-				newBuffer2.reset();
+				nextBuffer_.swap(newBuffer2);
 			}
 		}
 

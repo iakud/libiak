@@ -43,16 +43,17 @@ void defaultFlush() {
 	::fflush(::stdout);
 }
 
-Logging::OutputFunc Logging::s_output_ = defaultOutput;
-Logging::FlushFunc Logging::s_flush_ = defaultFlush;
+//Logging::OutputFunc Logging::s_output_ = defaultOutput;
+//Logging::FlushFunc Logging::s_flush_ = defaultFlush;
 
 } // end namespace iak
 
 using namespace iak;
 
-Logging::Logging(const char* filename, int line, LogLevel level)
+Logging::Logging(LogFilePtr logfile, const char* filename, int line, LogLevel level)
 	: time_(Timestamp::now())
 	, stream_()
+	, logfile_(logfile)
 	, filename_(filename)
 	, line_(line)
 	, level_(level) {
@@ -76,13 +77,14 @@ Logging::Logging(const char* filename, int line, LogLevel level)
 	stream_ << LogLevelName[level];
 }
 
-Logging::Logging(const char* filename, int line, LogLevel level, const char* func)
-	: Logging(filename, line, level) {
+Logging::Logging(LogFilePtr logfile, const char* filename, int line, LogLevel level,
+		const char* func)
+	: Logging(logfile, filename, line, level) {
 	stream_ << func << ' ';
 }
 
-Logging::Logging(const char* filename, int line, bool toAbort)
-	: Logging(filename, line, toAbort?FATAL:ERROR) {
+Logging::Logging(LogFilePtr logfile, const char* filename, int line, bool toAbort)
+	: Logging(logfile, filename, line, toAbort?FATAL:ERROR) {
 	int savedErrno = errno;
 	if (savedErrno != 0) {
 		stream_ << strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
@@ -96,9 +98,19 @@ Logging::~Logging() {
 	}
 	stream_ << " - " << filename_ << ':' << line_ << '\n';
 
-	s_output_(stream_.data(), stream_.length());
+	if (logfile_) {
+		logfile_->append(stream_.data(), stream_.length());
+	} else {
+		defaultOutput(stream_.data(), stream_.length());
+	}
+	// s_output_(stream_.data(), stream_.length());
 	if (level_ == FATAL) {
-		s_flush_();
+		if (logfile_) {
+			logfile_->flush();
+		} else {
+			defaultFlush();
+		}
+		// s_flush_();
 		::abort();
 	}
 }

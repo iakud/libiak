@@ -1,5 +1,6 @@
 #include "LogFile.h"
 #include "Logging.h" // strerror_tl
+#include "AsyncLogger.h"
 
 #include <base/ProcessInfo.h>
 
@@ -62,15 +63,24 @@ private:
 
 using namespace iak;
 
+LogFilePtr LogFile::make(const std::string& basename,
+		size_t rollSize,
+		bool async,
+		int flushInterval) {
+	return std::make_shared<LogFile>(basename,
+			rollSize, async, flushInterval);
+}
+
 LogFile::LogFile(const std::string& basename,
-	size_t rollSize,
-	bool threadSafe,
-	int flushInterval)
+		size_t rollSize,
+		bool async,
+		int flushInterval)
 	: basename_(basename)
 	, rollSize_(rollSize)
+	, async_(async)
 	, flushInterval_(flushInterval)
 	, count_(0)
-	, mutex_(threadSafe ? new Mutex : NULL)
+	, mutex_(async ? NULL : new Mutex)
 	, startOfPeriod_(0)
 	, lastRoll_(0)
 	, lastFlush_(0) {
@@ -82,19 +92,19 @@ LogFile::~LogFile() {
 }
 
 void LogFile::append(const char* logline, int len) {
-	if (mutex_) {
-		MutexGuard lock(*mutex_);
-		append_unlocked(logline, len);
+	if (async_) {
+		AsyncLogger::append(shared_from_this(), logline, len);
 	} else {
+		MutexGuard lock(*mutex_);
 		append_unlocked(logline, len);
 	}
 }
 
 void LogFile::flush() {
-	if (mutex_) {
-		MutexGuard lock(*mutex_);
-		file_->flush();
+	if (async_) {
+		// do nothing
 	} else {
+		MutexGuard lock(*mutex_);
 		file_->flush();
 	}
 }
@@ -118,6 +128,10 @@ void LogFile::append_unlocked(const char* logline, int len) {
 			++count_;
 		}
 	}
+}
+
+void LogFile::flush_unlocked() {
+	file_->flush();
 }
 
 void LogFile::rollFile() {

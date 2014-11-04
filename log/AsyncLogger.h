@@ -1,6 +1,8 @@
 #ifndef IAK_BASE_ASYNCLOGGGER_H
 #define IAK_BASE_ASYNCLOGGGER_H
 
+#include "LogFile.h"
+
 #include <base/NonCopyable.h>
 #include <base/BlockingQueue.h>
 #include <base/CountDownLatch.h>
@@ -15,9 +17,7 @@ namespace iak {
 
 class AsyncLogger : public NonCopyable {
 public:
-	AsyncLogger(const std::string& basename,
-				size_t rollSize,
-				int flushInterval = 3);
+	AsyncLogger(int flushInterval = 3);
 
 	~AsyncLogger() {
 		if (running_) {
@@ -25,7 +25,7 @@ public:
 		}
 	}
 
-	void append(const char* logline, int len);
+	static void append(LogFilePtr logfile, const char* logline, int len);
 
 	void start() {
 		running_ = true;
@@ -52,8 +52,6 @@ private:
 
 	const uint32_t flushInterval_;
 	bool running_;
-	std::string basename_;
-	size_t rollSize_;
 
 	Thread thread_;
 	CountDownLatch latch_;
