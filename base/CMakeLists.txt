@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 2.6)
+
 set(base_SRCS
 	Condition.cpp
 	Timestamp.cpp

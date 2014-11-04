@@ -1,6 +1,6 @@
 #include "Logging.h"
 
-#include "Thread.h"
+#include <base/Thread.h>
 
 #include <assert.h>
 #include <errno.h>

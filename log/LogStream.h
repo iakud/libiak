@@ -1,7 +1,7 @@
 #ifndef IAK_BASE_LOGSTREAM_H
 #define IAK_BASE_LOGSTREAM_H
 
-#include "NonCopyable.h"
+#include <base/NonCopyable.h>
 
 #include <string>
 #include <memory.h> // memcpy

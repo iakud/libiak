@@ -2,7 +2,8 @@
 #define IAK_BASE_LOGGING_H
 
 #include "LogStream.h"
-#include "Timestamp.h"
+
+#include <base/Timestamp.h>
 
 namespace iak {
 

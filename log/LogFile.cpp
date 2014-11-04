@@ -1,6 +1,7 @@
 #include "LogFile.h"
 #include "Logging.h" // strerror_tl
-#include "ProcessInfo.h"
+
+#include <base/ProcessInfo.h>
 
 #include <assert.h>
 #include <stdio.h>

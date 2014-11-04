@@ -1,6 +1,7 @@
 #include "AsyncLogger.h"
 #include "LogFile.h"
-#include "Timestamp.h"
+
+#include <base/Timestamp.h>
 
 #include <stdio.h>
 #include <memory.h>
