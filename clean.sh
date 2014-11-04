@@ -4,6 +4,10 @@ cd base
 ./clean.sh
 cd ..
 
+cd log
+./clean.sh
+cd ..
+
 cd net
 ./clean.sh
 cd ..

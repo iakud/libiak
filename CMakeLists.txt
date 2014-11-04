@@ -40,6 +40,7 @@ message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " "
 	${CMAKE_CXX_FLAGS_${BUILD_TYPE}})
 
 add_subdirectory(base)
+add_subdirectory(log)
 add_subdirectory(net)
 add_subdirectory(frame)
 

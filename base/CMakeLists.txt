@@ -2,12 +2,8 @@ set(base_SRCS
 	Condition.cpp
 	Timestamp.cpp
 	Thread.cpp
-	LogStream.cpp
-	Logging.cpp
-	LogFile.cpp
 	FileUtil.cpp
 	ProcessInfo.cpp
-	AsyncLogger.cpp
 	Date.cpp
 	TimeZone.cpp
 	)
