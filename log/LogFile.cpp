@@ -1,6 +1,6 @@
 #include "LogFile.h"
 #include "Logging.h" // strerror_tl
-#include "AsyncLogger.h"
+#include "AsyncLog.h"
 
 #include <base/ProcessInfo.h>
 
@@ -63,31 +63,31 @@ private:
 
 using namespace iak;
 
-LogFilePtr LogFile::make(AsyncLogging* asyncLogging,
+LogFilePtr LogFile::make(AsyncLog* asyncLog,
 		const std::string& basename,
 		size_t rollSize,
 		int flushInterval) {
-	return std::make_shared<LogFile>(basename,
-			rollSize, async, flushInterval);
+	return std::make_shared<LogFile>(asyncLog, 
+			basename, rollSize, flushInterval);
 }
 
-LogFile::LogFile(AsyncLogging* asyncLogging,
+LogFile::LogFile(AsyncLog* asyncLog,
 		const std::string& basename,
 		size_t rollSize,
 		int flushInterval)
-	: asyncLogging_(asyncLogging)
+	: asyncLog_(asyncLog)
 	, basename_(basename)
 	, rollSize_(rollSize)
 	, flushInterval_(flushInterval)
 	, count_(0)
-	, mutex_(asyncLogging_ == nullptr ? new Mutex : nullptr)
+	, mutex_(asyncLog_ == nullptr ? new Mutex : nullptr)
 	, startOfPeriod_(0)
 	, lastRoll_(0)
 	, lastFlush_(0) 
-	, currentBuffer_(asyncLogging_ == nullptr ? nullptr : LogBuffer::make())
-	, nextBuffer_(asyncLogging_ == nullptr ? nullptr : LogBuffer::make())
-	, currentBufferBackup_(asyncLogging_ == nullptr ? nullptr : LogBuffer::make())
-	, nextBufferBackup_(asyncLogging_ == nullptr ? nullptr : LogBuffer::make()) {
+	, currentBuffer_(asyncLog_ == nullptr ? nullptr : LogBuffer::make())
+	, nextBuffer_(asyncLog_ == nullptr ? nullptr : LogBuffer::make())
+	, currentBufferBackup_(asyncLog_ == nullptr ? nullptr : LogBuffer::make())
+	, nextBufferBackup_(asyncLog_ == nullptr ? nullptr : LogBuffer::make()) {
 	assert(basename.find('/') == std::string::npos);
 	rollFile();
 }
@@ -96,16 +96,16 @@ LogFile::~LogFile() {
 }
 
 void LogFile::append(const char* logline, int len) {
-	if (asyncLogging_ == nullptr) {
+	if (asyncLog_ == nullptr) {
 		MutexGuard lock(*mutex_);
 		append_unlocked(logline, len);
 	} else {
-		AsyncLogger::append(shared_from_this(), logline, len);
+		asyncLog->append(shared_from_this(), logline, len);
 	}
 }
 
 void LogFile::flush() {
-	if (asyncLogging_ == nullptr) {
+	if (asyncLog_ == nullptr) {
 		MutexGuard lock(*mutex_);
 		file_->flush();
 	}

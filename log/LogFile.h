@@ -11,7 +11,7 @@
 
 namespace iak {
 
-class AsyncLogging;
+class AsyncLog;
 
 class LogFile;
 typedef std::shared_ptr<LogFile> LogFilePtr;
@@ -20,13 +20,13 @@ class LogFile : public NonCopyable,
 	public std::enable_shared_from_this<LogFile> {
 
 public:
-	static LogFilePtr make(AsyncLogging* asyncLogging,
+	static LogFilePtr make(AsyncLog* asyncLog,
 			const std::string& basename,
 			size_t rollSize,
 			int flushInterval = 3);
 
 public:
-	LogFile(AsyncLogging* asyncLogging,
+	LogFile(AsyncLog* asyncLog,
 			const std::string& basename,
 			size_t rollSize,
 			int flushInterval);
@@ -44,7 +44,7 @@ private:
 	void flush_unlocked();
 	void rollFile();
 
-	AsyncLogging* asyncLogging_;
+	AsyncLog* asyncLog_;
 	const std::string basename_;
 	const size_t rollSize_;
 	const int flushInterval_;
