@@ -1,6 +1,7 @@
-#ifndef IAK_BASE_ASYNCLOGGGER_H
-#define IAK_BASE_ASYNCLOGGGER_H
+#ifndef IAK_BASE_ASYNCLOG_H
+#define IAK_BASE_ASYNCLOG_H
 
+#include "LogBuffer.h"
 #include "LogFile.h"
 
 #include <base/NonCopyable.h>
@@ -15,17 +16,17 @@
 
 namespace iak {
 
-class AsyncLogger : public NonCopyable {
+class AsyncLog : public NonCopyable {
 public:
-	AsyncLogger(int flushInterval = 3);
+	AsyncLog(int flushInterval = 3);
 
-	~AsyncLogger() {
+	~AsyncLog() {
 		if (running_) {
 			stop();
 		}
 	}
 
-	static void append(LogFilePtr logfile, const char* logline, int len);
+	void append(LogFilePtr logfile, const char* logline, int len);
 
 	void start() {
 		running_ = true;
@@ -40,13 +41,10 @@ public:
 	}
 
 private:
-	AsyncLogger(const AsyncLogger&);  // ptr_container
-	void operator=(const AsyncLogger&);  // ptr_container
+	//AsyncLogger(const AsyncLogger&);  // ptr_container
+	//void operator=(const AsyncLogger&);  // ptr_container
 
 	static const uint32_t kNanoSecondsPerSecond = 1e9;
-
-	class Buffer;
-	typedef std::shared_ptr<Buffer> BufferPtr;
 
 	void threadFunc();
 
@@ -60,9 +58,9 @@ private:
 
 	BufferPtr currentBuffer_;
 	BufferPtr nextBuffer_;
-	std::vector<BufferPtr> buffers_;
+	std::vector<LogBufferPtr> buffers_;
 };
 
 } // end namespace iak
 
-#endif  // IAK_BASE_ASYNCLOGGGER_H
+#endif  // IAK_BASE_ASYNCLOG_H

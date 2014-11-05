@@ -9,6 +9,7 @@
 namespace iak {
 
 class Logging {
+
 public:
 	enum LogLevel {TRACE, DEBUG, INFO, WARN, ERROR, FATAL, NUM_LOG_LEVELS };
 

@@ -1,4 +1,4 @@
-#include "AsyncLogger.h"
+#include "AsyncLog.h"
 #include "LogFile.h"
 
 #include <base/Timestamp.h>
@@ -6,53 +6,12 @@
 #include <stdio.h>
 #include <memory.h>
 
-namespace iak {
-
-class AsyncLogger::Buffer : public NonCopyable {
-public:
-	Buffer()
-		: cur_(data_)
-		, end_(data_ + sizeof data_) {
-	}
-
-	~Buffer() {
-	}
-
-	void append(const char* buf, size_t len) {
-		if (static_cast<size_t>(avail()) > len) {
-			::memcpy(cur_, buf, len);
-			cur_ += len;
-		}
-	}
-
-	const char* data() const {
-		return data_;
-	}
-
-	int length() const {
-		return static_cast<int>(cur_ - data_);
-	}
-
-	int avail() const { return static_cast<int>(end_ - cur_); }
-
-	void reset() { cur_ = data_; }
-
-private:
-	static const int kBufferSize = 4096 * 1024;
-
-	char data_[kBufferSize];
-	char* cur_;
-	char* end_;
-}; // end class AsyncLogger::Buffer
-
-} // end namespace iak
-
 using namespace iak;
 
-AsyncLogger::AsyncLogger(int flushInterval)
+AsyncLogging::AsyncLogging(int flushInterval)
 	: flushInterval_(flushInterval)
 	, running_(false)
-	, thread_(std::bind(&AsyncLogger::threadFunc, this), "Logger")
+	, thread_(std::bind(&AsyncLogging::threadFunc, this), "Logger")
 	, latch_(1)
 	, mutex_()
 	, cond_(mutex_)
@@ -64,7 +23,7 @@ AsyncLogger::AsyncLogger(int flushInterval)
 	buffers_.reserve(16);
 }
 
-void AsyncLogger::append(LogFilePtr logfile, const char* logline, int len) {
+void AsyncLogging::append(LogFilePtr logfile, const char* logline, int len) {
 	MutexGuard lock(mutex_);
 	if (currentBuffer_->avail() > len) {
 		currentBuffer_->append(logline, len);
@@ -81,7 +40,7 @@ void AsyncLogger::append(LogFilePtr logfile, const char* logline, int len) {
 	}
 }
 
-void AsyncLogger::threadFunc() {
+void AsyncLogging::threadFunc() {
 	assert(running_ == true);
 	latch_.countDown();
 	LogFile output(basename_, rollSize_, false);

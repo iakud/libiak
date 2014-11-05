@@ -43,9 +43,6 @@ void defaultFlush() {
 	::fflush(::stdout);
 }
 
-//Logging::OutputFunc Logging::s_output_ = defaultOutput;
-//Logging::FlushFunc Logging::s_flush_ = defaultFlush;
-
 } // end namespace iak
 
 using namespace iak;
@@ -103,14 +100,13 @@ Logging::~Logging() {
 	} else {
 		defaultOutput(stream_.data(), stream_.length());
 	}
-	// s_output_(stream_.data(), stream_.length());
+
 	if (level_ == FATAL) {
 		if (logfile_) {
 			logfile_->flush();
 		} else {
 			defaultFlush();
 		}
-		// s_flush_();
 		::abort();
 	}
 }

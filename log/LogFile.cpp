@@ -63,27 +63,31 @@ private:
 
 using namespace iak;
 
-LogFilePtr LogFile::make(const std::string& basename,
+LogFilePtr LogFile::make(AsyncLogging* asyncLogging,
+		const std::string& basename,
 		size_t rollSize,
-		bool async,
 		int flushInterval) {
 	return std::make_shared<LogFile>(basename,
 			rollSize, async, flushInterval);
 }
 
-LogFile::LogFile(const std::string& basename,
+LogFile::LogFile(AsyncLogging* asyncLogging,
+		const std::string& basename,
 		size_t rollSize,
-		bool async,
 		int flushInterval)
-	: basename_(basename)
+	: asyncLogging_(asyncLogging)
+	, basename_(basename)
 	, rollSize_(rollSize)
-	, async_(async)
 	, flushInterval_(flushInterval)
 	, count_(0)
-	, mutex_(async ? NULL : new Mutex)
+	, mutex_(asyncLogging_ == nullptr ? new Mutex : nullptr)
 	, startOfPeriod_(0)
 	, lastRoll_(0)
-	, lastFlush_(0) {
+	, lastFlush_(0) 
+	, currentBuffer_(asyncLogging_ == nullptr ? nullptr : LogBuffer::make())
+	, nextBuffer_(asyncLogging_ == nullptr ? nullptr : LogBuffer::make())
+	, currentBufferBackup_(asyncLogging_ == nullptr ? nullptr : LogBuffer::make())
+	, nextBufferBackup_(asyncLogging_ == nullptr ? nullptr : LogBuffer::make()) {
 	assert(basename.find('/') == std::string::npos);
 	rollFile();
 }
@@ -92,18 +96,16 @@ LogFile::~LogFile() {
 }
 
 void LogFile::append(const char* logline, int len) {
-	if (async_) {
-		AsyncLogger::append(shared_from_this(), logline, len);
-	} else {
+	if (asyncLogging_ == nullptr) {
 		MutexGuard lock(*mutex_);
 		append_unlocked(logline, len);
+	} else {
+		AsyncLogger::append(shared_from_this(), logline, len);
 	}
 }
 
 void LogFile::flush() {
-	if (async_) {
-		// do nothing
-	} else {
+	if (asyncLogging_ == nullptr) {
 		MutexGuard lock(*mutex_);
 		file_->flush();
 	}
