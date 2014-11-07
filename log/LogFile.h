@@ -63,6 +63,7 @@ private:
 	LogBufferPtr nextBuffer_;
 	LogBufferPtr currentBufferBackup_;
 	LogBufferPtr nextBufferBackup_;
+	std::vector<LogBufferPtr> buffers_;
 
 	friend class AsyncLog;
 }; // end class LogFile
