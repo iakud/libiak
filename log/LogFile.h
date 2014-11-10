@@ -21,15 +21,21 @@ public:
 			bool threadSafe = true,
 			int flushInterval = 3);
 
+private:
+	LogFile(AsyncLogger* asyncLogger,
+			const std::string& basename,
+			size_t rollSize,
+			int flushInterval);	// async
+
 public:
 	LogFile(const std::string& basename,
 			size_t rollSize,
 			bool threadSafe,
 			int flushInterval);
 	~LogFile();
-
 	virtual void append(const char* logline, int len);
 	virtual void flush();
+
 
 protected:
 	static const int kCheckTimeRoll_ = 1024;
