@@ -1,6 +1,5 @@
 #include "LogFile.h"
 #include "Logging.h" // strerror_tl
-#include "AsyncLog.h"
 
 #include <base/ProcessInfo.h>
 
@@ -12,6 +11,7 @@ namespace iak {
 
 // not thread safe
 class LogFile::File : public NonCopyable {
+
 public:
 	explicit File(const std::string& filename)
 		: fp_(::fopen(filename.data(), "ae"))
@@ -63,31 +63,26 @@ private:
 
 using namespace iak;
 
-LogFilePtr LogFile::make(AsyncLog* asyncLog,
-		const std::string& basename,
+LogFilePtr LogFile::make(const std::string& basename,
 		size_t rollSize,
+		bool threadSafe,
 		int flushInterval) {
-	return std::make_shared<LogFile>(asyncLog, 
-			basename, rollSize, flushInterval);
+	return std::make_shared<LogFile>(basename,
+			rollSize, threadSafe, flushInterval);
 }
 
-LogFile::LogFile(AsyncLog* asyncLog,
-		const std::string& basename,
+LogFile::LogFile(const std::string& basename,
 		size_t rollSize,
+		bool threadSafe,
 		int flushInterval)
-	: asyncLog_(asyncLog)
-	, basename_(basename)
+	: basename_(basename)
 	, rollSize_(rollSize)
 	, flushInterval_(flushInterval)
 	, count_(0)
-	, mutex_(asyncLog_ == nullptr ? new Mutex : nullptr)
+	, mutex_(threadSafe ? new Mutex : nullptr)
 	, startOfPeriod_(0)
 	, lastRoll_(0)
-	, lastFlush_(0) 
-	, currentBuffer_(asyncLog_ == nullptr ? nullptr : LogBuffer::make())
-	, nextBuffer_(asyncLog_ == nullptr ? nullptr : LogBuffer::make())
-	, currentBufferBackup_(asyncLog_ == nullptr ? nullptr : LogBuffer::make())
-	, nextBufferBackup_(asyncLog_ == nullptr ? nullptr : LogBuffer::make()) {
+	, lastFlush_(0) {
 	assert(basename.find('/') == std::string::npos);
 	rollFile();
 }
@@ -96,17 +91,19 @@ LogFile::~LogFile() {
 }
 
 void LogFile::append(const char* logline, int len) {
-	if (asyncLog_ == nullptr) {
+	if (mutex_) {
 		MutexGuard lock(*mutex_);
 		append_unlocked(logline, len);
 	} else {
-		asyncLog->append(shared_from_this(), logline, len);
+		append_unlocked(logline, len);
 	}
 }
 
 void LogFile::flush() {
-	if (asyncLog_ == nullptr) {
+	if (mutex_) {
 		MutexGuard lock(*mutex_);
+		file_->flush();
+	} else {
 		file_->flush();
 	}
 }
@@ -130,10 +127,6 @@ void LogFile::append_unlocked(const char* logline, int len) {
 			++count_;
 		}
 	}
-}
-
-void LogFile::flush_unlocked() {
-	file_->flush();
 }
 
 void LogFile::rollFile() {
