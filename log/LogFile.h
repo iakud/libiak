@@ -33,8 +33,8 @@ public:
 			bool threadSafe,
 			int flushInterval);
 	~LogFile();
-	virtual void append(const char* logline, int len);
-	virtual void flush();
+	void append(const char* logline, int len);
+	void flush();
 
 
 protected:
@@ -45,6 +45,7 @@ protected:
 	void append_unlocked(const char* logline, int len);
 	void rollFile();
 
+	AsyncLogging* asyncLogging_;
 	const std::string basename_;
 	const size_t rollSize_;
 	const int flushInterval_;
