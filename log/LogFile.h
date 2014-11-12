@@ -1,5 +1,5 @@
-#ifndef IAK_BASE_LOGFILE_H
-#define IAK_BASE_LOGFILE_H
+#ifndef IAK_LOG_LOGFILE_H
+#define IAK_LOG_LOGFILE_H
 
 #include <base/NonCopyable.h>
 #include <base/Mutex.h>
@@ -9,33 +9,17 @@
 
 namespace iak {
 
-class LogFile;
-typedef std::shared_ptr<LogFile> LogFilePtr;
-
-class LogFile : public NonCopyable,
-	public std::enable_shared_from_this<LogFile> {
-
-public:
-	static LogFilePtr make(const std::string& basename,
-			size_t rollSize,
-			bool threadSafe = true,
-			int flushInterval = 3);
-
-private:
-	LogFile(AsyncLogger* asyncLogger,
-			const std::string& basename,
-			size_t rollSize,
-			int flushInterval);	// async
+class LogFile : public NonCopyable {
 
 public:
 	LogFile(const std::string& basename,
 			size_t rollSize,
-			bool threadSafe,
-			int flushInterval);
+			bool threadSafe = true,
+			int flushInterval = 3);
 	~LogFile();
+
 	void append(const char* logline, int len);
 	void flush();
-
 
 protected:
 	static const int kCheckTimeRoll_ = 1024;
@@ -45,7 +29,6 @@ protected:
 	void append_unlocked(const char* logline, int len);
 	void rollFile();
 
-	AsyncLogging* asyncLogging_;
 	const std::string basename_;
 	const size_t rollSize_;
 	const int flushInterval_;
@@ -59,8 +42,13 @@ protected:
 
 	class File;
 	std::unique_ptr<File> file_;
+
+	// async log
+	bool active_;
+	BufferPtr currentBuffer_;
+	BufferPtr nextBuffer_;
 }; // end class LogFile
 
 } // end namespace iak
 
-#endif  // IAK_BASE_LOGFILE_H
+#endif  // IAK_LOG_LOGFILE_H

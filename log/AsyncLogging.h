@@ -1,5 +1,5 @@
-#ifndef IAK_BASE_ASYNCLOG_H
-#define IAK_BASE_ASYNCLOG_H
+#ifndef IAK_BASE_ASYNCLOGGING_H
+#define IAK_BASE_ASYNCLOGGING_H
 
 #include "LogBuffer.h"
 #include "LogFile.h"
@@ -16,11 +16,11 @@
 
 namespace iak {
 
-class AsyncLog : public NonCopyable {
+class AsyncLogging : public NonCopyable {
 public:
-	AsyncLog(int flushInterval = 3);
+	AsyncLogging(int flushInterval = 3);
 
-	~AsyncLog() {
+	~AsyncLogging() {
 		if (running_) {
 			stop();
 		}
@@ -63,4 +63,4 @@ private:
 
 } // end namespace iak
 
-#endif  // IAK_BASE_ASYNCLOG_H
+#endif  // IAK_BASE_ASYNCLOGGING_H

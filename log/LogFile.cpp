@@ -63,14 +63,6 @@ private:
 
 using namespace iak;
 
-LogFilePtr LogFile::make(const std::string& basename,
-		size_t rollSize,
-		bool threadSafe,
-		int flushInterval) {
-	return std::make_shared<LogFile>(basename,
-			rollSize, threadSafe, flushInterval);
-}
-
 LogFile::LogFile(const std::string& basename,
 		size_t rollSize,
 		bool threadSafe,
@@ -119,9 +111,11 @@ void LogFile::append_unlocked(const char* logline, int len) {
 			time_t thisPeriod_ = now / kRollPerSeconds_ * kRollPerSeconds_;
 			if (thisPeriod_ != startOfPeriod_) {
 				rollFile();
-			} else if (now - lastFlush_ > flushInterval_) {
-				lastFlush_ = now;
-				file_->flush();
+			} else if (flushInterval_ > 0) {
+				if (now - lastFlush_ > flushInterval_) {
+					lastFlush_ = now;
+					file_->flush();
+				}
 			}
 		} else {
 			++count_;
