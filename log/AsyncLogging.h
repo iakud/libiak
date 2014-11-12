@@ -16,6 +16,8 @@
 
 namespace iak {
 
+class LogFile;
+
 class AsyncLogging : public NonCopyable {
 public:
 	AsyncLogging(int flushInterval = 3);
@@ -55,6 +57,10 @@ private:
 	CountDownLatch latch_;
 	Mutex mutex_;
 	Condition cond_;
+
+	std::vector<std::shared_ptr<LogFile>> files_;
+
+	friend class LogFile;
 
 	BufferPtr currentBuffer_;
 	BufferPtr nextBuffer_;
