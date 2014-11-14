@@ -63,7 +63,7 @@ private:
 
 using namespace iak;
 
-LogFilePtr make(const std::string& basename,
+LogFilePtr LogFile::make(const std::string& basename,
 		size_t rollSize,
 		bool threadSafe = true,
 		int flushInterval = 3) {
@@ -71,7 +71,7 @@ LogFilePtr make(const std::string& basename,
 			rollSize, threadSafe, flushInterval);
 }
 
-static LogFilePtr make(AsyncLogging* asyncLogging,
+LogFilePtr LogFile::make(AsyncLogging* asyncLogging,
 		const std::string& basename,
 		size_t rollSize) {
 	return std::make_shared<LogFile>(asyncLogging, basename,
@@ -108,8 +108,9 @@ void LogFile::append(const char* logline, int len) {
 			append_unlocked(logline, len);
 		}
 	} else {
+		std::string logmsg(logline, len);
 		asyncLogging_->append(std::bind(LogFile::append_async,
-				shared_from_this(), std::string(logline, len)));
+				shared_from_this(), std::move(logmsg)));
 	}
 }
 
