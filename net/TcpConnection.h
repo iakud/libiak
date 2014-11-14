@@ -22,7 +22,7 @@ class TcpConnection;
 typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
 
 class TcpConnection : public NonCopyable, 
-	public std::enable_shared_from_this<TcpConnection> {
+		public std::enable_shared_from_this<TcpConnection> {
 
 public:
 	// callback typedef

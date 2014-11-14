@@ -14,7 +14,8 @@ namespace iak {
 class LogFile;
 typedef std::shared_ptr<LogFile> LogFilePtr;
 
-class LogFile : public NonCopyable {
+class LogFile : public NonCopyable,
+		public std::enable_shared_from_this<LogFile> {
 
 public:
 	static LogFilePtr make(const std::string& basename,
