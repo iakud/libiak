@@ -1,5 +1,6 @@
 #include "LogFile.h"
 #include "Logging.h" // strerror_tl
+#include "AsyncLogging.h"
 
 #include <base/ProcessInfo.h>
 
@@ -65,8 +66,8 @@ using namespace iak;
 
 LogFilePtr LogFile::make(const std::string& basename,
 		size_t rollSize,
-		bool threadSafe = true,
-		int flushInterval = 3) {
+		bool threadSafe,
+		int flushInterval) {
 	return std::make_shared<LogFile>(nullptr, basename, 
 			rollSize, threadSafe, flushInterval);
 }

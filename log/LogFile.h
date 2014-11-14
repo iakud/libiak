@@ -1,8 +1,6 @@
 #ifndef IAK_LOG_LOGFILE_H
 #define IAK_LOG_LOGFILE_H
 
-#include "AsyncLogging.h"
-
 #include <base/NonCopyable.h>
 #include <base/Mutex.h>
 
@@ -13,6 +11,8 @@ namespace iak {
 
 class LogFile;
 typedef std::shared_ptr<LogFile> LogFilePtr;
+
+class AsyncLogging;
 
 class LogFile : public NonCopyable,
 		public std::enable_shared_from_this<LogFile> {
