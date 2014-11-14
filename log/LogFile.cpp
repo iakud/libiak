@@ -111,7 +111,7 @@ void LogFile::append(const char* logline, int len) {
 	} else {
 		std::string logmsg(logline, len);
 		asyncLogging_->append(std::bind(LogFile::append_async,
-				shared_from_this(), std::move(logmsg)));
+				shared_from_this(), logmsg));
 	}
 }
 
@@ -147,7 +147,7 @@ void LogFile::append_unlocked(const char* logline, int len) {
 	}
 }
 
-void LogFile::append_async(const std::string& logline) {
+void LogFile::append_async(std::string&& logline) {
 	file_->append(logline.c_str(), logline.length());
 	if (file_->writtenBytes() > rollSize_) {
 		rollFile();
