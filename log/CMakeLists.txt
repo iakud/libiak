@@ -2,7 +2,7 @@ set(log_SRCS
 	LogStream.cpp
 	Logging.cpp
 	LogFile.cpp
-	AsyncLogger.cpp
+	AsyncLogging.cpp
 	)
 
 add_library(iak_log ${log_SRCS})
@@ -15,7 +15,7 @@ set(HEADERS
   LogStream.h
   Logging.h
   LogFile.h
-  AsyncLogger.h
+  AsyncLogging.h
   )
 
 #file(GLOB HEADERS "*.h")
