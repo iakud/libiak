@@ -30,18 +30,8 @@ Logging::LogLevel GetLogLevel() {
 Logging::LogLevel Logging::s_level_ = GetLogLevel();
 
 const char* LogLevelName[Logging::NUM_LOG_LEVELS] = {
-  "TRACE ", "DEBUG ", "INFO  ", "WARN  ", "ERROR ", "FATAL "
+  "TRACE ", "DEBUG ", "INFO  ", "WARNING  ", "ERROR ", "FATAL "
 };
-
-void defaultOutput(const char* msg, int len) {
-	size_t n = ::fwrite(msg, 1, len, stdout);
-	//FIXME check n
-	(void)n;
-}
-
-void defaultFlush() {
-	::fflush(::stdout);
-}
 
 } // end namespace iak
 
@@ -98,14 +88,14 @@ Logging::~Logging() {
 	if (logfile_) {
 		logfile_->append(stream_.data(), stream_.length());
 	} else {
-		defaultOutput(stream_.data(), stream_.length());
+		::fwrite(stream_.data(), 1, stream_.length(), stdout);
 	}
 
 	if (level_ == FATAL) {
 		if (logfile_) {
 			logfile_->flush();
 		} else {
-			defaultFlush();
+			::fflush(::stdout);
 		}
 		::abort();
 	}

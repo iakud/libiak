@@ -11,7 +11,7 @@ namespace iak {
 class Logging {
 
 public:
-	enum LogLevel {TRACE, DEBUG, INFO, WARN, ERROR, FATAL, NUM_LOG_LEVELS };
+	enum LogLevel {TRACE, DEBUG, INFO, WARNING, ERROR, FATAL, NUM_LOG_LEVELS };
 
 	static LogLevel GetLevel() { return s_level_; }
 	static void SetLevel(LogLevel level) { s_level_ = level; }
@@ -37,9 +37,9 @@ private:
 }; // end class Logging
 
 template <typename T>
-T* CheckNotNull(const char* filename, int line, const char *name, T* ptr) {
+T* CheckNotNull(LogFilePtr logfile, const char* filename, int line, const char *name, T* ptr) {
 	if (ptr == NULL) {
-		Logging(nullptr, filename, line, Logging::FATAL).stream() << name;
+		Logging(logfile, filename, line, Logging::FATAL).stream() << name;
 	}
 	return ptr;
 }
@@ -50,8 +50,8 @@ T* CheckNotNull(const char* filename, int line, const char *name, T* ptr) {
 	::iak::Logging(logfile, __FILE__, __LINE__, ::iak::Logging::DEBUG, __func__).stream()
 #define LOG_INFO(logfile) if (::iak::Logging::GetLevel() <= ::iak::Logging::INFO) \
 	::iak::Logging(logfile, __FILE__, __LINE__, ::iak::Logging::INFO).stream()
-#define LOG_WARN(logfile) \
-	::iak::Logging(logfile, __FILE__, __LINE__, ::iak::Logging::WARN).stream()
+#define LOG_WARNING(logfile) \
+	::iak::Logging(logfile, __FILE__, __LINE__, ::iak::Logging::WARNING).stream()
 #define LOG_ERROR(logfile) \
 	::iak::Logging(logfile, __FILE__, __LINE__, ::iak::Logging::ERROR).stream()
 #define LOG_FATAL(logfile) \

@@ -63,11 +63,28 @@ private:
 
 using namespace iak;
 
-LogFile::LogFile(const std::string& basename,
+LogFilePtr make(const std::string& basename,
+		size_t rollSize,
+		bool threadSafe = true,
+		int flushInterval = 3) {
+	return std::make_shared<LogFile>(nullptr, basename, 
+			rollSize, threadSafe, flushInterval);
+}
+
+static LogFilePtr make(AsyncLogging* asyncLogging
+		const std::string& basename,
+		size_t rollSize) {
+	return std::make_shared<LogFile>(asyncLogging, basename,
+			rollSize, false, 0);
+}
+
+LogFile::LogFile(AsyncLogging* asyncLogging,
+		const std::string& basename,
 		size_t rollSize,
 		bool threadSafe,
 		int flushInterval)
-	: basename_(basename)
+	: asyncLogging_(asyncLogging)
+	, basename_(basename)
 	, rollSize_(rollSize)
 	, flushInterval_(flushInterval)
 	, count_(0)
@@ -83,20 +100,27 @@ LogFile::~LogFile() {
 }
 
 void LogFile::append(const char* logline, int len) {
-	if (mutex_) {
-		MutexGuard lock(*mutex_);
-		append_unlocked(logline, len);
+	if (asyncLogging_ == nullptr) {
+		if (mutex_) {
+			MutexGuard lock(*mutex_);
+			append_unlocked(logline, len);
+		} else {
+			append_unlocked(logline, len);
+		}
 	} else {
-		append_unlocked(logline, len);
+		asyncLogging_->append(std::bind(LogFile::append_async,
+				shared_from_this(), std::string(logline, len)));
 	}
 }
 
 void LogFile::flush() {
-	if (mutex_) {
-		MutexGuard lock(*mutex_);
-		file_->flush();
-	} else {
-		file_->flush();
+	if (asyncLogging_ == nullptr) {
+		if (mutex_) {
+			MutexGuard lock(*mutex_);
+			file_->flush();
+		} else {
+			file_->flush();
+		}
 	}
 }
 
@@ -111,14 +135,33 @@ void LogFile::append_unlocked(const char* logline, int len) {
 			time_t thisPeriod_ = now / kRollPerSeconds_ * kRollPerSeconds_;
 			if (thisPeriod_ != startOfPeriod_) {
 				rollFile();
-			} else if (flushInterval_ > 0) {
-				if (now - lastFlush_ > flushInterval_) {
-					lastFlush_ = now;
-					file_->flush();
-				}
+			} else if (now - lastFlush_ > flushInterval_) {
+				lastFlush_ = now;
+				file_->flush();
 			}
 		} else {
 			++count_;
+		}
+	}
+}
+
+void LogFile::append_async(const std::string& logline) {
+	file_->append(logline.c_str(), logline.length());
+	if (file_->writtenBytes() > rollSize_) {
+		rollFile();
+	} else {
+		if (count_ > kCheckTimeRoll_) {
+			count_ = 0;
+			time_t now = ::time(NULL);
+			time_t thisPeriod_ = now / kRollPerSeconds_ * kRollPerSeconds_;
+			if (thisPeriod_ != startOfPeriod_) {
+				rollFile();
+			} else {
+				file_->flush();
+			}
+		} else {
+			++count_;
+			file_->flush();
 		}
 	}
 }

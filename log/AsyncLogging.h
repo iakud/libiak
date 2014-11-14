@@ -1,11 +1,7 @@
 #ifndef IAK_BASE_ASYNCLOGGING_H
 #define IAK_BASE_ASYNCLOGGING_H
 
-#include "LogBuffer.h"
-#include "LogFile.h"
-
 #include <base/NonCopyable.h>
-#include <base/BlockingQueue.h>
 #include <base/CountDownLatch.h>
 #include <base/Mutex.h>
 #include <base/Thread.h>
@@ -16,11 +12,12 @@
 
 namespace iak {
 
-class LogFile;
-
 class AsyncLogging : public NonCopyable {
+
 public:
-	AsyncLogging(int flushInterval = 3);
+	typedef std::function<void()> Functor;
+
+	AsyncLogging();
 
 	~AsyncLogging() {
 		if (running_) {
@@ -28,7 +25,11 @@ public:
 		}
 	}
 
-	void append(LogFilePtr logfile, const char* logline, int len);
+	void append(Functor&& functor) {
+		MutexGuard lock(mutex_);
+		pendingFunctors_.push_back(functor);
+		cond_.signal();
+	}
 
 	void start() {
 		running_ = true;
@@ -46,11 +47,10 @@ private:
 	//AsyncLogger(const AsyncLogger&);  // ptr_container
 	//void operator=(const AsyncLogger&);  // ptr_container
 
-	static const uint32_t kNanoSecondsPerSecond = 1e9;
+	//static const uint32_t kNanoSecondsPerSecond = 1e9;
 
 	void threadFunc();
 
-	const uint32_t flushInterval_;
 	bool running_;
 
 	Thread thread_;
@@ -58,13 +58,7 @@ private:
 	Mutex mutex_;
 	Condition cond_;
 
-	std::vector<std::shared_ptr<LogFile>> files_;
-
-	friend class LogFile;
-
-	BufferPtr currentBuffer_;
-	BufferPtr nextBuffer_;
-	std::vector<LogBufferPtr> buffers_;
+	std::vector<Functor> pendingFunctors_;
 };
 
 } // end namespace iak
