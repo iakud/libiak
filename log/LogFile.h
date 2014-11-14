@@ -44,7 +44,7 @@ protected:
 	static std::string getLogFileName(const std::string& basename, time_t* now);
 
 	void append_unlocked(const char* logline, int len);
-	void append_async(std::string&& logline);
+	void append_async(const std::string& logline);
 	void rollFile();
 
 	AsyncLogging* asyncLogging_;

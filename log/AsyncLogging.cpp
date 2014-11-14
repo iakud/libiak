@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <memory.h>
+#include <assert.h>
 
 using namespace iak;
 
