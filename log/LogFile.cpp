@@ -71,7 +71,7 @@ LogFilePtr make(const std::string& basename,
 			rollSize, threadSafe, flushInterval);
 }
 
-static LogFilePtr make(AsyncLogging* asyncLogging
+static LogFilePtr make(AsyncLogging* asyncLogging,
 		const std::string& basename,
 		size_t rollSize) {
 	return std::make_shared<LogFile>(asyncLogging, basename,
