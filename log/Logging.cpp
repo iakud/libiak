@@ -30,7 +30,7 @@ Logging::LogLevel GetLogLevel() {
 Logging::LogLevel Logging::s_level_ = GetLogLevel();
 
 const char* LogLevelName[Logging::NUM_LOG_LEVELS] = {
-  "TRACE ", "DEBUG ", "INFO  ", "WARNING  ", "ERROR ", "FATAL "
+  "TRACE ", "DEBUG ", "INFO  ", "WARN  ", "ERROR ", "FATAL "
 };
 
 } // end namespace iak
