@@ -52,13 +52,17 @@ void Watcher::stop() {
 }
 
 void Watcher::activeRead() {
-	revents_ |= EV_READ;
-	loop_->activeWatcher(this);
+	if (events_ & EV_READ) {
+		revents_ |= EV_READ;
+		loop_->activeWatcher(this);
+	}
 }
 
 void Watcher::activeWrite() {
-	revents_ |= EV_WRITE;
-	loop_->activeWatcher(this);
+	if (events_ & EV_WRITE) {
+		revents_ |= EV_WRITE;
+		loop_->activeWatcher(this);
+	}
 }
 
 void Watcher::active(int revents) {
