@@ -16,6 +16,9 @@ class EPollPoller;
 
 class EventLoop : public NonCopyable {
 public:
+	typedef std::function<void()> Functor;
+
+public:
 	EventLoop();
 	virtual ~EventLoop();
 
@@ -29,7 +32,6 @@ public:
 	void runInLoop(Functor&& functor);
 
 protected:
-	typedef std::function<void()> Functor;
 
 	void addWatcher(Watcher* watcher);
 	void updateWatcher(Watcher* watcher);
