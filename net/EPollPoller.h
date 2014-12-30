@@ -1,9 +1,11 @@
 #ifndef IAK_NET_EPOLLPOLLER_H
 #define IAK_NET_EPOLLPOLLER_H
 
-struct epoll_event;
+#include <base/NonCopyable.h>
 
 namespace iak {
+
+struct epoll_event;
 
 class EPollPoller : public NonCopyable {
 public:
