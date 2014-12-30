@@ -29,7 +29,7 @@ EventLoop::EventLoop()
 	, activedWatchers_()
 	, bufferPool_(new BufferPool(1024*4, 64))
 	, wakeupFd_(createEventFd())
-	, wakeupChannel_(new Watcher(this, wakeupFd_)) {
+	, wakeupWatcher_(new Watcher(this, wakeupFd_)) {
 	wakeupWatcher_->setReadCallback(std::bind(&EventLoop::handleWakeup, this));
 	wakeupWatcher_->enableRead();
 }
