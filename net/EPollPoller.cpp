@@ -8,8 +8,7 @@
 using namespace iak;
 
 EPollPoller::EPollPoller()
-	: EventLoop()
-	, epollfd_(::epoll_create1(EPOLL_CLOEXEC))
+	: epollfd_(::epoll_create1(EPOLL_CLOEXEC))
 	, eventsize_(kEventSizeInit) {
 	events_ = static_cast<struct epoll_event*>(
 			::malloc(eventsize_ * sizeof(struct epoll_event)));
