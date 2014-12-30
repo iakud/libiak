@@ -3,9 +3,10 @@
 
 #include <base/NonCopyable.h>
 
+struct epoll_event;
+
 namespace iak {
 
-struct epoll_event;
 class Watcher;
 
 class EPollPoller : public NonCopyable {
