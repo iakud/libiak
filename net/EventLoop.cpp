@@ -3,6 +3,9 @@
 #include "Watcher.h"
 #include "Buffer.h"
 
+#include <sys/eventfd.h>
+#include <unistd.h>
+
 using namespace iak;
 
 namespace {
