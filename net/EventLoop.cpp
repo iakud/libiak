@@ -44,7 +44,7 @@ void EventLoop::loop() {
 	wakeupWatcher_->start();
 	quit_ = false;
 	while(!quit_) {
-		poll(kPollTime); // poll network event
+		epollPoller_->poll(kPollTime); // poll network event
 		std::vector<Functor> functors;
 		swapPendingFunctors(functors);
 		doPendingFunctors(functors);
