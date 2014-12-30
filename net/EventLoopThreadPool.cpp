@@ -10,7 +10,7 @@ using namespace iak;
 EventLoopThreadPool::EventLoopThreadPool(uint32_t count)
 	: count_(count) {
 	for (uint32_t i=0; i<count; ++i) {
-		EventLoop* loop = new EventLoop;
+		EventLoop* loop = new EventLoop();
 		Thread* thread = new Thread(
 				std::bind(&EventLoopThreadPool::threadFunc, this, loop));
 		loops_.push_back(loop);
