@@ -46,9 +46,9 @@ void EPollLoop::poll(int timeout) {
 	}
 }
 
-void EPollLoop::addWatcher(Watcher* watch) {
+void EPollLoop::addWatcher(Watcher* watcher) {
 	struct epoll_event event;
-	int events = watch->events();
+	int events = watcher->events();
 	event.events = EPOLLET;	// edge trigger
 	if (events & EV_CLOSE) {
 		event.events |= EPOLLRDHUP;
@@ -60,7 +60,7 @@ void EPollLoop::addWatcher(Watcher* watch) {
 		event.events |= EPOLLOUT;
 	}
 	event.data.ptr = watch;
-	if (::epoll_ctl(epollfd_, EPOLL_CTL_ADD, watch->getFd(), &event) < 0) {
+	if (::epoll_ctl(epollfd_, EPOLL_CTL_ADD, watcher->getFd(), &event) < 0) {
 		// on error
 		return;
 	}
@@ -70,8 +70,8 @@ void EPollLoop::updateWatcher(Watcher* watcher) {
 
 }
 
-void EPollLoop::removeWatcher(Watcher* watch) {
-	if (::epoll_ctl(epollfd_, EPOLL_CTL_DEL, watch->getFd(),NULL) < 0) {
+void EPollLoop::removeWatcher(Watcher* watcher) {
+	if (::epoll_ctl(epollfd_, EPOLL_CTL_DEL, watcher->getFd(),NULL) < 0) {
 		// on error
 		return;
 	}

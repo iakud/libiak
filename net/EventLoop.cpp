@@ -43,12 +43,12 @@ void EventLoop::loop() {
 	}
 }
 
-void EventLoop::activeWatcher(Watcher* watch) {
-	if (watch->isActived()) {
+void EventLoop::activeWatcher(Watcher* watcher) {
+	if (watcher->isActived()) {
 		return;
 	}
-	activedWatchers_.push_back(watch);
-	watch->setActived(true);
+	activedWatchers_.push_back(watcher);
+	watcher->setActived(true);
 }
 
 void EventLoop::handleWatchers() {
