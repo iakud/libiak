@@ -48,6 +48,7 @@ void EventLoop::release(EventLoop* loop) {
 
 // blocking until quit
 void EventLoop::loop() {
+	wakeupWatcher_->start();
 	quit_ = false;
 	while(!quit_) {
 		poll(kPollTime); // poll network event
@@ -58,6 +59,7 @@ void EventLoop::loop() {
 		// clear at last (for watchers safe)
 		// functors.clear();
 	}
+	wakeupWatcher_->stop();
 }
 
 void EventLoop::runInLoop(Functor&& functor) {
