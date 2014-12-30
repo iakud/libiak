@@ -14,13 +14,13 @@ public:
 	EPollPoller();
 	virtual ~EPollPoller();
 
-protected:
-	static const int kEventSizeInit = 16;
-
 	void poll(int timeout);
 	void addWatcher(Watcher* watcher);
 	void updateWatcher(Watcher* watcher);
 	void removeWatcher(Watcher* watcher);
+
+protected:
+	static const int kEventSizeInit = 16;
 
 	int epollfd_;
 	int eventsize_;
