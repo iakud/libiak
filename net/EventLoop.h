@@ -19,8 +19,6 @@ public:
 	EventLoop();
 	virtual ~EventLoop();
 
-	typedef std::function<void()> Functor;
-
 	std::shared_ptr<BufferPool>& getBufferPool() {
 		return bufferPool_;
 	}
@@ -31,6 +29,7 @@ public:
 	void runInLoop(Functor&& functor);
 
 protected:
+	typedef std::function<void()> Functor;
 
 	void addWatcher(Watcher* watcher);
 	void updateWatcher(Watcher* watcher);
