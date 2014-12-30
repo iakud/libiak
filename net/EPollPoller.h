@@ -6,6 +6,7 @@
 namespace iak {
 
 struct epoll_event;
+class Watcher;
 
 class EPollPoller : public NonCopyable {
 public:
