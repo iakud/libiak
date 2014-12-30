@@ -16,10 +16,10 @@ public:
 protected:
 	static const int kEventSizeInit = 16;
 
-	void poll(int timeout) override;
-	void addWatcher(Watcher* watcher) override;
-	void updateWatcher(Watcher* watcher) override;
-	void removeWatcher(Watcher* watcher) override;
+	void poll(int timeout);
+	void addWatcher(Watcher* watcher);
+	void updateWatcher(Watcher* watcher);
+	void removeWatcher(Watcher* watcher);
 
 	int epollfd_;
 	int eventsize_;
