@@ -5,15 +5,34 @@
 
 using namespace iak;
 
+namespace {
+
+const int kPollTime = 10000; // ms
+
+int createEventFd() {
+	int eventFd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+	if (eventFd < 0) {
+		abort();
+	}
+	return eventFd;
+}
+
+} // anonymous
+
 EventLoop::EventLoop()
 	: quit_(false)
 	, mutex_()
 	, pendingFunctors_()
 	, activedWatchers_()
-	, bufferPool_(new BufferPool(1024*4, 64)) {
+	, bufferPool_(new BufferPool(1024*4, 64))
+	, wakeupFd_(createEventFd())
+	, wakeupChannel_(new Watcher(this, wakeupFd_)) {
+	wakeupWatcher_->setReadCallback(std::bind(&EventLoop::handleWakeup, this));
+	wakeupWatcher_->enableRead();
 }
 
 EventLoop::~EventLoop() {
+	 ::close(wakeupFd_);
 }
 
 EventLoop* EventLoop::create() {
@@ -28,18 +47,32 @@ void EventLoop::release(EventLoop* loop) {
 void EventLoop::loop() {
 	quit_ = false;
 	while(!quit_) {
-		poll(10);	// poll network event
+		poll(kPollTime); // poll network event
 		std::vector<Functor> functors;
-		{
-			MutexGuard lock(mutex_);
-			functors.swap(pendingFunctors_);
-		}
-		for (Functor functor : functors) {
-			functor();
-		}
+		swapPendingFunctors(functors);
+		doPendingFunctors(functors);
 		handleWatchers();
 		// clear at last (for watchers safe)
 		// functors.clear();
+	}
+}
+
+void EventLoop::runInLoop(Functor&& functor) {
+	{
+		MutexGuard lock(mutex_);
+		pendingFunctors_.push_back(functor);
+	}
+	wakeup();
+}
+
+void EventLoop::swapPendingFunctors(std::vector<Functor>& functors) {
+	MutexGuard lock(mutex_);
+	functors.swap(pendingFunctors_);
+}
+
+void EventLoop::doPendingFunctors(std::vector<Functor>& functors) {
+	for (Functor functor : functors) {
+		functor();
 	}
 }
 
@@ -58,4 +91,14 @@ void EventLoop::handleWatchers() {
 		watch->setActived(false);
 		watch->handleEvents();
 	}
+}
+
+void EventLoop::wakeup() {
+	uint64_t one = 1;
+	::write(wakeupFd_, &one, sizeof one);
+}
+
+void EventLoop::handleWakeup() {
+	uint64_t one = 1;
+	::read(wakeupFd_, &one, sizeof one);
 }
