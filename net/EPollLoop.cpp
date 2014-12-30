@@ -59,7 +59,7 @@ void EPollLoop::addWatcher(Watcher* watcher) {
 	if (events & EV_WRITE) {
 		event.events |= EPOLLOUT;
 	}
-	event.data.ptr = watch;
+	event.data.ptr = watcher;
 	if (::epoll_ctl(epollfd_, EPOLL_CTL_ADD, watcher->getFd(), &event) < 0) {
 		// on error
 		return;
