@@ -1,4 +1,4 @@
-#include "EPollLoop.h"
+#include "EPollPoller.h"
 #include "Watcher.h"
 #include "Event.h"
 
@@ -7,7 +7,7 @@
 
 using namespace iak;
 
-EPollLoop::EPollLoop()
+EPollPoller::EPollPoller()
 	: EventLoop()
 	, epollfd_(::epoll_create1(EPOLL_CLOEXEC))
 	, eventsize_(kEventSizeInit) {
@@ -15,12 +15,12 @@ EPollLoop::EPollLoop()
 			::malloc(eventsize_ * sizeof(struct epoll_event)));
 }
 
-EPollLoop::~EPollLoop() {
+EPollPoller::~EPollPoller() {
 	::free(events_);
 	::close(epollfd_);
 }
 
-void EPollLoop::poll(int timeout) {
+void EPollPoller::poll(int timeout) {
 	int nfd = ::epoll_wait(epollfd_, events_, eventsize_, timeout);
 	if (nfd > 0) {
 		for (int i=0; i<nfd; ++i) {
@@ -46,7 +46,7 @@ void EPollLoop::poll(int timeout) {
 	}
 }
 
-void EPollLoop::addWatcher(Watcher* watcher) {
+void EPollPoller::addWatcher(Watcher* watcher) {
 	struct epoll_event event;
 	int events = watcher->events();
 	event.events = EPOLLET;	// edge trigger
@@ -66,11 +66,11 @@ void EPollLoop::addWatcher(Watcher* watcher) {
 	}
 }
 
-void EPollLoop::updateWatcher(Watcher* watcher) {
+void EPollPoller::updateWatcher(Watcher* watcher) {
 
 }
 
-void EPollLoop::removeWatcher(Watcher* watcher) {
+void EPollPoller::removeWatcher(Watcher* watcher) {
 	if (::epoll_ctl(epollfd_, EPOLL_CTL_DEL, watcher->getFd(),NULL) < 0) {
 		// on error
 		return;

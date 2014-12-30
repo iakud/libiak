@@ -41,14 +41,14 @@ void onConnection(TcpConnectionPtr connection) {
 }
 
 int main() {
-	EventLoop* loop = EventLoop::create();
+	EventLoop* loop = new EventLoop();
 	InetAddress remoteAddr(9999,"127.0.0.1");
 	TcpClientPtr tcpclient = TcpClient::make(loop, remoteAddr);
 	tcpclient->setConnectCallback(std::bind(onConnection, std::placeholders::_1));
 	tcpclient->connectAsync();
 	cout<<"tcpclient connect"<<endl;
 	loop->loop();
-
+	delete loop;
 	return 0;
 }
 

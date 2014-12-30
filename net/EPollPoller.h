@@ -1,16 +1,14 @@
-#ifndef IAK_NET_EPOLLLOOP_H
-#define IAK_NET_EPOLLLOOP_H
-
-#include "EventLoop.h"
+#ifndef IAK_NET_EPOLLPOLLER_H
+#define IAK_NET_EPOLLPOLLER_H
 
 struct epoll_event;
 
 namespace iak {
 
-class EPollLoop : public EventLoop {
+class EPollPoller : public NonCopyable {
 public:
-	EPollLoop();
-	virtual ~EPollLoop();
+	EPollPoller();
+	virtual ~EPollPoller();
 
 protected:
 	static const int kEventSizeInit = 16;
@@ -23,8 +21,8 @@ protected:
 	int epollfd_;
 	int eventsize_;
 	struct epoll_event* events_;
-}; // end class EPollLoop
+}; // end class EPollPoller
 
 } // end namespace iak
 
-#endif // IAK_NET_EPOLLLOOP_H
+#endif // IAK_NET_EPOLLPOLLER_H

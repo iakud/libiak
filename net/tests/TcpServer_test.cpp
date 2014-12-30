@@ -31,14 +31,14 @@ void onConnection(TcpConnectionPtr connection) {
 }
 
 int main() {
-	EventLoop* loop = EventLoop::create();
+	EventLoop* loop = new EventLoop();
 	InetAddress localAddr(9999,"0.0.0.0");
 	TcpServerPtr tcpserver = TcpServer::make(loop, localAddr);
 	tcpserver->setConnectCallback(std::bind(onConnection, std::placeholders::_1));
 	tcpserver->listenAsync();
 	cout<<"tcpserver listen"<<endl;
 	loop->loop();
-
+	delete loop;
 	return 0;
 }
 

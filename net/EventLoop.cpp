@@ -1,5 +1,5 @@
 #include "EventLoop.h"
-#include "EPollLoop.h"
+#include "EPollPoller.h"
 #include "Watcher.h"
 #include "Buffer.h"
 
@@ -13,11 +13,11 @@ namespace {
 const int kPollTime = 10000; // ms
 
 int createEventFd() {
-	int eventFd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-	if (eventFd < 0) {
+	int eventfd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+	if (eventfd < 0) {
 		abort();
 	}
-	return eventFd;
+	return eventfd;
 }
 
 } // anonymous
@@ -28,22 +28,15 @@ EventLoop::EventLoop()
 	, pendingFunctors_()
 	, activedWatchers_()
 	, bufferPool_(new BufferPool(1024*4, 64))
-	, wakeupFd_(createEventFd())
-	, wakeupWatcher_(new Watcher(this, wakeupFd_)) {
+	, epollPoller_(new EPollPoller())
+	, wakeupfd_(createEventFd())
+	, wakeupWatcher_(new Watcher(this, wakeupfd_)) {
 	wakeupWatcher_->setReadCallback(std::bind(&EventLoop::handleWakeup, this));
 	wakeupWatcher_->enableRead();
 }
 
 EventLoop::~EventLoop() {
-	 ::close(wakeupFd_);
-}
-
-EventLoop* EventLoop::create() {
-	return new EPollLoop();
-}
-
-void EventLoop::release(EventLoop* loop) {
-	delete loop;
+	 ::close(wakeupfd_);
 }
 
 // blocking until quit
@@ -60,6 +53,18 @@ void EventLoop::loop() {
 		// functors.clear();
 	}
 	wakeupWatcher_->stop();
+}
+
+void EventLoop::addWatcher(Watcher* watcher) {
+	epollPoller_->addWatcher(watcher);
+}
+
+void EventLoop::updateWatcher(Watcher* watcher) {
+	epollPoller_->updateWatcher(watcher);
+}
+
+void EventLoop::removeWatcher(Watcher* watcher) {
+	epollPoller_->removeWatcher(watcher);
 }
 
 void EventLoop::runInLoop(Functor&& functor) {
@@ -100,10 +105,10 @@ void EventLoop::handleWatchers() {
 
 void EventLoop::wakeup() {
 	uint64_t one = 1;
-	::write(wakeupFd_, &one, sizeof one);
+	::write(wakeupfd_, &one, sizeof one);
 }
 
 void EventLoop::handleWakeup() {
 	uint64_t one = 1;
-	::read(wakeupFd_, &one, sizeof one);
+	::read(wakeupfd_, &one, sizeof one);
 }

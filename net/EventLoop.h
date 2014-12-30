@@ -12,12 +12,10 @@
 namespace iak {
 
 class Watcher;
+class EPollPoller;
 
 class EventLoop : public NonCopyable {
 public:
-	static EventLoop* create();
-	static void release(EventLoop*);
-	
 	typedef std::function<void()> Functor;
 
 	std::shared_ptr<BufferPool>& getBufferPool() {
@@ -33,10 +31,9 @@ protected:
 	EventLoop();
 	virtual ~EventLoop();
 
-	virtual void poll(int timeout)=0;
-	virtual void addWatcher(Watcher* watcher) = 0;
-	virtual void updateWatcher(Watcher* watcher) = 0;
-	virtual void removeWatcher(Watcher* watcher) = 0;
+	void addWatcher(Watcher* watcher);
+	void updateWatcher(Watcher* watcher);
+	void removeWatcher(Watcher* watcher);
 
 	void swapPendingFunctors(std::vector<Functor>&);
 	void doPendingFunctors(std::vector<Functor>&);
@@ -53,7 +50,8 @@ protected:
 	std::vector<Functor> pendingFunctors_;
 	std::vector<Watcher*> activedWatchers_;
 	std::shared_ptr<BufferPool> bufferPool_; // buffer
-	int wakeupFd_;
+	std::unique_ptr<EPollPoller> epollPoller_;
+	int wakeupfd_;
 	std::unique_ptr<Watcher> wakeupWatcher_;
 
 	// friend class
