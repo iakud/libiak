@@ -111,4 +111,5 @@ void EventLoop::wakeup() {
 void EventLoop::handleWakeup() {
 	uint64_t one = 1;
 	::read(wakeupfd_, &one, sizeof one);
+	wakeupWatcher_->setReadable(false);
 }
