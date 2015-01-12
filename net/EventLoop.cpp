@@ -39,6 +39,11 @@ EventLoop::~EventLoop() {
 	 ::close(wakeupfd_);
 }
 
+void EventLoop::quit() {
+	quit_ = true;
+	wakeup();
+}
+
 // blocking until quit
 void EventLoop::loop() {
 	wakeupWatcher_->start();

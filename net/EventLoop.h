@@ -26,7 +26,7 @@ public:
 		return bufferPool_;
 	}
 
-	void quit() { quit_ = true; }
+	void quit();
 	void loop();
 
 	void runInLoop(Functor&& functor);
