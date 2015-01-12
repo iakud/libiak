@@ -64,6 +64,26 @@ private:
 
 using namespace iak;
 
+std::string LogFile::s_dir_ = "./";
+bool LogFile::s_host_ = true;
+bool LogFile::s_pid_ = true;
+
+void LogFile::setLogDir(const std::string& dir) {
+	if (dir.find_last_of('/') != dir.length()) {
+		s_dir_ = dir + '/';
+	} else {
+		s_dir_ = dir;
+	}
+}
+
+void LogFile::setHostInLogFileName(bool host) {
+	s_host_ = host;
+}
+
+void LogFile::setPidInLogFileName(bool pid) {
+	s_pid_ = pid;
+}
+
 LogFilePtr LogFile::make(const std::string& basename,
 		size_t rollSize,
 		bool threadSafe,
@@ -127,7 +147,7 @@ void LogFile::flush() {
 
 void LogFile::append_unlocked(const char* logline, int len) {
 	file_->append(logline, len);
-	if (file_->writtenBytes() > rollSize_) {
+	if (rollSize_ > 0 && file_->writtenBytes() > rollSize_) {
 		rollFile();
 	} else {
 		if (count_ > kCheckTimeRoll_) {
@@ -169,7 +189,7 @@ void LogFile::append_async(const std::string& logline) {
 
 void LogFile::rollFile() {
 	time_t now = 0;
-	std::string filename = getLogFileName(basename_, &now);
+	std::string filename = s_dir_ + getLogFileName(basename_, &now);
 	time_t start = now / kRollPerSeconds_ * kRollPerSeconds_;
 
 	if (now > lastRoll_) {
@@ -186,15 +206,20 @@ std::string LogFile::getLogFileName(const std::string& basename, time_t* now) {
 	filename = basename;
 
 	char timebuf[32];
-	char pidbuf[32];
 	struct tm tm;
 	*now = ::time(NULL);
 	::localtime_r(now, &tm);
-	::strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S.", &tm);
+	::strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S", &tm);
 	filename += timebuf;
-	filename += ProcessInfo::hostName();
-	::snprintf(pidbuf, sizeof pidbuf, ".%d", ProcessInfo::pid());
-	filename += pidbuf;
+	if (s_host_) {
+		filename += ".";
+		filename += ProcessInfo::hostName();
+	}
+	if (s_pid_) {
+		char pidbuf[32];
+		::snprintf(pidbuf, sizeof pidbuf, ".%d", ProcessInfo::pid());
+		filename += pidbuf;
+	}
 	filename += ".log";
 
 	return filename;
