@@ -51,7 +51,7 @@ private:
 
 	void threadFunc();
 
-	bool running_;
+	volatile bool running_;
 
 	Thread thread_;
 	CountDownLatch latch_;
