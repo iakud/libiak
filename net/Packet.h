@@ -34,7 +34,7 @@ public:
 	uint16_t getCmd();
 
 private:
-	char buffer_[1024*12];
+	char buffer_[1024*32];
 	uint16_t* pSize_;
 	uint32_t* pHead_;
 	uint16_t* pCmd_;
