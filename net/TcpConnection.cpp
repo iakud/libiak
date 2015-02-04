@@ -318,13 +318,13 @@ void TcpConnection::onRead() {
 	const ssize_t readsize = ::readv(sockFd_, iov, iovcnt);
 	if (readsize < 0) {
 		// error
-		watcher_->setReadable(false);
+		watcher_->disableReadable();
 		return;
 	}
 	// read successful
 	uint32_t size = rearcount + next->capacity;
 	if (readsize > static_cast<ssize_t>(size)) { // error?
-		watcher_->setReadable(false);
+		watcher_->disableReadable();
 		return;
 	}
 	// fill tail
@@ -361,7 +361,7 @@ void TcpConnection::onRead() {
 	}
 
 	if (readsize < static_cast<ssize_t>(size)) {
-		watcher_->setReadable(false);
+		watcher_->disableReadable();
 	} else if (readsize == static_cast<ssize_t>(size)) {
 		// socket receive buffer not empty may be, at use EPOLL ET
 		watcher_->activeRead();
@@ -402,12 +402,12 @@ void TcpConnection::onWrite() {
 	const ssize_t writesize = ::writev(sockFd_, iov, iovcnt);
 	if (writesize < 0) {
 		// error
-		watcher_->setWriteable(false);
+		watcher_->disableWriteable();
 		return;
 	}
 	// write successful
 	if (writesize > static_cast<ssize_t>(size)) { // error?
-		watcher_->setWriteable(false);
+		watcher_->disableWriteable();
 		return;
 	}
 	
@@ -431,7 +431,7 @@ void TcpConnection::onWrite() {
 	//	m_sendCallback(shared_from_this(), writesize);
 	//}
 	if (writesize < static_cast<ssize_t>(size)) {
-		watcher_->setWriteable(false);
+		watcher_->disableWriteable();
 	} else if (writesize == static_cast<ssize_t>(size) && writeSize_ > 0) {
 		// send buffer not empty, continue write
 		watcher_->activeWrite();

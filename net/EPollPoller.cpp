@@ -1,6 +1,5 @@
 #include "EPollPoller.h"
 #include "Watcher.h"
-#include "Event.h"
 
 #include <sys/epoll.h>
 #include <unistd.h>
@@ -25,10 +24,16 @@ void EPollPoller::poll(int timeout) {
 		for (int i=0; i<nfd; ++i) {
 			struct epoll_event& event = events_[i];
 			Watcher* watcher = static_cast<Watcher*>(event.data.ptr);
-			int events = (event.events & (EPOLLRDHUP)?EV_CLOSE:EV_NONE) // close
-				| (event.events & (EPOLLIN|EPOLLERR|EPOLLHUP)?EV_READ:EV_NONE) // read
-				| (event.events & (EPOLLOUT|EPOLLERR|EPOLLHUP)?EV_WRITE:EV_NONE); // write
-			watcher->active(events);
+			
+			if (event.events & (EPOLLIN|EPOLLERR|EPOLLHUP)) {
+				watcher->onRead();
+			}
+			if (event.events & (EPOLLOUT|EPOLLERR|EPOLLHUP)) {
+				watcher->onWrite();
+			}
+			if (event.events & (EPOLLRDHUP)) {
+				watcher->onClose();
+			}
 		}
 		if (nfd == eventsize_) {
 			::free(events_);
@@ -47,16 +52,15 @@ void EPollPoller::poll(int timeout) {
 
 void EPollPoller::addWatcher(Watcher* watcher) {
 	struct epoll_event event;
-	int events = watcher->events();
 	event.events = EPOLLET;	// edge trigger
-	if (events & EV_CLOSE) {
-		event.events |= EPOLLRDHUP;
-	}
-	if (events & EV_READ) {
+	if (watcher->isRead()) {
 		event.events |= EPOLLIN;
 	}
-	if (events & EV_WRITE) {
+	if (watcher->isWrite()) {
 		event.events |= EPOLLOUT;
+	}
+	if (watcher->isClose()) {
+		event.events |= EPOLLRDHUP;
 	}
 	event.data.ptr = watcher;
 	if (::epoll_ctl(epollfd_, EPOLL_CTL_ADD, watcher->getFd(), &event) < 0) {

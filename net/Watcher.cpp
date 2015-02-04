@@ -1,14 +1,17 @@
 #include "Watcher.h"
 #include "EventLoop.h"
-#include "Event.h"
 
 using namespace iak;
 
 Watcher::Watcher(EventLoop* loop, const int fd)
 	: loop_(loop)
 	, fd_(fd)
-	, events_(EV_NONE)
-	, revents_(EV_NONE)
+	, read_(false)
+	, write_(false)
+	, close_(false)
+	, rread_(false)
+	, rwrite_(false)
+	, rclose_(false)
 	, started_(false)
 	, actived_(false)
 	, readable_(false)
@@ -19,28 +22,24 @@ Watcher::Watcher(EventLoop* loop, const int fd)
 Watcher::~Watcher() {
 }
 
-void Watcher::enableRead() {
-	events_ |= EV_READ;
+void Watcher::activeRead() {
+	if (read_) {
+		rread_ = true;
+		if (!actived_) {
+			loop_->activeWatcher(this);
+			actived_ = true;
+		}
+	}
 }
 
-void Watcher::disableRead() {
-	events_ &= ~EV_READ;
-}
-
-void Watcher::enableWrite() {
-	events_ |= EV_WRITE;
-}
-
-void Watcher::disableWrite() {
-	events_ &= ~EV_WRITE;
-}
-
-void Watcher::enableClose() {
-	events_ |= EV_CLOSE;
-}
-
-void Watcher::disableClose() {
-	events_ &= ~EV_CLOSE;
+void Watcher::activeWrite() {
+	if (write_) {
+		rwrite_ = true;
+		if (!actived_) {
+			loop_->activeWatcher(this);
+			actived_ = true;
+		}
+	}
 }
 
 void Watcher::start() {
@@ -51,56 +50,54 @@ void Watcher::stop() {
 	loop_->removeWatcher(this);
 }
 
-void Watcher::activeRead() {
-	if (events_ & EV_READ) {
-		revents_ |= EV_READ;
-		loop_->activeWatcher(this);
+void Watcher::onRead() {
+	if (read_ && !readable_) {
+		readable_ = rread_ = true;
+		if (!actived_) {
+			loop_->activeWatcher(this);
+			actived_ = true;
+		}
 	}
 }
 
-void Watcher::activeWrite() {
-	if (events_ & EV_WRITE) {
-		revents_ |= EV_WRITE;
-		loop_->activeWatcher(this);
+void Watcher::onWrite() {
+	if (write_ && !writeable_) {
+		writeable_ = rwrite_ = true;
+		if (!actived_) {
+			loop_->activeWatcher(this);
+			actived_ = true;
+		}
 	}
 }
 
-void Watcher::active(int revents) {
-	revents &= events_;
-	if (revents & EV_READ && !readable_) {
-		readable_ = true;
-		revents_ |= EV_READ;
-		loop_->activeWatcher(this);
-	}
-	if (revents & EV_WRITE && !writeable_) {
-		writeable_ = true;
-		revents_ |= EV_WRITE;
-		loop_->activeWatcher(this);
-	}
-	if (revents & EV_CLOSE && !closed_) {
-		closed_ = true;
-		revents_ |= EV_CLOSE;
-		loop_->activeWatcher(this);
+void Watcher::onClose() {
+	if (close_ && !closed_) {
+		closed_ = rclose_ = true;
+		if (!actived_) {
+			loop_->activeWatcher(this);
+			actived_ = true;
+		}
 	}
 }
 
 void Watcher::handleEvents() {
-	if (revents_ & EV_CLOSE) {
-		revents_ &= ~EV_CLOSE;
-		if (closeCallback_) {
-			closeCallback_();
-		}
-	}
-	if (revents_ & EV_READ) {
-		revents_ &= ~EV_READ;
+	actived_ = false;
+	if (rread_) {
+		rread_ = false;
 		if (readCallback_) {
 			readCallback_();
 		}
 	}
-	if (revents_ & EV_WRITE) {
-		revents_ &= ~EV_WRITE;
+	if (rwrite_) {
+		rwrite_ = false;
 		if (writeCallback_) {
 			writeCallback_();
+		}
+	}
+	if (rclose_) {
+		rclose_ = false;
+		if (closeCallback_) {
+			closeCallback_();
 		}
 	}
 }

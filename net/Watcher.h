@@ -14,57 +14,62 @@ public:
 	Watcher(EventLoop* loop, const int fd);
 	~Watcher();
 
-	typedef std::function<void()> EventCallback;
+	typedef std::function<bool()> EventCallback;
 
 	// watch fd
 	int getFd() { return fd_; }
 	// watch events
-	int events() { return events_; }
-
+	bool isRead() { return read_; }
+	void enableRead() { read_ = true; }
+	void disableRead() { read_ = false; }
+	bool isWrite() { return write_; }
+	void enableWrite() { write_ = true; }
+	void disableWrite() { write_ = false; }
+	bool isClose() { return closed_; }
+	void enableClose() { closed_ = true; }
+	void disableClose() { closed_ = false; }
 	// callback
 	void setReadCallback(EventCallback&& cb) { readCallback_ = cb; }
 	void setWriteCallback(EventCallback&& cb) { writeCallback_ = cb; }
 	void setCloseCallback(EventCallback&& cb) { closeCallback_ = cb; }
-	
-	// watched & actived
-	bool isActived() { return actived_; }
-	void setActived(bool actived) { actived_ = actived; }
 	// readable & writeable
 	bool isReadable() { return readable_; }
-	void setReadable(bool readable) { readable_ = readable; }
+	void disableReadable() { readable_ = false; }
 	bool isWriteable() { return writeable_; }
-	void setWriteable(bool writeable) { writeable_ = writeable; }
-	bool isClosed() { return closed_; }
-	void setClosed(bool closed) { closed_ = closed; }
-
-	void enableRead();
-	void disableRead();
-	void enableWrite();
-	void disableWrite();
-	void enableClose();
-	void disableClose();
+	void disableWriteable() { writeable_ = false; }
+	// active readable & writeable
+	void activeRead();
+	void activeWrite();
 
 	void start();
 	void stop();
 
-	void activeRead();
-	void activeWrite();
-	void active(int revents);
+	void onRead();
+	void onWrite();
+	void onClose();
 	void handleEvents();
 
 private:
 	EventLoop* loop_;
 	const int fd_;
-	int events_;
-	int revents_;
-	bool started_;
+	// watch events
+	bool read_;
+	bool write_;
+	bool close_;
+	// watch revents
+	bool rread_;
+	bool rwrite_;
+	bool rclose_;
+	// events callback
+	EventCallback closeCallback_;
+	EventCallback readCallback_;
+	EventCallback writeCallback_;
+
+	bool started_;	// started
 	bool actived_;	// in active list
 	bool readable_;
 	bool writeable_;
 	bool closed_;
-	EventCallback closeCallback_;
-	EventCallback readCallback_;
-	EventCallback writeCallback_;
 }; // end class Watcher
 
 } // end namespace iak

@@ -87,7 +87,7 @@ void Acceptor::onRead() {
 	if (sockFd < 0) {
 		int err = errno;// on error
 		if (EAGAIN == err) {
-			watcher_->setReadable(false);
+			watcher_->disableReadable();
 		} else {
 			if (EMFILE == err) {
 				::close(idleFd_);
