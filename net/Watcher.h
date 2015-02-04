@@ -14,7 +14,7 @@ public:
 	Watcher(EventLoop* loop, const int fd);
 	~Watcher();
 
-	typedef std::function<bool()> EventCallback;
+	typedef std::function<void()> EventCallback;
 
 	// watch fd
 	int getFd() { return fd_; }
