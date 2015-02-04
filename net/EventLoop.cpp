@@ -100,7 +100,7 @@ void EventLoop::handleWatchers() {
 	std::vector<Watcher*> watchers;
 	watchers.swap(activedWatchers_);
 	for (Watcher* watcher : watchers) {
-		watcher->handleEvents()
+		watcher->handleEvents();
 	}
 }
 
