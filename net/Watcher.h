@@ -25,9 +25,9 @@ public:
 	bool isWrite() { return write_; }
 	void enableWrite() { write_ = true; }
 	void disableWrite() { write_ = false; }
-	bool isClose() { return closed_; }
-	void enableClose() { closed_ = true; }
-	void disableClose() { closed_ = false; }
+	bool isClose() { return close_; }
+	void enableClose() { close_ = true; }
+	void disableClose() { close_ = false; }
 	// callback
 	void setReadCallback(EventCallback&& cb) { readCallback_ = cb; }
 	void setWriteCallback(EventCallback&& cb) { writeCallback_ = cb; }
