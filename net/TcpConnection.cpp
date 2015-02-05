@@ -318,7 +318,8 @@ void TcpConnection::onRead() {
 	const ssize_t readsize = ::readv(sockFd_, iov, iovcnt);
 	if (readsize < 0) {
 		// error
-		watcher_->disableReadable();
+		// watcher_->disableReadable();
+		watcher_->activeRead(); // signal break maybe
 		return;
 	}
 	// read successful
@@ -402,7 +403,8 @@ void TcpConnection::onWrite() {
 	const ssize_t writesize = ::writev(sockFd_, iov, iovcnt);
 	if (writesize < 0) {
 		// error
-		watcher_->disableWriteable();
+		// watcher_->disableWriteable();
+		watcher_->activeWrite(); // signal break maybe
 		return;
 	}
 	// write successful
