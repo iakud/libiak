@@ -112,7 +112,7 @@ void Watcher::handleEvents() {
 	}
 	if (rwrite_) {
 		rwrite_ = false;
-		handleWrite()
+		handleWrite();
 	}
 	if (rclose_) {
 		rclose_ = false;
