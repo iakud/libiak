@@ -44,6 +44,7 @@ protected:
 	void activeWatcher(Watcher* watcher);
 	void handleWatchers();
 
+	void wakeupFunctorsAndWatcher();
 	void wakeup();
 	void handleWakeup();
 	

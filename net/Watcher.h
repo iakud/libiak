@@ -18,9 +18,6 @@ public:
 
 	// watch fd
 	int getFd() { return fd_; }
-	bool isSync() { return sync_; }
-	void enableSync() { sync_ = true; }
-	void disableSync() { sync_ = false; }
 	// watch events
 	bool isRead() { return read_; }
 	void enableRead() { read_ = true; }
@@ -51,14 +48,10 @@ public:
 	void onWrite();
 	void onClose();
 	void handleEvents();
-	void handleRead();
-	void handleWrite();
-	void handleClose();
 
 private:
 	EventLoop* loop_;
 	const int fd_;
-	bool sync_;	// sync call on active
 	// watch events
 	bool read_;
 	bool write_;
