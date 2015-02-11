@@ -32,6 +32,7 @@ EventLoop::EventLoop()
 	, wakeupfd_(createEventFd())
 	, wakeupWatcher_(new Watcher(this, wakeupfd_)) {
 	wakeupWatcher_->setReadCallback(std::bind(&EventLoop::handleWakeup, this));
+	wakeupWatcher_->enableSync(); // wakeup sync
 	wakeupWatcher_->enableRead();
 	wakeupWatcher_->start();
 }
@@ -50,7 +51,6 @@ void EventLoop::quit() {
 void EventLoop::loop() {
 	quit_ = false;
 	while(!quit_) {
-		activeWatchersWakeup(); // wakeup when has active watchers
 		epollPoller_->poll(kPollTime); // poll network event
 		std::vector<Functor> functors;
 		swapPendingFunctors(functors);
@@ -101,12 +101,6 @@ void EventLoop::handleWatchers() {
 	watchers.swap(activedWatchers_);
 	for (Watcher* watcher : watchers) {
 		watcher->handleEvents();
-	}
-}
-
-void EventLoop::activeWatchersWakeup() {
-	if (activedWatchers_.size() > 0) {
-		wakeup();
 	}
 }
 

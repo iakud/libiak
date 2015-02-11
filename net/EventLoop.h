@@ -43,7 +43,6 @@ protected:
 	// actived watchers
 	void activeWatcher(Watcher* watcher);
 	void handleWatchers();
-	void activeWatchersWakeup();
 
 	void wakeup();
 	void handleWakeup();
