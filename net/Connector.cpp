@@ -78,6 +78,10 @@ void Connector::connect() {
 	}
 }
 
+void Connector::resetWatcher() {
+	watcher_.reset();
+}
+
 void Connector::close() {
 	if (!connecting_) {
 		return;
@@ -96,7 +100,8 @@ void Connector::onWrite() {
 	int sockFd = watcher_->getFd();
 	watcher_->stop();
 	//watcher_->disableWrite();
-	watcher_.reset();
+	loop_->runInLoop(std::bind(&Connector::resetWatcher, shared_from_this()));
+
 	connecting_ = false;
 
 	int optval;

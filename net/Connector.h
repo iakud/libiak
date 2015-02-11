@@ -41,6 +41,7 @@ public:
 
 private:
 	void connect();	// connect in loop
+	void resetWatcher();	// reset
 	void close();	// close in loop
 	void onWrite();// write event active
 
