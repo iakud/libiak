@@ -18,8 +18,9 @@ public:
 
 	// watch fd
 	int getFd() { return fd_; }
-	bool enableSync() { sync_ = true; }
-	bool disableSync() { sync_ = false; }
+	bool isSync() { return sync_; }
+	void enableSync() { sync_ = true; }
+	void disableSync() { sync_ = false; }
 	// watch events
 	bool isRead() { return read_; }
 	void enableRead() { read_ = true; }
