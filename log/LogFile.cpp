@@ -112,7 +112,7 @@ LogFile::LogFile(AsyncLogging* asyncLogging,
 	, rollSize_(rollSize)
 	, flushInterval_(flushInterval)
 	, count_(0)
-	, mutex_(threadSafe ? new Mutex : nullptr)
+	, mutexPtr_(threadSafe ? new std::mutex : nullptr)
 	, startOfPeriod_(0)
 	, lastRoll_(0)
 	, lastFlush_(0) {
@@ -125,8 +125,8 @@ LogFile::~LogFile() {
 
 void LogFile::append(const char* logline, int len) {
 	if (asyncLogging_ == nullptr) {
-		if (mutex_) {
-			MutexGuard lock(*mutex_);
+		if (mutexPtr_) {
+			std::unique_lock<std::mutex> lock(*mutexPtr_);
 			append_unlocked(logline, len);
 		} else {
 			append_unlocked(logline, len);
@@ -139,8 +139,8 @@ void LogFile::append(const char* logline, int len) {
 
 void LogFile::flush() {
 	if (asyncLogging_ == nullptr) {
-		if (mutex_) {
-			MutexGuard lock(*mutex_);
+		if (mutexPtr_) {
+			std::unique_lock<std::mutex> lock(*mutexPtr_);
 			file_->flush();
 		} else {
 			file_->flush();

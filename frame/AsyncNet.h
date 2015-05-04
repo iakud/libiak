@@ -1,8 +1,7 @@
 #ifndef IAK_FRAME_ASYNCNET_H
 #define IAK_FRAME_ASYNCNET_H
 
-#include <base/Mutex.h>
-
+#include <mutex>
 #include <vector>
 #include <functional>
 
@@ -21,7 +20,7 @@ public:
 	typedef std::function<void()> Functor;
 
 	static void put(Functor&& functor) {
-		MutexGuard lock(s_mutex_);
+		std::unique_lock<std::mutex> lock(s_mutex_);
 		s_pendingFunctors_.push_back(functor);
 	}
 
@@ -36,7 +35,7 @@ public:
 
 private:
 	static std::vector<Functor> s_pendingFunctors_;
-	static Mutex s_mutex_;
+	static std::mutex s_mutex_;
 	static EventLoopThreadPool* s_loopThreadPool_;
 	static uint32_t s_indexLoop_;
 }; // end class AsyncNet

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 #include <string.h>
-#include <base/Thread.h>
+#include <thread>
 using namespace std;
 using namespace iak;
 
@@ -68,8 +68,7 @@ void processnet() {
 int main() {
 	NetFrame::init(2);
 	AsyncClient myclient;
-	Thread* thread = new Thread(std::bind(&processnet));
-	thread->start();
+	std::thread t = std::thread(std::bind(&processnet));
 	string msg;
 	cin>>msg;
 	while (msg != "exit") {
@@ -77,5 +76,5 @@ int main() {
 		cin>>msg;
 	}
 	bquit = true;
-	thread->join();
+	t.join();
 }

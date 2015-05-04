@@ -75,14 +75,14 @@ void EventLoop::removeWatcher(Watcher* watcher) {
 
 void EventLoop::runInLoop(Functor&& functor) {
 	{
-		MutexGuard lock(mutex_);
+		std::unique_lock<std::mutex> lock(mutex_);
 		pendingFunctors_.push_back(functor);
 	}
 	wakeup();
 }
 
 void EventLoop::swapPendingFunctors(std::vector<Functor>& functors) {
-	MutexGuard lock(mutex_);
+	std::unique_lock<std::mutex> lock(mutex_);
 	functors.swap(pendingFunctors_);
 }
 

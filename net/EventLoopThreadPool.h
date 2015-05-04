@@ -1,13 +1,13 @@
 #ifndef IAK_NET_EVENTLOOPTHREADPOOL_H
 #define IAK_NET_EVENTLOOPTHREADPOOL_H
 
+#include <thread>
 #include <vector>
 #include <memory>
 
 namespace iak {
 
 class EventLoop;
-class Thread;
 
 class EventLoopThreadPool {
 public:
@@ -35,7 +35,7 @@ private:
 
 	const uint32_t count_;
 	std::vector<EventLoop*> loops_;
-	std::vector<Thread*> threads_;
+	std::vector<std::thread> threads_;
 }; // end class EventLoopThreadPool
 
 } // end namespace iak

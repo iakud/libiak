@@ -1,7 +1,6 @@
 #include "Logging.h"
 
-#include <base/Thread.h>
-
+#include <thread>
 #include <assert.h>
 #include <errno.h>
 #include <stdint.h>
@@ -10,9 +9,9 @@
 
 namespace iak {
 
-__thread char t_errnobuf[512];
-__thread char t_time[32];
-__thread time_t t_lastSecond;
+thread_local char t_errnobuf[512];
+thread_local char t_time[32];
+thread_local time_t t_lastSecond;
 
 const char* strerror_tl(int savedErrno) {
 	return strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf);
@@ -60,7 +59,7 @@ Logging::Logging(LogFilePtr logfile, const char* filename, int line, LogLevel le
 	LogFormat us(".%06dZ ", microseconds);
 	assert(us.length() == 9);
 	stream_ << t_time <<us.data();
-	stream_ << Thread::tidString();
+	// stream_ << Thread::tidString(); // FIXME:std::this_thread::get_id()
 	stream_ << LogLevelName[level];
 }
 

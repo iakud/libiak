@@ -8,11 +8,12 @@ using namespace iak;
 
 AsyncLogging::AsyncLogging()
 	: running_(false)
-	, thread_(std::bind(&AsyncLogging::threadFunc, this), "AsyncLogging")
+	, thread_()
 	, latch_(1)
 	, mutex_()
-	, cond_(mutex_)
+	, cv_()
     , pendingFunctors_() {
+	
 }
 
 void AsyncLogging::threadFunc() {
@@ -22,9 +23,9 @@ void AsyncLogging::threadFunc() {
 	while (running_) {
 		std::vector<Functor> functors;
 		{
-			MutexGuard lock(mutex_);
+			std::unique_lock<std::mutex> lock(mutex_);
 			if (pendingFunctors_.empty()) {
-				cond_.wait();
+				cv_.wait(lock);
 			}
 			functors.swap(pendingFunctors_);
 		}

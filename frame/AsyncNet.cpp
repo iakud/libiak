@@ -8,7 +8,7 @@
 using namespace iak;
 
 std::vector<AsyncNet::Functor> AsyncNet::s_pendingFunctors_;
-Mutex AsyncNet::s_mutex_;
+std::mutex AsyncNet::s_mutex_;
 EventLoopThreadPool* AsyncNet::s_loopThreadPool_ = NULL;
 uint32_t AsyncNet::s_indexLoop_ = 0;
 
@@ -37,7 +37,7 @@ EventLoop* AsyncNet::getEventLoop() {
 void AsyncNet::dispatch() {
 	std::vector<Functor> functors;
 	{
-		MutexGuard lock(s_mutex_);
+		std::unique_lock<std::mutex> lock(s_mutex_);
 		functors.swap(s_pendingFunctors_);
 	}
 	for (Functor functor : functors) {

@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.6)
 
 set(base_SRCS
 	Timestamp.cpp
-	Thread.cpp
 	FileUtil.cpp
 	ProcessInfo.cpp
 	Date.cpp

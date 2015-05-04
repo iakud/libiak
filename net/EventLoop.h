@@ -2,8 +2,8 @@
 #define IAK_NET_EVENTLOOP_H
 
 #include "Buffer.h"
-#include <base/Mutex.h>
 
+#include <mutex>
 #include <vector>
 #include <memory>
 #include <functional>
@@ -50,7 +50,7 @@ protected:
 	void handleWakeup();
 	
 	bool quit_;
-	Mutex mutex_;
+	std::mutex mutex_;
 	std::vector<Functor> pendingFunctors_;
 	std::vector<Watcher*> activedWatchers_;
 	std::shared_ptr<BufferPool> bufferPool_; // buffer

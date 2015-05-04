@@ -2,9 +2,10 @@
 #define IAK_BASE_ASYNCLOGGING_H
 
 #include <base/CountDownLatch.h>
-#include <base/Mutex.h>
-#include <base/Thread.h>
 
+#include <mutex>
+#include <condition_variable>
+#include <thread>
 #include <memory>
 #include <vector>
 #include <string>
@@ -28,20 +29,20 @@ public:
 	AsyncLogging& operator=(const AsyncLogging&) = delete;
 
 	void append(Functor&& functor) {
-		MutexGuard lock(mutex_);
+		std::unique_lock<std::mutex> lock(mutex_);
 		pendingFunctors_.push_back(functor);
-		cond_.signal();
+		cv_.notify_one();
 	}
 
 	void start() {
 		running_ = true;
-		thread_.start();
+		thread_ = std::thread(&AsyncLogging::threadFunc, this);
 		latch_.wait();
 	}
 
 	void stop() {
 		running_ = false;
-		cond_.signal();
+		cv_.notify_one();
 		thread_.join();
 	}
 
@@ -54,11 +55,10 @@ private:
 	void threadFunc();
 
 	volatile bool running_;
-
-	Thread thread_;
+	std::thread thread_;
 	CountDownLatch latch_;
-	Mutex mutex_;
-	Condition cond_;
+	std::mutex mutex_;
+	std::condition_variable cv_;
 
 	std::vector<Functor> pendingFunctors_;
 }; // end class AsyncLogging

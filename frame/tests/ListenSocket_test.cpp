@@ -2,7 +2,7 @@
 #include <frame/ListenSocket.h>
 #include <iostream>
 #include <string>
-#include <base/Thread.h>
+#include <thread>
 using namespace std;
 using namespace iak;
 
@@ -61,13 +61,12 @@ void processnet() {
 int main() {
 	NetFrame::init(4);
 	AsyncServer myserver;
-	Thread* thread = new Thread(std::bind(&processnet));
-	thread->start();
+	std::thread t = std::thread(std::bind(&processnet));
 	string msg;
 	cin>>msg;
 	while (msg != "exit") {
 		cin>>msg;
 	}
 	bquit = true;
-	thread->join();
+	t.join();
 }

@@ -1,8 +1,7 @@
 #ifndef IAK_LOG_LOGFILE_H
 #define IAK_LOG_LOGFILE_H
 
-#include <base/Mutex.h>
-
+#include <mutex>
 #include <string>
 #include <memory>
 
@@ -62,7 +61,7 @@ protected:
 
 	int count_;
 
-	std::unique_ptr<Mutex> mutex_;
+	std::unique_ptr<std::mutex> mutexPtr_;
 	time_t startOfPeriod_;
 	time_t lastRoll_;
 	time_t lastFlush_;
