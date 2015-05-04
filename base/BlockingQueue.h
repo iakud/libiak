@@ -1,7 +1,6 @@
 #ifndef IAK_BASE_BLOCKINGQUEUE_H
 #define IAK_BASE_BLOCKINGQUEUE_H
 
-#include "NonCopyable.h"
 #include "Condition.h"
 #include "Mutex.h"
 
@@ -11,13 +10,16 @@
 namespace iak {
 
 template<typename T>
-class BlockingQueue : public NonCopyable {
+class BlockingQueue {
 public:
 	BlockingQueue()
 		: mutex_()
 		, notEmpty_(mutex_)
 		, queue_() {
 	}
+	// noncopyable
+	BlockingQueue(const BlockingQueue&) = delete;
+	BlockingQueue& operator=(const BlockingQueue&) = delete;
 
 	void put(const T& x) {
 		MutexGuard lock(mutex_);

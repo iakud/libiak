@@ -1,20 +1,23 @@
 #ifndef IAK_BASE_SINGLETON_H
 #define IAK_BASE_SINGLETON_H
 
-#include "NonCopyable.h"
-
 #include <pthread.h>
 #include <stdlib.h> // atexit
 
 namespace iak {
 
 template<typename T>
-class Singleton : public NonCopyable {
+class Singleton {
 public:
 	static T& getInstance() {
 		::pthread_once(&s_once_, &Singleton::init);
 		return *s_value_;
 	}
+
+public:
+	// noncopyable
+	Singleton(const Singleton&) = delete;
+	Singleton& operator=(const Singleton&) = delete;
 
 private:
 	Singleton();
@@ -33,7 +36,7 @@ private:
 
 	static pthread_once_t s_once_;
 	static T* s_value_;
-};
+}; // end class Singleton
 
 template<typename T>
 pthread_once_t Singleton<T>::s_once_ = PTHREAD_ONCE_INIT;

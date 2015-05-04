@@ -1,7 +1,6 @@
 #ifndef IAK_BASE_ASYNCLOGGING_H
 #define IAK_BASE_ASYNCLOGGING_H
 
-#include <base/NonCopyable.h>
 #include <base/CountDownLatch.h>
 #include <base/Mutex.h>
 #include <base/Thread.h>
@@ -12,18 +11,21 @@
 
 namespace iak {
 
-class AsyncLogging : public NonCopyable {
+class AsyncLogging {
 
 public:
 	typedef std::function<void()> Functor;
 
+public:
 	AsyncLogging();
-
 	~AsyncLogging() {
 		if (running_) {
 			stop();
 		}
 	}
+	// noncopyable
+	AsyncLogging(const AsyncLogging&) = delete;
+	AsyncLogging& operator=(const AsyncLogging&) = delete;
 
 	void append(Functor&& functor) {
 		MutexGuard lock(mutex_);
@@ -59,7 +61,7 @@ private:
 	Condition cond_;
 
 	std::vector<Functor> pendingFunctors_;
-};
+}; // end class AsyncLogging
 
 } // end namespace iak
 

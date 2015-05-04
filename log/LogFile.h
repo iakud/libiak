@@ -1,7 +1,6 @@
 #ifndef IAK_LOG_LOGFILE_H
 #define IAK_LOG_LOGFILE_H
 
-#include <base/NonCopyable.h>
 #include <base/Mutex.h>
 
 #include <string>
@@ -14,8 +13,7 @@ typedef std::shared_ptr<LogFile> LogFilePtr;
 
 class AsyncLogging;
 
-class LogFile : public NonCopyable,
-		public std::enable_shared_from_this<LogFile> {
+class LogFile : public std::enable_shared_from_this<LogFile> {
 
 public:
 	static LogFilePtr make(const std::string& basename,
@@ -30,6 +28,13 @@ public:
 	static void setLogDir(const std::string& dir);
 	static void setHostInLogFileName(bool host);
 	static void setPidInLogFileName(bool pid);
+protected:
+	static const int kCheckTimeRoll_ = 1024;
+	static const int kRollPerSeconds_ = 60 * 60 * 24;
+	static std::string getLogFileName(const std::string& basename, time_t* now);
+	static std::string s_dir_;
+	static bool s_host_;
+	static bool s_pid_;
 
 public:
 	LogFile(AsyncLogging* asyncLogging,
@@ -38,18 +43,14 @@ public:
 			bool threadSafe = true,
 			int flushInterval = 3);
 	~LogFile();
+	// noncopyable
+	LogFile(const LogFile&) = delete;
+	LogFile& operator=(const LogFile&) = delete;
 
 	void append(const char* logline, int len);
 	void flush();
 
 protected:
-	static const int kCheckTimeRoll_ = 1024;
-	static const int kRollPerSeconds_ = 60*60*24;
-	static std::string getLogFileName(const std::string& basename, time_t* now);
-	static std::string s_dir_;
-	static bool s_host_;
-	static bool s_pid_;
-
 	void append_unlocked(const char* logline, int len);
 	void append_async(const std::string& logline);
 	void rollFile();

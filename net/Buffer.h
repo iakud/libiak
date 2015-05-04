@@ -1,8 +1,6 @@
 #ifndef IAK_NET_BUFFERPOOL_H
 #define IAK_NET_BUFFERPOOL_H
 
-#include <base/NonCopyable.h>
-
 #include <stdint.h>
 #include <stdio.h>
 
@@ -17,7 +15,7 @@ struct Buffer {
 	Buffer* next = NULL;
 }; // end struct Buffer
 
-class BufferPool : public NonCopyable {
+class BufferPool {
 public:
 	BufferPool(const uint32_t capacity, const uint32_t size)
 		: capacity_(capacity)
@@ -27,6 +25,9 @@ public:
 
 	~BufferPool() {
 	}
+	// noncopyable
+	BufferPool(const BufferPool&) = delete;
+	BufferPool& operator=(const BufferPool&) = delete;
 
 	// put, return next buffer
 	Buffer* putNext(Buffer* buffer) {

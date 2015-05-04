@@ -1,18 +1,21 @@
 #ifndef IAK_NET_EPOLLPOLLER_H
 #define IAK_NET_EPOLLPOLLER_H
 
-#include <base/NonCopyable.h>
-
 struct epoll_event;
 
 namespace iak {
 
 class Watcher;
 
-class EPollPoller : public NonCopyable {
+class EPollPoller {
+protected:
+	static const int kEventSizeInit = 16;
 public:
 	EPollPoller();
 	virtual ~EPollPoller();
+	// noncopyable
+	EPollPoller(const EPollPoller&) = delete;
+	EPollPoller& operator=(const EPollPoller&) = delete;
 
 	void poll(int timeout);
 	void addWatcher(Watcher* watcher);
@@ -20,8 +23,6 @@ public:
 	void removeWatcher(Watcher* watcher);
 
 protected:
-	static const int kEventSizeInit = 16;
-
 	int epollfd_;
 	int eventsize_;
 	struct epoll_event* events_;

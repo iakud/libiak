@@ -1,8 +1,6 @@
 #ifndef IAK_NET_ACCEPTOR_H
 #define IAK_NET_ACCEPTOR_H
 
-#include <base/NonCopyable.h>
-
 #include <memory>
 #include <functional>
 
@@ -16,8 +14,7 @@ class Watcher;
 class Acceptor;
 typedef std::shared_ptr<Acceptor> AcceptorPtr;
 
-class Acceptor : public NonCopyable,
-	public std::enable_shared_from_this<Acceptor> {
+class Acceptor : public std::enable_shared_from_this<Acceptor> {
 
 public:
 	typedef std::function<void(int sockFd,
@@ -29,6 +26,9 @@ public:
 	explicit Acceptor(EventLoop* loop,
 			const struct sockaddr_in& localSockAddr);
 	~Acceptor();
+	// noncopyable
+	Acceptor(const Acceptor&) = delete;
+	Acceptor& operator=(const Acceptor&) = delete;
 
 	void setAcceptCallback(AcceptCallback&& acceptCallback) {
 		acceptCallback_ = acceptCallback;

@@ -1,8 +1,6 @@
 #ifndef IAK_NET_EVENTLOOPTHREADPOOL_H
 #define IAK_NET_EVENTLOOPTHREADPOOL_H
 
-#include <base/NonCopyable.h>
-
 #include <vector>
 #include <memory>
 
@@ -11,10 +9,13 @@ namespace iak {
 class EventLoop;
 class Thread;
 
-class EventLoopThreadPool : public NonCopyable {
+class EventLoopThreadPool {
 public:
 	EventLoopThreadPool(uint32_t count);
 	~EventLoopThreadPool();
+	// noncopyable
+	EventLoopThreadPool(const EventLoopThreadPool&) = delete;
+	EventLoopThreadPool& operator=(const EventLoopThreadPool&) = delete;
 
 	uint32_t getCount() {
 		return count_;

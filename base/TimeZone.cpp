@@ -1,5 +1,4 @@
 #include "TimeZone.h"
-#include "NonCopyable.h"
 #include "Date.h"
 
 #include <algorithm>
@@ -85,7 +84,7 @@ struct TimeZone::Data {
 
 namespace iak {
 
-class File : public NonCopyable {
+class File {
 public:
 	File(const char* file)
 		: fp_(::fopen(file, "rb")) {
@@ -96,6 +95,9 @@ public:
 			::fclose(fp_);
 		}
 	}
+	// noncopyable
+	File(const File&) = delete;
+	File& operator=(const File&) = delete;
 
 	bool valid() const { return fp_; }
 

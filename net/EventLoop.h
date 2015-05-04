@@ -2,7 +2,6 @@
 #define IAK_NET_EVENTLOOP_H
 
 #include "Buffer.h"
-#include <base/NonCopyable.h>
 #include <base/Mutex.h>
 
 #include <vector>
@@ -14,13 +13,16 @@ namespace iak {
 class Watcher;
 class EPollPoller;
 
-class EventLoop : public NonCopyable {
+class EventLoop {
 public:
 	typedef std::function<void()> Functor;
 
 public:
 	EventLoop();
 	virtual ~EventLoop();
+	// noncopyable
+	EventLoop(const EventLoop&) = delete;
+	EventLoop& operator=(const EventLoop&) = delete;
 
 	std::shared_ptr<BufferPool>& getBufferPool() {
 		return bufferPool_;
@@ -32,7 +34,6 @@ public:
 	void runInLoop(Functor&& functor);
 
 protected:
-
 	void addWatcher(Watcher* watcher);
 	void updateWatcher(Watcher* watcher);
 	void removeWatcher(Watcher* watcher);

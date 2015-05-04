@@ -16,6 +16,9 @@ public:
 	static LogLevel GetLevel() { return s_level_; }
 	static void SetLevel(LogLevel level) { s_level_ = level; }
 
+private:
+	static LogLevel s_level_;
+
 public:
 	Logging(LogFilePtr logfile, const char* filename, int line, LogLevel level);
 	Logging(LogFilePtr logfile, const char* filename, int line, LogLevel level,
@@ -26,8 +29,6 @@ public:
 	LogStream& stream() { return stream_; }
 
 private:
-	static LogLevel s_level_;
-
 	Timestamp time_;
 	LogStream stream_;
 	LogFilePtr logfile_;

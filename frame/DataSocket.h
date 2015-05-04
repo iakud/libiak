@@ -1,7 +1,6 @@
 #ifndef IAK_FRAME_DATASOCKET_H
 #define IAK_FRAME_DATASOCKET_H
 
-#include <base/NonCopyable.h>
 #include <net/InetAddress.h>
 #include <net/Packet.h>
 #include <net/TcpConnection.h>
@@ -13,8 +12,7 @@ namespace iak {
 class DataSocket;
 typedef std::shared_ptr<DataSocket> DataSocketPtr;
 
-class DataSocket : public NonCopyable,
-	public std::enable_shared_from_this<DataSocket> {
+class DataSocket : public std::enable_shared_from_this<DataSocket> {
 
 public:
 	typedef std::function<void(DataSocketPtr)> ConnectCallback;
@@ -26,6 +24,9 @@ public:
 public:
 	DataSocket(TcpConnectionPtr connection, CloseCallback&& cb);
 	~DataSocket();
+	// noncopyable
+	DataSocket(const DataSocket&) = delete;
+	DataSocket& operator=(const DataSocket&) = delete;
 
 	void setConnectCallback(ConnectCallback&& cb) { 
 		connectCallback_ = cb;

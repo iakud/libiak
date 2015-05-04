@@ -4,8 +4,6 @@
 #include "InetAddress.h"
 #include "Packet.h"
 
-#include <base/NonCopyable.h>
-
 #include <memory>
 #include <functional>
 
@@ -21,8 +19,7 @@ class BufferPool;
 class TcpConnection;
 typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
 
-class TcpConnection : public NonCopyable, 
-		public std::enable_shared_from_this<TcpConnection> {
+class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
 
 public:
 	// callback typedef
@@ -33,11 +30,17 @@ public:
 
 	static TcpConnectionPtr make(EventLoop* loop, int sockFd,
 			const InetAddress& localAddr, const InetAddress& peerAddr);
+private:
+	// for tcpserver and tcpclient
+	typedef std::function<void(TcpConnectionPtr)> CloseCallback;
 
 public:
 	explicit TcpConnection(EventLoop* loop, int sockFd, 
 		const InetAddress& localAddr, const InetAddress& remoteAddr);
-	~TcpConnection();	
+	~TcpConnection();
+	// noncopyable
+	TcpConnection(const TcpConnection&) = delete;
+	TcpConnection& operator=(const TcpConnection&) = delete;
 	
 	const InetAddress& getLocalAddress() const { return localAddr_; }
 	const InetAddress& getRemoteAddress() const { return remoteAddr_; }
@@ -62,8 +65,6 @@ public:
 	void sendPack(PacketPtr packet);
 
 private:
-	// for tcpserver and tcpclient
-	typedef std::function<void(TcpConnectionPtr)> CloseCallback;
 	void setCloseCallback(CloseCallback&& cb) { closeCallback_ = cb; }
 
 	// after close or shutdown

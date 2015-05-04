@@ -1,12 +1,11 @@
 #ifndef IAK_BASE_FILEUTIL_H
 #define IAK_BASE_FILEUTIL_H
 
-#include "NonCopyable.h"
 #include <string>
 
 namespace iak {
 
-class FileReader : public NonCopyable {
+class FileReader {
 public:
 	static int readFile(const char* filename,
 			std::string& content,
@@ -18,6 +17,9 @@ public:
 public:
 	FileReader(const char* filename);
 	~FileReader();
+	// noncopyable
+	FileReader(const FileReader&) = delete;
+	FileReader& operator=(const FileReader&) = delete;
 
 	int readToString(std::string& content, size_t size);
 

@@ -1,7 +1,6 @@
 #ifndef IAKUD_BASE_BOUNDEDBLOCKINGQUEUE_H
 #define IAKUD_BASE_BOUNDEDBLOCKINGQUEUE_H
 
-#include "NonCopyable.h"
 #include "Condition.h"
 #include "Mutex.h"
 
@@ -11,7 +10,8 @@
 namespace iak {
 
 template<typename T>
-class BoundedBlockingQueue : public NonCopyable {
+class BoundedBlockingQueue {
+
 public:
 	explicit BoundedBlockingQueue(size_t capacity)
 		: mutex_()
@@ -20,6 +20,9 @@ public:
 		, capacity_(capacity)
 		, queue_() {
 	}
+	// noncopyable
+	BoundedBlockingQueue(const BoundedBlockingQueue&) = delete;
+	BoundedBlockingQueue& operator=(const BoundedBlockingQueue&) = delete;
 
 	void put(const T& x) {
 		MutexGuard lock(mutex_);

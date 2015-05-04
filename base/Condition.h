@@ -1,7 +1,6 @@
 #ifndef IAK_BASE_CONDITION_H
 #define IAK_BASE_CONDITION_H
 
-#include "NonCopyable.h"
 #include "Mutex.h"
 
 #include <stdint.h>
@@ -9,7 +8,11 @@
 
 namespace iak {
 
-class Condition : public NonCopyable {
+class Condition {
+
+private:
+	static const uint32_t kNanoSecondsPerSecond = 1e9;
+
 public:
 	explicit Condition(Mutex& mutex)
 		: mutex_(mutex) {
@@ -19,6 +22,9 @@ public:
 	~Condition() {
 		::pthread_cond_destroy(&cond_);
 	}
+	// noncopyable
+	Condition(const Condition&) = delete;
+	Condition& operator=(const Condition&) = delete;
 
 	void signal() {
 		::pthread_cond_signal(&cond_);
@@ -37,11 +43,9 @@ public:
 	bool timedwait(uint64_t timeout);
 
 private:
-	static const uint32_t kNanoSecondsPerSecond = 1e9;
-	
 	Mutex& mutex_;
 	pthread_cond_t cond_;
-};
+}; // end class Condition
 
 } // end namespace iak
 

@@ -3,7 +3,6 @@
 
 #include "DataSocket.h"
 
-#include <base/NonCopyable.h>
 #include <net/InetAddress.h>
 #include <net/TcpClient.h>
 
@@ -15,8 +14,7 @@ namespace iak {
 class ConnectSocket;
 typedef std::shared_ptr<ConnectSocket> ConnectSocketPtr;
 
-class ConnectSocket : public NonCopyable,
-	public std::enable_shared_from_this<ConnectSocket> {
+class ConnectSocket : public std::enable_shared_from_this<ConnectSocket> {
 public:
 	typedef std::function<bool(DataSocketPtr)> ConnectCallback;
 	static ConnectSocketPtr make(const InetAddress& remoteAddr);
@@ -24,6 +22,9 @@ public:
 public:
 	ConnectSocket(const InetAddress& remoteAddr);
 	~ConnectSocket();
+	// noncopyable
+	ConnectSocket(const ConnectSocket&) = delete;
+	ConnectSocket& operator=(const ConnectSocket&) = delete;
 
 	void setConnectCallback(ConnectCallback&& cb) {
 		connectCallback_ = cb;

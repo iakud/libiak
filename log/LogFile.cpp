@@ -11,7 +11,7 @@
 namespace iak {
 
 // not thread safe
-class LogFile::File : public NonCopyable {
+class LogFile::File {
 
 public:
 	explicit File(const std::string& filename)
@@ -25,6 +25,9 @@ public:
 	~File() {
 		::fclose(fp_);
 	}
+	// noncopyable
+	File(const File&) = delete;
+	File& operator=(const File&) = delete;
 
 	void append(const char* logline, const size_t len) {
 		size_t n = write(logline, len);

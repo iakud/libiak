@@ -4,8 +4,6 @@
 #include "InetAddress.h"
 #include "TcpConnection.h"
 
-#include <base/NonCopyable.h>
-
 #include <memory>
 #include <functional>
 #include <map>
@@ -19,8 +17,7 @@ class EventLoopThreadPool;
 class TcpServer;
 typedef std::shared_ptr<TcpServer> TcpServerPtr;
 
-class TcpServer : public NonCopyable,
-	public std::enable_shared_from_this<TcpServer> {
+class TcpServer : public std::enable_shared_from_this<TcpServer> {
 
 public:
 	typedef std::function<void(TcpConnectionPtr)> ConnectCallback;
@@ -30,6 +27,9 @@ public:
 public:
 	explicit TcpServer(EventLoop* loop, const InetAddress& localAddr);
 	~TcpServer();
+	// noncopyable
+	TcpServer(const TcpServer&) = delete;
+	TcpServer& operator=(const TcpServer&) = delete;
 
 	void setEventLoopThreadPool(EventLoopThreadPool* loopThreadPool) {
 		loopThreadPool_ = loopThreadPool;

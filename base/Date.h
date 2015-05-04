@@ -1,7 +1,6 @@
 #ifndef IAK_BASE_DATE_H
 #define IAK_BASE_DATE_H
 
-
 #include <string>
 
 struct tm;

@@ -1,19 +1,24 @@
 #ifndef IAK_LOG_LOGSTREAM_H
 #define IAK_LOG_LOGSTREAM_H
 
-#include <base/NonCopyable.h>
-
 #include <string>
 #include <memory.h> // memcpy
 
 namespace iak {
 
-class LogStream : public NonCopyable {
+class LogStream {
+private:
+	static const int kBufferSize = 4096;
+	static const int kMaxNumericSize = 32;
+
 public:
 	LogStream()
 		: cur_(data_)
 		, end_(data_ + sizeof data_) {
 	}
+	// noncopyable
+	LogStream(const LogStream&) = delete;
+	LogStream& operator=(const LogStream&) = delete;
 
 	LogStream& operator<<(short v);
 	LogStream& operator<<(unsigned short v);
@@ -45,9 +50,6 @@ public:
 	}
 
 private:
-	static const int kBufferSize = 4096;
-	static const int kMaxNumericSize = 32;
-
 	void static_check(); // for static_assert
 
 	template<typename T>
@@ -61,6 +63,9 @@ private:
 }; // end class LogStream
 
 class LogFormat {
+private:
+	static const int kBufferSize = 32;
+
 public:
 	template<typename T>
 	LogFormat(const char* fmt, T val);
@@ -69,8 +74,6 @@ public:
 	int length() const { return length_; }
 
 private:
-	static const int kBufferSize = 32;
-
 	char data_[kBufferSize];
 	int length_;
 }; // end class LogFormat

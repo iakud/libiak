@@ -1,19 +1,21 @@
 #ifndef IAK_BASE_COUNTDOWNLATCH_H
 #define IAK_BASE_COUNTDOWNLATCH_H
 
-#include "NonCopyable.h"
 #include "Condition.h"
 #include "Mutex.h"
 
 namespace iak {
 
-class CountDownLatch : public NonCopyable {
+class CountDownLatch {
 public:
 	explicit CountDownLatch(int count)
 		: mutex_()
 		, condition_(mutex_)
 		, count_(count) {
 	}
+	// noncopyable
+	CountDownLatch(const CountDownLatch&) = delete;
+	CountDownLatch& operator=(const CountDownLatch&) = delete;
 	
 	void wait() {
 		MutexGuard lock(mutex_);

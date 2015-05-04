@@ -3,7 +3,6 @@
 
 #include "DataSocket.h"
 
-#include <base/NonCopyable.h>
 #include <net/InetAddress.h>
 #include <net/TcpServer.h>
 
@@ -16,8 +15,7 @@ namespace iak {
 class ListenSocket;
 typedef std::shared_ptr<ListenSocket> ListenSocketPtr;
 
-class ListenSocket : public NonCopyable,
-	public std::enable_shared_from_this<ListenSocket> {
+class ListenSocket : public std::enable_shared_from_this<ListenSocket> {
 
 public:
 	typedef std::function<bool(DataSocketPtr)> ConnectCallback;
@@ -26,6 +24,9 @@ public:
 public:
 	explicit ListenSocket(const InetAddress& localAddr);
 	~ListenSocket();
+	// noncopyable
+	ListenSocket(const ListenSocket&) = delete;
+	ListenSocket& operator=(const ListenSocket&) = delete;
 
 	void setConnectCallback(ConnectCallback&& cb) {
 		connectCallback_ = cb;

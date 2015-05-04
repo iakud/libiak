@@ -1,18 +1,19 @@
 #ifndef IAK_BASE_ATOMIC_H
 #define IAK_BASE_ATOMIC_H
 
-#include "NonCopyable.h"
-
 #include <stdint.h>
 
 namespace iak {
 
-class AtomicInt32 : public NonCopyable {
+class AtomicInt32 {
 public:
 	AtomicInt32()
 		: value_(0) {
 	}
-	
+	// noncopyable
+	AtomicInt32(const AtomicInt32&) = delete;
+	AtomicInt32& operator=(const AtomicInt32&) = delete;
+
 	// if need copying and assignment
 	//
 	// AtomicInt32(const AtomicInt32& rhs)
@@ -65,12 +66,15 @@ private:
 	volatile int32_t value_;
 }; // end class AtomicInt32
 
-class AtomicInt64 : public NonCopyable {
+class AtomicInt64 {
 public:
 	AtomicInt64()
 		: value_(0) {
 	}
-	
+	// noncopyable
+	AtomicInt64(const AtomicInt64&) = delete;
+	AtomicInt64& operator=(const AtomicInt64&) = delete;
+
 	// if need copying and assignment
 	//
 	// AtomicInt64(const AtomicInt64& rhs)

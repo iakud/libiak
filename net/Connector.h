@@ -3,8 +3,6 @@
 
 #include "InetAddress.h"
 
-#include <base/NonCopyable.h>
-
 #include <arpa/inet.h>
 #include <memory>
 #include <functional>
@@ -17,8 +15,7 @@ class Watcher;
 class Connector;
 typedef std::shared_ptr<Connector> ConnectorPtr;
 
-class Connector : public NonCopyable, 
-	public std::enable_shared_from_this<Connector> {
+class Connector : public std::enable_shared_from_this<Connector> {
 
 public:
 	typedef std::function<void(int sockFd,
@@ -30,7 +27,9 @@ public:
 	explicit Connector(EventLoop* loop,
 			const struct sockaddr_in& remoteSockAddr);
 	~Connector();
-//	friend __gnu_cxx::new_allocator<Connector>;
+	// noncopyable
+	Connector(const Connector&) = delete;
+	Connector& operator=(const Connector&) = delete;
 
 	void setConnectCallback(ConnectCallback&& cb) {
 		connectCallback_ = cb;

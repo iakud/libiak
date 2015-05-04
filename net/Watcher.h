@@ -1,20 +1,22 @@
 #ifndef IAK_NET_WATCHER_H
 #define IAK_NET_WATCHER_H
 
-#include <base/NonCopyable.h>
-
 #include <functional>
 
 namespace iak {
 
 class EventLoop;
 
-class Watcher : public NonCopyable {
+class Watcher {
+public:
+	typedef std::function<void()> EventCallback;
+
 public:
 	Watcher(EventLoop* loop, const int fd);
 	~Watcher();
-
-	typedef std::function<void()> EventCallback;
+	// noncopyable
+	Watcher(const Watcher&) = delete;
+	Watcher& operator=(const Watcher&) = delete;
 
 	// watch fd
 	int getFd() { return fd_; }

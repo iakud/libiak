@@ -19,7 +19,7 @@ public:
 
 ThreadNameInitializer init;
 
-class ThreadRoutine : public NonCopyable {
+class ThreadRoutine {
 public:
 	typedef std::function<void()> ThreadFunc;
 public:
@@ -30,6 +30,9 @@ public:
 		, name_(name)
 		, tid_(tid) {
 	}
+	// noncopyable
+	ThreadRoutine(const ThreadRoutine&) = delete;
+	ThreadRoutine& operator=(const ThreadRoutine&) = delete;
 
 	void run() {
 		std::shared_ptr<int> tid = tid_.lock();
