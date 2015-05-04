@@ -1,8 +1,8 @@
 #ifndef IAK_BASE_COUNTDOWNLATCH_H
 #define IAK_BASE_COUNTDOWNLATCH_H
 
-#include "Condition.h"
-#include "Mutex.h"
+#include <mutex>
+#include <condition_variable>
 
 namespace iak {
 
@@ -10,7 +10,7 @@ class CountDownLatch {
 public:
 	explicit CountDownLatch(int count)
 		: mutex_()
-		, condition_(mutex_)
+		, cv_()
 		, count_(count) {
 	}
 	// noncopyable
@@ -18,28 +18,28 @@ public:
 	CountDownLatch& operator=(const CountDownLatch&) = delete;
 	
 	void wait() {
-		MutexGuard lock(mutex_);
+		std::unique_lock<std::mutex> lock(mutex_);
 		while (count_ > 0) {
-			condition_.wait();
+			cv_.wait(lock);
 		}
 	}
 
 	void countDown() {
-		MutexGuard lock(mutex_);
+		std::unique_lock<std::mutex> lock(mutex_);
 		--count_;
 		if (count_ == 0) {
-			condition_.broadcast();
+			cv_.notify_all();
 		}
 	}
 
-	int getCount() const {
-		MutexGuard lock(mutex_);
+	int getCount() {
+		std::unique_lock<std::mutex> lock(mutex_);
 		return count_;
 	}
 
 private:
-	mutable Mutex mutex_;
-	Condition condition_;
+	std::mutex mutex_;
+	std::condition_variable cv_;
 	int count_;
 }; // end class CountDownLatch
 

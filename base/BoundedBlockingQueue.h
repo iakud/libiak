@@ -1,9 +1,8 @@
 #ifndef IAKUD_BASE_BOUNDEDBLOCKINGQUEUE_H
 #define IAKUD_BASE_BOUNDEDBLOCKINGQUEUE_H
 
-#include "Condition.h"
-#include "Mutex.h"
-
+#include <mutex>
+#include <condition_variable>
 #include <deque>
 #include <assert.h>
 
@@ -15,8 +14,8 @@ class BoundedBlockingQueue {
 public:
 	explicit BoundedBlockingQueue(size_t capacity)
 		: mutex_()
-		, notEmpty_(mutex_)
-		, notFull_(mutex_)
+		, cvne_()
+		, cvnf_()
 		, capacity_(capacity)
 		, queue_() {
 	}
@@ -25,39 +24,39 @@ public:
 	BoundedBlockingQueue& operator=(const BoundedBlockingQueue&) = delete;
 
 	void put(const T& x) {
-		MutexGuard lock(mutex_);
+		std::unique_lock<std::mutex> lock(mutex_);
 		while (queue_.full()) {
-			notFull_.wait();
+			cvnf_.wait(lock);
 		}
 		assert(!queue_.full());
 		queue_.push_back(x);
-		notEmpty_.signal();
+		cvne_.notify_one();
 	}
 
 	T take() {
-		MutexGuard lock(mutex_);
+		std::unique_lock<std::mutex> lock(mutex_);
 		while (queue_.empty()) {
-			notEmpty_.wait();
+			cvne_.wait();
 		}
 		assert(!queue_.empty());
 		T front(queue_.front());
 		queue_.pop_front();
-		notFull_.signal();
+		cvnf_.notify_one();
 		return front;
 	}
 
-	bool empty() const {
-		MutexGuard lock(mutex_);
+	bool empty() {
+		std::unique_lock<std::mutex> lock(mutex_);
 		return queue_.empty();
 	}
 
-	bool full() const {
-		MutexGuard lock(mutex_);
+	bool full() {
+		std::unique_lock<std::mutex> lock(mutex_);
 		return queue_.size() >= capacity_;
 	}
 
-	size_t size() const {
-		MutexGuard lock(mutex_);
+	size_t size() {
+		std::unique_lock<std::mutex> lock(mutex_);
 		return queue_.size();
 	}
 
@@ -66,9 +65,9 @@ public:
 	}
 
 private:
-	mutable Mutex mutex_;
-	Condition notEmpty_;
-	Condition notFull_;
+	std::mutex mutex_;
+	std::condition_variable cvne_; // not empty
+	std::condition_variable cvnf_; // not full
 	size_t capacity_;
 	std::deque<T> queue_;
 }; // end class BoundedBlockingQueue

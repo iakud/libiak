@@ -1,9 +1,8 @@
 #ifndef IAK_BASE_BLOCKINGQUEUE_H
 #define IAK_BASE_BLOCKINGQUEUE_H
 
-#include "Condition.h"
-#include "Mutex.h"
-
+#include <mutex>
+#include <condition_variable>
 #include <deque>
 #include <assert.h>
 
@@ -14,7 +13,7 @@ class BlockingQueue {
 public:
 	BlockingQueue()
 		: mutex_()
-		, notEmpty_(mutex_)
+		, cv_()
 		, queue_() {
 	}
 	// noncopyable
@@ -22,15 +21,15 @@ public:
 	BlockingQueue& operator=(const BlockingQueue&) = delete;
 
 	void put(const T& x) {
-		MutexGuard lock(mutex_);
+		std::unique_lock<std::mutex> lock(mutex_);
 		queue_.push_back(x);
-		notEmpty_.signal();
+		cv_.notify_one();
 	}
 
 	T take() {
-		MutexGuard lock(mutex_);
+		std::unique_lock<std::mutex> lock(mutex_);
 		while (queue_.empty()) {
-			notEmpty_.wait();
+			cv_.wait(lock);
 		}
 		assert(!queue_.empty());
 		T front(queue_.front());
@@ -39,13 +38,13 @@ public:
 	}
 
 	size_t size() const {
-		MutexGuard lock(mutex_);
+		std::unique_lock<std::mutex> lock(mutex_);
 		return queue_.size();
 	}
 
 private:
-	mutable Mutex mutex_;
-	Condition notEmpty_;
+	std::mutex mutex_;
+	std::condition_variable cv_;
 	std::deque<T> queue_;
 }; // end class BlockingQueue
 
