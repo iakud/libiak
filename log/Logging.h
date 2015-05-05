@@ -4,7 +4,7 @@
 #include "LogStream.h"
 #include "LogFile.h"
 
-#include <base/Timestamp.h>
+#include <chrono>
 
 namespace iak {
 
@@ -29,7 +29,7 @@ public:
 	LogStream& stream() { return stream_; }
 
 private:
-	Timestamp time_;
+	std::chrono::system_clock::time_point time_;
 	LogStream stream_;
 	LogFilePtr logfile_;
 	const char* filename_;

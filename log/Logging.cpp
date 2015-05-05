@@ -37,26 +37,30 @@ const char* LogLevelName[Logging::NUM_LOG_LEVELS] = {
 using namespace iak;
 
 Logging::Logging(LogFilePtr logfile, const char* filename, int line, LogLevel level)
-	: time_(Timestamp::now())
+	: time_(std::chrono::system_clock::now())
 	, stream_()
 	, logfile_(logfile)
 	, filename_(filename)
 	, line_(line)
 	, level_(level) {
-	int64_t time = time_.getTime();
-	time_t seconds = static_cast<time_t>(time / Timestamp::kMicroSecondsPerSecond);
-	int microseconds = static_cast<int>(time % Timestamp::kMicroSecondsPerSecond);
-	if (seconds != t_lastSecond) {
-		t_lastSecond = seconds;
+	
+	std::chrono::seconds seconds = 
+		std::chrono::duration_cast<std::chrono::seconds>(time_.time_since_epoch());
+	std::chrono::microseconds microseconds = 
+		std::chrono::duration_cast<std::chrono::microseconds>(time_.time_since_epoch() - seconds);
+
+	time_t time = std::chrono::system_clock::to_time_t(time_);
+	if (seconds.count() != t_lastSecond) {
+		t_lastSecond = seconds.count();
 		struct tm tm_time;
 		//::gmtime_r(&seconds, &tm_time); // FIXME TimeZone::fromUtcTime
-		::localtime_r(&seconds, &tm_time);
+		::localtime_r(&time, &tm_time);
 		int len = snprintf(t_time, sizeof(t_time), "%4d%02d%02d %02d:%02d:%02d",
 			tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
 			tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec);
 		assert(len == 17); (void)len;
 	}
-	LogFormat us(".%06dZ ", microseconds);
+	LogFormat us(".%06dZ ", microseconds.count());
 	assert(us.length() == 9);
 	stream_ << t_time <<us.data();
 	// stream_ << Thread::tidString(); // FIXME:std::this_thread::get_id()

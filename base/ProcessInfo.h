@@ -1,7 +1,7 @@
 #ifndef IAK_BASE_PROCESSINFO_H
 #define IAK_BASE_PROCESSINFO_H
 
-#include "Timestamp.h"
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -14,7 +14,7 @@ public:
 	static uid_t uid();
 	static std::string userName();
 	static uid_t euid();
-	static Timestamp startTime();
+	static std::chrono::system_clock::time_point startTime();
 
 	static std::string hostName();
 	static std::string procName();

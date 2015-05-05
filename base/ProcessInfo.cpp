@@ -12,7 +12,7 @@
 
 namespace iak {
 
-Timestamp g_startTime = Timestamp::now();
+std::chrono::system_clock::time_point g_startTime = std::chrono::system_clock::now();
 
 __thread int t_numOpenedFiles = 0;
 int fdDirFilter(const struct dirent* d) {
@@ -72,7 +72,7 @@ uid_t ProcessInfo::euid() {
 	return ::geteuid();
 }
 
-Timestamp ProcessInfo::startTime() {
+std::chrono::system_clock::time_point ProcessInfo::startTime() {
 	return g_startTime;
 }
 
