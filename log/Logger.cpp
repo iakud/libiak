@@ -1,4 +1,4 @@
-#include "Logging.h"
+#include "Logger.h"
 
 #include <thread>
 #include <assert.h>
@@ -17,18 +17,18 @@ const char* strerror_tl(int savedErrno) {
 	return strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf);
 }
 
-Logging::LogLevel GetLogLevel() {
+Logger::LogLevel GetLogLevel() {
 	if (::getenv("IAK_LOG_TRACE"))
-		return Logging::TRACE;
+		return Logger::TRACE;
 	else if (::getenv("IAK_LOG_DEBUG"))
-		return Logging::DEBUG;
+		return Logger::DEBUG;
 	else
-		return Logging::INFO;
+		return Logger::INFO;
 }
 
-Logging::LogLevel Logging::s_level_ = GetLogLevel();
+Logger::LogLevel Logger::s_level_ = GetLogLevel();
 
-const char* LogLevelName[Logging::NUM_LOG_LEVELS] = {
+const char* LogLevelName[Logger::NUM_LOG_LEVELS] = {
   "TRACE ", "DEBUG ", "INFO  ", "WARN  ", "ERROR ", "FATAL "
 };
 
@@ -36,7 +36,7 @@ const char* LogLevelName[Logging::NUM_LOG_LEVELS] = {
 
 using namespace iak;
 
-Logging::Logging(LogFilePtr logfile, const char* filename, int line, LogLevel level)
+Logger::Logger(LogFilePtr logfile, const char* filename, int line, LogLevel level)
 	: time_(std::chrono::system_clock::now())
 	, stream_()
 	, logfile_(logfile)
@@ -60,28 +60,28 @@ Logging::Logging(LogFilePtr logfile, const char* filename, int line, LogLevel le
 			tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec);
 		assert(len == 17); (void)len;
 	}
-	LogFormat us(".%06dZ ", microseconds.count());
-	assert(us.length() == 9);
+	LogFormat us(".%06d ", microseconds.count());
+	assert(us.length() == 8);
 	stream_ << t_time <<us.data();
 	// stream_ << Thread::tidString(); // FIXME:std::this_thread::get_id()
 	stream_ << LogLevelName[level];
 }
 
-Logging::Logging(LogFilePtr logfile, const char* filename, int line, LogLevel level,
+Logger::Logger(LogFilePtr logfile, const char* filename, int line, LogLevel level,
 		const char* func)
-	: Logging(logfile, filename, line, level) {
+	: Logger(logfile, filename, line, level) {
 	stream_ << func << ' ';
 }
 
-Logging::Logging(LogFilePtr logfile, const char* filename, int line, bool toAbort)
-	: Logging(logfile, filename, line, toAbort?FATAL:ERROR) {
+Logger::Logger(LogFilePtr logfile, const char* filename, int line, bool toAbort)
+	: Logger(logfile, filename, line, toAbort?FATAL:ERROR) {
 	int savedErrno = errno;
 	if (savedErrno != 0) {
 		stream_ << strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
 	}
 }
 
-Logging::~Logging() {
+Logger::~Logger() {
 	const char* slash = ::strrchr(filename_, '/');
 	if (slash) {
 		filename_ = slash + 1;

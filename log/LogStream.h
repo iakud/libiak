@@ -7,9 +7,6 @@
 namespace iak {
 
 class LogStream {
-private:
-	static const int kBufferSize = 4096;
-	static const int kMaxNumericSize = 32;
 
 public:
 	LogStream()
@@ -48,6 +45,10 @@ public:
 			cur_ += len;
 		}
 	}
+
+private:
+	static const int kBufferSize = 4096;
+	static const int kMaxNumericSize = 32;
 
 private:
 	void static_check(); // for static_assert

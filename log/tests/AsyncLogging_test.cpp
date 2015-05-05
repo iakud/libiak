@@ -1,5 +1,5 @@
 #include <log/AsyncLogging.h>
-#include <log/Logging.h>
+#include <log/Logger.h>
 
 #include <chrono>
 #include <string>

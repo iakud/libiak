@@ -1,6 +1,6 @@
 set(log_SRCS
 	LogStream.cpp
-	Logging.cpp
+	Logger.cpp
 	LogFile.cpp
 	AsyncLogging.cpp
 	)

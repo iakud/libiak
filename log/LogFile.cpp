@@ -1,5 +1,5 @@
 #include "LogFile.h"
-#include "Logging.h" // strerror_tl
+#include "Logger.h" // strerror_tl
 #include "AsyncLogging.h"
 
 #include <base/ProcessInfo.h>
