@@ -1,105 +1,132 @@
 #include "Logger.h"
+#include "LogFile.h"
 
-#include <thread>
+#include <base/ProcessInfo.h>
+
 #include <assert.h>
-#include <errno.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-namespace iak {
-
-thread_local char t_errnobuf[512];
-thread_local char t_time[32];
-thread_local time_t t_lastSecond;
-
-const char* strerror_tl(int savedErrno) {
-	return strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf);
-}
-
-Logger::LogLevel GetLogLevel() {
-	if (::getenv("IAK_LOG_TRACE"))
-		return Logger::TRACE;
-	else if (::getenv("IAK_LOG_DEBUG"))
-		return Logger::DEBUG;
-	else
-		return Logger::INFO;
-}
-
-Logger::LogLevel Logger::s_level_ = GetLogLevel();
-
-const char* LogLevelName[Logger::NUM_LOG_LEVELS] = {
-  "TRACE ", "DEBUG ", "INFO  ", "WARN  ", "ERROR ", "FATAL "
-};
-
-} // end namespace iak
 
 using namespace iak;
 
-Logger::Logger(LogFilePtr logfile, const char* filename, int line, LogLevel level)
-	: time_(std::chrono::system_clock::now())
-	, stream_()
-	, logfile_(logfile)
-	, filename_(filename)
-	, line_(line)
-	, level_(level) {
-	
-	std::chrono::seconds seconds = 
-		std::chrono::duration_cast<std::chrono::seconds>(time_.time_since_epoch());
-	std::chrono::microseconds microseconds = 
-		std::chrono::duration_cast<std::chrono::microseconds>(time_.time_since_epoch() - seconds);
+std::string Logger::s_dir_ = "./";
+bool Logger::s_host_ = true;
+bool Logger::s_pid_ = true;
 
-	time_t time = std::chrono::system_clock::to_time_t(time_);
-	if (seconds.count() != t_lastSecond) {
-		t_lastSecond = seconds.count();
-		struct tm tm_time;
-		//::gmtime_r(&seconds, &tm_time); // FIXME TimeZone::fromUtcTime
-		::localtime_r(&time, &tm_time);
-		int len = snprintf(t_time, sizeof(t_time), "%4d%02d%02d %02d:%02d:%02d",
-			tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
-			tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec);
-		assert(len == 17); (void)len;
+void Logger::setLogDir(const std::string& dir) {
+	if (dir.find_last_of('/') != dir.length()) {
+		s_dir_ = dir + '/';
+	} else {
+		s_dir_ = dir;
 	}
-	LogFormat us(".%06d ", microseconds.count());
-	assert(us.length() == 8);
-	stream_ << t_time <<us.data();
-	// stream_ << Thread::tidString(); // FIXME:std::this_thread::get_id()
-	stream_ << LogLevelName[level];
 }
 
-Logger::Logger(LogFilePtr logfile, const char* filename, int line, LogLevel level,
-		const char* func)
-	: Logger(logfile, filename, line, level) {
-	stream_ << func << ' ';
+void Logger::setHostInLogFileName(bool host) {
+	s_host_ = host;
 }
 
-Logger::Logger(LogFilePtr logfile, const char* filename, int line, bool toAbort)
-	: Logger(logfile, filename, line, toAbort?FATAL:ERROR) {
-	int savedErrno = errno;
-	if (savedErrno != 0) {
-		stream_ << strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
-	}
+void Logger::setPidInLogFileName(bool pid) {
+	s_pid_ = pid;
+}
+
+LoggerPtr Logger::make(const std::string& basename,
+		size_t rollSize,
+		bool threadSafe,
+		int flushInterval) {
+	return std::make_shared<Logger>(basename,
+			rollSize, threadSafe, flushInterval);
+}
+
+Logger::Logger(const std::string& basename,
+		size_t rollSize,
+		bool threadSafe,
+		int flushInterval)
+	: basename_(basename)
+	, rollSize_(rollSize)
+	, flushInterval_(flushInterval)
+	, count_(0)
+	, mutexPtr_(threadSafe ? new std::mutex : nullptr)
+	, startOfPeriod_(0)
+	, lastRoll_(0)
+	, lastFlush_(0) {
+	assert(basename.find('/') == std::string::npos);
+	rollFile();
 }
 
 Logger::~Logger() {
-	const char* slash = ::strrchr(filename_, '/');
-	if (slash) {
-		filename_ = slash + 1;
-	}
-	stream_ << " - " << filename_ << ':' << line_ << '\n';
+}
 
-	if (logfile_) {
-		logfile_->append(stream_.data(), stream_.length());
+void Logger::append(const char* logLine, int len) {
+	if (mutexPtr_) {
+		std::unique_lock<std::mutex> lock(*mutexPtr_);
+		append_unlocked(logLine, len);
 	} else {
-		::fwrite(stream_.data(), 1, stream_.length(), stdout);
+		append_unlocked(logLine, len);
 	}
+}
 
-	if (level_ == FATAL) {
-		if (logfile_) {
-			logfile_->flush();
-		} else {
-			::fflush(::stdout);
-		}
-		::abort();
+void Logger::flush() {
+	if (mutexPtr_) {
+		std::unique_lock<std::mutex> lock(*mutexPtr_);
+		logFile_->flush();
+	} else {
+		logFile_->flush();
 	}
+}
+
+void Logger::append_unlocked(const char* logLine, int len) {
+	logFile_->append(logLine, len);
+	if (rollSize_ > 0 && logFile_->writtenBytes() > rollSize_) {
+		rollFile();
+	} else {
+		if (count_ > kCheckTimeRoll_) {
+			count_ = 0;
+			time_t now = ::time(NULL);
+			time_t thisPeriod_ = now / kRollPerSeconds_ * kRollPerSeconds_;
+			if (thisPeriod_ != startOfPeriod_) {
+				rollFile();
+			} else if (now - lastFlush_ > flushInterval_) {
+				lastFlush_ = now;
+				logFile_->flush();
+			}
+		} else {
+			++count_;
+		}
+	}
+}
+
+void Logger::rollFile() {
+	time_t now = 0;
+	std::string filename = s_dir_ + getLogFileName(basename_, &now);
+	time_t start = now / kRollPerSeconds_ * kRollPerSeconds_;
+
+	if (now > lastRoll_) {
+		lastRoll_ = now;
+		lastFlush_ = now;
+		startOfPeriod_ = start;
+		logFile_.reset(new LogFile(filename));
+	}
+}
+
+std::string Logger::getLogFileName(const std::string& basename, time_t* now) {
+	std::string filename;
+	filename.reserve(basename.size() + 64);
+	filename = basename;
+
+	char timebuf[32];
+	struct tm tm;
+	*now = ::time(NULL);
+	::localtime_r(now, &tm);
+	::strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S", &tm);
+	filename += timebuf;
+	if (s_host_) {
+		filename += ".";
+		filename += ProcessInfo::hostName();
+	}
+	if (s_pid_) {
+		char pidbuf[32];
+		::snprintf(pidbuf, sizeof pidbuf, ".%d", ProcessInfo::pid());
+		filename += pidbuf;
+	}
+	filename += ".log";
+
+	return filename;
 }

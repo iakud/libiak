@@ -1,73 +1,64 @@
 #ifndef IAK_LOG_LOGFILE_H
 #define IAK_LOG_LOGFILE_H
 
-#include <mutex>
-#include <string>
-#include <memory>
+#include "Logging.h" // strerror_tl
+
+#include <assert.h>
+#include <stdio.h>
+#include <time.h>
 
 namespace iak {
 
-class LogFile;
-typedef std::shared_ptr<LogFile> LogFilePtr;
-
-class AsyncLogging;
-
-class LogFile : public std::enable_shared_from_this<LogFile> {
+class LogFile {
 
 public:
-	static LogFilePtr make(const std::string& basename,
-			size_t rollSize,
-			bool threadSafe = true,
-			int flushInterval = 3);
+	explicit LogFile(const std::string& filename)
+		: fp_(::fopen(filename.data(), "ae"))
+		, writtenBytes_(0) {
+		assert(fp_);
+		::setbuffer(fp_, buffer_, sizeof buffer_);
+		// posix_fadvise POSIX_FADV_DONTNEED ?
+	}
 
-	static LogFilePtr make(AsyncLogging* asyncLogging,
-			const std::string& basename,
-			size_t rollSize);
-
-	static void setLogDir(const std::string& dir);
-	static void setHostInLogFileName(bool host);
-	static void setPidInLogFileName(bool pid);
-protected:
-	static const int kCheckTimeRoll_ = 1024;
-	static const int kRollPerSeconds_ = 60 * 60 * 24;
-	static std::string getLogFileName(const std::string& basename, time_t* now);
-	static std::string s_dir_;
-	static bool s_host_;
-	static bool s_pid_;
-
-public:
-	LogFile(AsyncLogging* asyncLogging,
-			const std::string& basename,
-			size_t rollSize,
-			bool threadSafe = true,
-			int flushInterval = 3);
-	~LogFile();
+	~LogFile() {
+		::fclose(fp_);
+	}
 	// noncopyable
 	LogFile(const LogFile&) = delete;
 	LogFile& operator=(const LogFile&) = delete;
 
-	void append(const char* logline, int len);
-	void flush();
+	void append(const char* logline, const size_t len) {
+		size_t n = write(logline, len);
+		size_t remain = len - n;
+		while (remain > 0) {
+			size_t x = write(logline + n, remain);
+			if (x == 0) {
+				int err = ferror(fp_);
+				if (err) {
+					fprintf(stderr, "LogFile::File::append() failed %s\n", strerror_tl(err));
+				}
+				break;
+			}
+			n += x;
+			remain = len - n; // remain -= x
+		}
+		writtenBytes_ += len;
+	}
 
-protected:
-	void append_unlocked(const char* logline, int len);
-	void append_async(const std::string& logline);
-	void rollFile();
+	void flush() {
+		::fflush(fp_);
+	}
 
-	AsyncLogging* asyncLogging_;
-	const std::string basename_;
-	const size_t rollSize_;
-	const int flushInterval_;
+	size_t writtenBytes() const { return writtenBytes_; }
 
-	int count_;
+private:
+	size_t write(const char* logline, size_t len) {
+		return ::fwrite_unlocked(logline, 1, len, fp_);
+	}
 
-	std::unique_ptr<std::mutex> mutexPtr_;
-	time_t startOfPeriod_;
-	time_t lastRoll_;
-	time_t lastFlush_;
-
-	class File;
-	std::unique_ptr<File> file_;
+	FILE* fp_;
+	char buffer_[64 * 1024];
+	size_t writtenBytes_;
 }; // end class LogFile
 
 } // end namespace iak

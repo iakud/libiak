@@ -1,5 +1,5 @@
-#ifndef IAK_LOG_LOGGER_H
-#define IAK_LOG_LOGGER_H
+#ifndef IAK_LOG_LOGFILE_H
+#define IAK_LOG_LOGFILE_H
 
 #include <mutex>
 #include <string>
@@ -7,18 +7,22 @@
 
 namespace iak {
 
-class Logger;
-typedef std::shared_ptr<Logger> LoggerPtr;
-
 class LogFile;
+typedef std::shared_ptr<LogFile> LogFilePtr;
+
+class AsyncLogging;
 
 class Logger : public std::enable_shared_from_this<Logger> {
 
 public:
-	static LoggerPtr make(const std::string& basename,
+	static LogFilePtr make(const std::string& basename,
 			size_t rollSize,
 			bool threadSafe = true,
 			int flushInterval = 3);
+
+	static LogFilePtr make(AsyncLogging* asyncLogging,
+			const std::string& basename,
+			size_t rollSize);
 
 	static void setLogDir(const std::string& dir);
 	static void setHostInLogFileName(bool host);
@@ -32,22 +36,25 @@ protected:
 	static bool s_pid_;
 
 public:
-	Logger(const std::string& basename,
+	LogFile(AsyncLogging* asyncLogging,
+			const std::string& basename,
 			size_t rollSize,
 			bool threadSafe = true,
 			int flushInterval = 3);
-	~Logger();
+	~LogFile();
 	// noncopyable
-	Logger(const Logger&) = delete;
-	Logger& operator=(const Logger&) = delete;
+	LogFile(const LogFile&) = delete;
+	LogFile& operator=(const LogFile&) = delete;
 
-	void append(const char* logLine, int len);
+	void append(const char* logline, int len);
 	void flush();
 
 protected:
-	void append_unlocked(const char* logLine, int len);
+	void append_unlocked(const char* logline, int len);
+	void append_async(const std::string& logline);
 	void rollFile();
 
+	AsyncLogging* asyncLogging_;
 	const std::string basename_;
 	const size_t rollSize_;
 	const int flushInterval_;
@@ -59,9 +66,10 @@ protected:
 	time_t lastRoll_;
 	time_t lastFlush_;
 
-	std::unique_ptr<LogFile> logFile_;
-}; // end class Logger
+	class File;
+	std::unique_ptr<File> file_;
+}; // end class LogFile
 
 } // end namespace iak
 
-#endif	// IAK_LOG_LOGGER_H
+#endif  // IAK_LOG_LOGFILE_H

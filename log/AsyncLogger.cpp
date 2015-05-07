@@ -5,65 +5,6 @@
 #include <base/ProcessInfo.h>
 
 #include <assert.h>
-#include <stdio.h>
-#include <time.h>
-
-namespace iak {
-
-// not thread safe
-class LogFile::File {
-
-public:
-	explicit File(const std::string& filename)
-		: fp_(::fopen(filename.data(), "ae"))
-		, writtenBytes_(0) {
-		assert(fp_);
-		::setbuffer(fp_, buffer_, sizeof buffer_);
-		// posix_fadvise POSIX_FADV_DONTNEED ?
-	}
-
-	~File() {
-		::fclose(fp_);
-	}
-	// noncopyable
-	File(const File&) = delete;
-	File& operator=(const File&) = delete;
-
-	void append(const char* logline, const size_t len) {
-		size_t n = write(logline, len);
-		size_t remain = len - n;
-		while (remain > 0) {
-			size_t x = write(logline + n, remain);
-			if (x == 0) {
-				int err = ferror(fp_);
-				if (err) {
-					fprintf(stderr, "LogFile::File::append() failed %s\n", strerror_tl(err));
-				}
-				break;
-			}
-			n += x;
-			remain = len - n; // remain -= x
-		}
-		writtenBytes_ += len;
-	}
-
-	void flush() {
-		::fflush(fp_);
-	}
-
-	size_t writtenBytes() const { return writtenBytes_; }
-
-private:
-	size_t write(const char* logline, size_t len) {
-		return ::fwrite_unlocked(logline, 1, len, fp_);
-	}
-
-	FILE* fp_;
-	char buffer_[64*1024];
-	size_t writtenBytes_;
-}; // end class File
-
-} // end namespace iak
 
 using namespace iak;
 

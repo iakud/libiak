@@ -1,7 +1,7 @@
 set(log_SRCS
 	LogStream.cpp
+	Logging.cpp
 	Logger.cpp
-	LogFile.cpp
 	AsyncLogging.cpp
 	)
 
@@ -14,7 +14,7 @@ install(TARGETS iak_log DESTINATION lib)
 set(HEADERS
   LogStream.h
   Logging.h
-  LogFile.h
+  Logger.h
   AsyncLogging.h
   )
 
