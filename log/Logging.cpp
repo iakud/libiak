@@ -1,6 +1,6 @@
 #include "Logging.h"
 #include "Logger.h"
-//#include "AsyncLogger.h"
+#include "AsyncLogger.h"
 
 #include <thread>
 #include <assert.h>
@@ -126,4 +126,4 @@ Logging<Logger_>::~Logging() {
 
 //  explicit instantiations
 template class Logging<LoggerPtr>;
-//template class Logging<AsyncLoggerPtr>;
+template class Logging<AsyncLoggerPtr>;
