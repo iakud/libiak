@@ -8,12 +8,34 @@ namespace iak {
 class LogConfig {
 
 public:
-	static void setLogDestination(const std::string& destination);
-	static const std::string& getLogDestination();
-	static void setHostNameInLogFileName(bool host);
-	static bool isHostNameInLogFileName();
-	static void setPidInLogFileName(bool pid);
-	static bool isPidInLogFileName();
+	inline static void setLogDestination(const std::string& destination) {
+		if (destination.find_last_of('/') != destination.length()) {
+			s_destination_ = destination + '/';
+		}
+		else {
+			s_destination_ = destination;
+		}
+	}
+
+	inline static const std::string& getLogDestination() {
+		return s_destination_;
+	}
+
+	inline static void setHostNameInLogFileName(bool hostNameInLogFileName) {
+		s_hostNameInLogFileName_ = hostNameInLogFileName;
+	}
+
+	inline static bool isHostNameInLogFileName() {
+		return s_hostNameInLogFileName_;
+	}
+
+	inline static void setPidInLogFileName(bool pidInLogFileName_) {
+		s_pidInLogFileName_ = pidInLogFileName_;
+	}
+
+	inline static bool isPidInLogFileName() {
+		return s_pidInLogFileName_;
+	}
 
 private:
 	static std::string s_destination_;
@@ -21,39 +43,7 @@ private:
 	static bool s_pidInLogFileName_;
 }; // end class LogConfig
 
-std::string LogConfig::s_destination_("./");
-bool LogConfig::s_hostNameInLogFileName_(true);
-bool LogConfig::s_pidInLogFileName_(true);
-
-void LogConfig::setLogDestination(const std::string& destination) {
-	if (destination.find_last_of('/') != destination.length()) {
-		s_destination_ = destination + '/';
-	} else {
-		s_destination_ = destination;
-	}
-}
-
-const std::string& LogConfig::getLogDestination() {
-	return s_destination_;
-}
-
-void LogConfig::setHostNameInLogFileName(bool hostNameInLogFileName) {
-	s_hostNameInLogFileName_ = hostNameInLogFileName;
-}
-
-bool LogConfig::isHostNameInLogFileName() {
-	return s_hostNameInLogFileName_;
-}
-
-void LogConfig::setPidInLogFileName(bool pidInLogFileName_) {
-	s_pidInLogFileName_ = pidInLogFileName_;
-}
-
-bool LogConfig::isPidInLogFileName() {
-	return s_pidInLogFileName_;
-}
-
 } // end namespace iak
 
-#endif  // IAK_LOG_LOGSTREAM_H
+#endif  // IAK_LOG_LOGCONFIG_H
 

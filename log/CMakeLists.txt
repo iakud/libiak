@@ -1,7 +1,9 @@
 set(log_SRCS
+	LogConfig.cpp
 	LogStream.cpp
 	Logging.cpp
 	Logger.cpp
+	AsyncLogger.cpp
 	AsyncLogging.cpp
 	)
 
@@ -16,6 +18,7 @@ set(HEADERS
 	LogStream.h
 	Logging.h
 	Logger.h
+	AsyncLogger.h
 	AsyncLogging.h
 	)
 
