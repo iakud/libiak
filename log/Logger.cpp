@@ -4,6 +4,7 @@
 
 #include <base/ProcessInfo.h>
 
+#include <chrono>
 #include <assert.h>
 
 using namespace iak;
@@ -60,7 +61,7 @@ void Logger::append_unlocked(const char* logLine, int len) {
 	} else {
 		if (count_ > kCheckTimeRoll_) {
 			count_ = 0;
-			time_t now = ::time(NULL);
+			time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			time_t thisPeriod_ = now / kRollPerSeconds_ * kRollPerSeconds_;
 			if (thisPeriod_ != startOfPeriod_) {
 				rollFile();
@@ -86,10 +87,10 @@ void Logger::rollFile() {
 		filename.reserve(destination.size() + basename_.size() + 64);
 		filename = destination + basename_;
 
-		struct tm tm;
-		::localtime_r(&now, &tm);
+		struct tm tm_now;
+		::localtime_r(&now, &tm_now);
 		char timebuf[32];
-		::strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S", &tm);
+		::strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S", &tm_now);
 		filename += timebuf;
 		if (LogConfig::isHostNameInLogFileName()) {
 			filename += ".";
