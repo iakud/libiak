@@ -1,28 +1,23 @@
-#ifndef IAK_LOG_LOGFILE_H
-#define IAK_LOG_LOGFILE_H
+#ifndef IAK_LOG_ASYNCLOGGER_H
+#define IAK_LOG_ASYNCLOGGER_H
 
-#include <mutex>
 #include <string>
 #include <memory>
 
 namespace iak {
 
+class AsyncLogger;
+typedef std::shared_ptr<AsyncLogger> AsyncLoggerPtr;
+
 class LogFile;
-typedef std::shared_ptr<LogFile> LogFilePtr;
 
-class AsyncLogging;
-
-class Logger : public std::enable_shared_from_this<Logger> {
+class AsyncLogger : public std::enable_shared_from_this<AsyncLogger> {
 
 public:
-	static LogFilePtr make(const std::string& basename,
-			size_t rollSize,
-			bool threadSafe = true,
-			int flushInterval = 3);
-
-	static LogFilePtr make(AsyncLogging* asyncLogging,
+	static AsyncLoggerPtr make(AsyncLogging* asyncLogging,
 			const std::string& basename,
-			size_t rollSize);
+			size_t rollSize,
+			int flushInterval = 3)
 
 	static void setLogDir(const std::string& dir);
 	static void setHostInLogFileName(bool host);
@@ -66,10 +61,9 @@ protected:
 	time_t lastRoll_;
 	time_t lastFlush_;
 
-	class File;
-	std::unique_ptr<File> file_;
+	std::unique_ptr<LogFile> file_;
 }; // end class LogFile
 
 } // end namespace iak
 
-#endif  // IAK_LOG_LOGFILE_H
+#endif  // IAK_LOG_ASYNCLOGGER_H

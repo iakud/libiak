@@ -1,31 +1,12 @@
 #include "Logger.h"
 #include "LogFile.h"
+#include "LogConfig.h"
 
 #include <base/ProcessInfo.h>
 
 #include <assert.h>
 
 using namespace iak;
-
-std::string Logger::s_dir_ = "./";
-bool Logger::s_host_ = true;
-bool Logger::s_pid_ = true;
-
-void Logger::setLogDir(const std::string& dir) {
-	if (dir.find_last_of('/') != dir.length()) {
-		s_dir_ = dir + '/';
-	} else {
-		s_dir_ = dir;
-	}
-}
-
-void Logger::setHostInLogFileName(bool host) {
-	s_host_ = host;
-}
-
-void Logger::setPidInLogFileName(bool pid) {
-	s_pid_ = pid;
-}
 
 LoggerPtr Logger::make(const std::string& basename,
 		size_t rollSize,
@@ -94,39 +75,32 @@ void Logger::append_unlocked(const char* logLine, int len) {
 }
 
 void Logger::rollFile() {
-	time_t now = 0;
-	std::string filename = s_dir_ + getLogFileName(basename_, &now);
-	time_t start = now / kRollPerSeconds_ * kRollPerSeconds_;
-
+	time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	if (now > lastRoll_) {
 		lastRoll_ = now;
 		lastFlush_ = now;
-		startOfPeriod_ = start;
-		logFile_.reset(new LogFile(filename));
-	}
-}
+		startOfPeriod_ = now / kRollPerSeconds_ * kRollPerSeconds_;
 
-std::string Logger::getLogFileName(const std::string& basename, time_t* now) {
-	std::string filename;
-	filename.reserve(basename.size() + 64);
-	filename = basename;
+		std::string filename;
+		const std::string& destination = LogConfig::getLogDestination();
+		filename.reserve(destination.size() + basename_.size() + 64);
+		filename = destination + basename_;
 
-	char timebuf[32];
-	struct tm tm;
-	*now = ::time(NULL);
-	::localtime_r(now, &tm);
-	::strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S", &tm);
-	filename += timebuf;
-	if (s_host_) {
-		filename += ".";
-		filename += ProcessInfo::hostName();
+		struct tm tm;
+		::localtime_r(&now, &tm);
+		char timebuf[32];
+		::strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S", &tm);
+		filename += timebuf;
+		if (LogConfig::isHostNameInLogFileName()) {
+			filename += ".";
+			filename += ProcessInfo::hostName();
+		}
+		if (LogConfig::isPidInLogFileName()) {
+			char pidbuf[32];
+			::snprintf(pidbuf, sizeof pidbuf, ".%d", ProcessInfo::pid());
+			filename += pidbuf;
+		}
+		filename += ".log";
+		logFile_ = std::make_unique<LogFile>(filename);
 	}
-	if (s_pid_) {
-		char pidbuf[32];
-		::snprintf(pidbuf, sizeof pidbuf, ".%d", ProcessInfo::pid());
-		filename += pidbuf;
-	}
-	filename += ".log";
-
-	return filename;
 }

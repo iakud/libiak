@@ -3,13 +3,16 @@
 
 #include "Logging.h" // strerror_tl
 
-#include <assert.h>
 #include <stdio.h>
 #include <time.h>
+#include <assert.h>
 
 namespace iak {
 
 class LogFile {
+
+public:
+	static std::string getLogFileName(const std::string& basename, time_t* now);
 
 public:
 	explicit LogFile(const std::string& filename)
@@ -19,7 +22,6 @@ public:
 		::setbuffer(fp_, buffer_, sizeof buffer_);
 		// posix_fadvise POSIX_FADV_DONTNEED ?
 	}
-
 	~LogFile() {
 		::fclose(fp_);
 	}

@@ -20,16 +20,9 @@ public:
 			bool threadSafe = true,
 			int flushInterval = 3);
 
-	static void setLogDir(const std::string& dir);
-	static void setHostInLogFileName(bool host);
-	static void setPidInLogFileName(bool pid);
 protected:
 	static const int kCheckTimeRoll_ = 1024;
 	static const int kRollPerSeconds_ = 60 * 60 * 24;
-	static std::string getLogFileName(const std::string& basename, time_t* now);
-	static std::string s_dir_;
-	static bool s_host_;
-	static bool s_pid_;
 
 public:
 	Logger(const std::string& basename,
