@@ -8,7 +8,7 @@ set(frame_SRCS
 
 add_library(iak_frame ${frame_SRCS})
 target_link_libraries(iak_frame iak_base iak_net)
-set_target_properties(iak_frame PROPERTIES COMPILE_FLAGS "-std=c++11")
+set_target_properties(iak_frame PROPERTIES COMPILE_FLAGS "-std=c++14")
 
 install(TARGETS iak_frame DESTINATION lib)
 

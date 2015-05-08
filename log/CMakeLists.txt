@@ -7,16 +7,17 @@ set(log_SRCS
 
 add_library(iak_log ${log_SRCS})
 target_link_libraries(iak_log iak_base)
-set_target_properties(iak_log PROPERTIES COMPILE_FLAGS "-std=c++11")
+set_target_properties(iak_log PROPERTIES COMPILE_FLAGS "-std=c++14")
 
 install(TARGETS iak_log DESTINATION lib)
 
 set(HEADERS
-  LogStream.h
-  Logging.h
-  Logger.h
-  AsyncLogging.h
-  )
+	LogConfig.h
+	LogStream.h
+	Logging.h
+	Logger.h
+	AsyncLogging.h
+	)
 
 #file(GLOB HEADERS "*.h")
 install(FILES ${HEADERS} DESTINATION include/iak/log)
