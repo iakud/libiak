@@ -12,9 +12,6 @@ namespace iak {
 class LogFile {
 
 public:
-	static std::string getLogFileName(const std::string& basename, time_t* now);
-
-public:
 	explicit LogFile(const std::string& filename)
 		: fp_(::fopen(filename.data(), "ae"))
 		, writtenBytes_(0) {
