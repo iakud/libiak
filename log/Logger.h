@@ -18,7 +18,9 @@ public:
 	static LoggerPtr make(const std::string& basename,
 			size_t rollSize,
 			bool threadSafe = true,
-			int flushInterval = 3);
+			int flushInterval = 3,
+			bool hostNameInLogFileName = false,
+			bool pidInLogFileName = false);
 
 protected:
 	static const int kCheckTimeRoll_ = 1024;
@@ -28,25 +30,13 @@ public:
 	Logger(const std::string& basename,
 			size_t rollSize,
 			bool threadSafe = true,
-			int flushInterval = 3);
+			int flushInterval = 3,
+			bool hostNameInLogFileName = false,
+			bool pidInLogFileName = false);
 	~Logger();
 	// noncopyable
 	Logger(const Logger&) = delete;
 	Logger& operator=(const Logger&) = delete;
-
-	void setHostNameInLogFileName(bool hostNameInLogFileName) {
-		hostNameInLogFileName_ = hostNameInLogFileName;
-	}
-
-	void setPidInLogFileName(bool pidInLogFileName) {
-		pidInLogFileName_ = pidInLogFileName;
-	}
-
-	bool isFileAndLineInLog() { return fileAndLineInLog_; }
-
-	void setFileAndLineInLog(bool fileAndLineInLog) {
-		fileAndLineInLog_ = fileAndLineInLog;
-	}
 
 	void append(const char* logLine, int len);
 	void flush();
@@ -61,7 +51,6 @@ private:
 
 	bool hostNameInLogFileName_;
 	bool pidInLogFileName_;
-	bool fileAndLineInLog_;
 
 	int count_;
 

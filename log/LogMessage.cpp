@@ -70,22 +70,14 @@ LogMessage<Logger_>::LogMessage(Logger_& logger, const char* filename, int line,
 
 template<class Logger_>
 LogMessage<Logger_>::~LogMessage() {
+	const char* slash = ::strrchr(filename_, '/');
+	if (slash) {
+		filename_ = slash + 1;
+	}
+	stream_ << " - " << filename_ << ':' << line_ << '\n';
 	if (logger_) {
-		if (logger_->isFileAndLineInLog()) {
-			const char* slash = ::strrchr(filename_, '/');
-			if (slash) {
-				filename_ = slash + 1;
-			}
-			stream_ << " - " << filename_ << ':' << line_;
-		}
-		stream_ << '\n';
 		logger_->append(stream_.data(), stream_.length());
 	} else {
-		const char* slash = ::strrchr(filename_, '/');
-		if (slash) {
-			filename_ = slash + 1;
-		}
-		stream_ << " - " << filename_ << ':' << line_ << '\n';
 		::fwrite(stream_.data(), 1, stream_.length(), stdout);
 	}
 

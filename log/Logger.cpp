@@ -12,21 +12,24 @@ using namespace iak;
 LoggerPtr Logger::make(const std::string& basename,
 		size_t rollSize,
 		bool threadSafe,
-		int flushInterval) {
-	return std::make_shared<Logger>(basename,
-			rollSize, threadSafe, flushInterval);
+		int flushInterval,
+		bool hostNameInLogFileName,
+		bool pidInLogFileName) {
+	return std::make_shared<Logger>(basename, rollSize, threadSafe, 
+			flushInterval, hostNameInLogFileName, pidInLogFileName);
 }
 
 Logger::Logger(const std::string& basename,
 	size_t rollSize,
 	bool threadSafe,
-	int flushInterval)
+	int flushInterval,
+	bool hostNameInLogFileName,
+	bool pidInLogFileName)
 	: basename_(basename)
 	, rollSize_(rollSize)
 	, flushInterval_(flushInterval)
-	, hostNameInLogFileName_(false)
-	, pidInLogFileName_(false)
-	, fileAndLineInLog_(false)
+	, hostNameInLogFileName_(hostNameInLogFileName)
+	, pidInLogFileName_(pidInLogFileName)
 	, count_(0)
 	, mutexPtr_(threadSafe ? new std::mutex : nullptr)
 	, startOfPeriod_(0)
