@@ -25,7 +25,7 @@ const char* LogLevelName[static_cast<int>(LogLevel::NUM_LOG_LEVELS)] = {
 using namespace iak;
 
 template<class Logger_>
-LogMessage<Logger_>::LogMessage(Logger_ logger, const char* filename, int line, LogLevel level)
+LogMessage<Logger_>::LogMessage(Logger_& logger, const char* filename, int line, LogLevel level)
 	: time_(std::chrono::system_clock::now())
 	, stream_()
 	, logger_(logger)
@@ -57,13 +57,13 @@ LogMessage<Logger_>::LogMessage(Logger_ logger, const char* filename, int line, 
 }
 
 template<class Logger_>
-LogMessage<Logger_>::LogMessage(Logger_ logger, const char* filename, int line, LogLevel level, const char* func)
+LogMessage<Logger_>::LogMessage(Logger_& logger, const char* filename, int line, LogLevel level, const char* func)
 	: LogMessage(logger, filename, line, level) {
 	stream_ << func << ' ';
 }
 
 template<class Logger_>
-LogMessage<Logger_>::LogMessage(Logger_ logger, const char* filename, int line, bool toAbort)
+LogMessage<Logger_>::LogMessage(Logger_& logger, const char* filename, int line, bool toAbort)
 	: LogMessage(logger, filename, line, toAbort ? LogLevel::FATAL : LogLevel::ERROR) {
 	int savedErrno = errno;
 	if (savedErrno != 0) {

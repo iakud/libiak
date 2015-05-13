@@ -13,10 +13,10 @@ template<class Logger_>
 class LogMessage {
 
 public:
-	LogMessage(Logger_ logger, const char* filename, int line, LogLevel level);
-	LogMessage(Logger_ logger, const char* filename, int line, LogLevel level,
+	LogMessage(Logger_& logger, const char* filename, int line, LogLevel level);
+	LogMessage(Logger_& logger, const char* filename, int line, LogLevel level,
 		const char* func);
-	LogMessage(Logger_ logger, const char* filename, int line, bool toAbort);
+	LogMessage(Logger_& logger, const char* filename, int line, bool toAbort);
 	~LogMessage();
 
 	LogStream& stream() { return stream_; }
@@ -24,7 +24,7 @@ public:
 private:
 	std::chrono::system_clock::time_point time_;
 	LogStream stream_;
-	Logger_ logger_;
+	Logger_& logger_;
 	const char* filename_;
 	int line_;
 	LogLevel level_;
