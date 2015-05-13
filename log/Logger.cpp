@@ -1,6 +1,6 @@
 #include "Logger.h"
 #include "LogFile.h"
-#include "LogConfig.h"
+#include "Logging.h"
 
 #include <base/ProcessInfo.h>
 
@@ -18,12 +18,15 @@ LoggerPtr Logger::make(const std::string& basename,
 }
 
 Logger::Logger(const std::string& basename,
-		size_t rollSize,
-		bool threadSafe,
-		int flushInterval)
+	size_t rollSize,
+	bool threadSafe,
+	int flushInterval)
 	: basename_(basename)
 	, rollSize_(rollSize)
 	, flushInterval_(flushInterval)
+	, hostNameInLogFileName_(false)
+	, pidInLogFileName_(false)
+	, fileAndLineInLog_(false)
 	, count_(0)
 	, mutexPtr_(threadSafe ? new std::mutex : nullptr)
 	, startOfPeriod_(0)
@@ -83,7 +86,7 @@ void Logger::rollFile() {
 		startOfPeriod_ = now / kRollPerSeconds_ * kRollPerSeconds_;
 
 		std::string filename;
-		const std::string& destination = LogConfig::getLogDestination();
+		const std::string& destination = Logging::getLogDestination();
 		filename.reserve(destination.size() + basename_.size() + 64);
 		filename = destination + basename_;
 
@@ -92,11 +95,11 @@ void Logger::rollFile() {
 		char timebuf[32];
 		::strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S", &tm_now);
 		filename += timebuf;
-		if (LogConfig::isHostNameInLogFileName()) {
+		if (hostNameInLogFileName_) {
 			filename += ".";
 			filename += ProcessInfo::hostName();
 		}
-		if (LogConfig::isPidInLogFileName()) {
+		if (pidInLogFileName_) {
 			char pidbuf[32];
 			::snprintf(pidbuf, sizeof pidbuf, ".%d", ProcessInfo::pid());
 			filename += pidbuf;

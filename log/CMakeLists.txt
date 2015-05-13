@@ -1,10 +1,8 @@
 set(log_SRCS
-	LogConfig.cpp
-	LogStream.cpp
 	Logging.cpp
+	LogStream.cpp
+	LogMessage.cpp
 	Logger.cpp
-	AsyncLogger.cpp
-	AsyncLogging.cpp
 	)
 
 add_library(iak_log ${log_SRCS})
@@ -14,12 +12,10 @@ set_target_properties(iak_log PROPERTIES COMPILE_FLAGS "-std=c++14")
 install(TARGETS iak_log DESTINATION lib)
 
 set(HEADERS
-	LogConfig.h
-	LogStream.h
 	Logging.h
+	LogStream.h
+	LogMessage.h
 	Logger.h
-	AsyncLogger.h
-	AsyncLogging.h
 	)
 
 #file(GLOB HEADERS "*.h")

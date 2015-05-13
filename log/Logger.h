@@ -34,16 +34,34 @@ public:
 	Logger(const Logger&) = delete;
 	Logger& operator=(const Logger&) = delete;
 
+	void setHostNameInLogFileName(bool hostNameInLogFileName) {
+		hostNameInLogFileName_ = hostNameInLogFileName;
+	}
+
+	void setPidInLogFileName(bool pidInLogFileName) {
+		pidInLogFileName_ = pidInLogFileName;
+	}
+
+	bool isFileAndLineInLog() { return fileAndLineInLog_; }
+
+	void setFileAndLineInLog(bool fileAndLineInLog) {
+		fileAndLineInLog_ = fileAndLineInLog;
+	}
+
 	void append(const char* logLine, int len);
 	void flush();
 
-protected:
+private:
 	void append_unlocked(const char* logLine, int len);
 	void rollFile();
 
 	const std::string basename_;
 	const size_t rollSize_;
 	const int flushInterval_;
+
+	bool hostNameInLogFileName_;
+	bool pidInLogFileName_;
+	bool fileAndLineInLog_;
 
 	int count_;
 

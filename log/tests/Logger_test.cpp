@@ -1,4 +1,4 @@
-#include <log/Logging.h>
+#include <log/LogMessage.h>
 #include <log/Logger.h>
 #include <unistd.h>
 
