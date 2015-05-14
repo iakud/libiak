@@ -1,5 +1,5 @@
 #include <log/AsyncLogging.h>
-#include <log/Logger.h>
+#include <log/AsyncLogger.h>
 
 #include <chrono>
 #include <string>
@@ -12,9 +12,7 @@ int kRollSize = 500*1000*1000;
 using namespace std;
 using namespace iak;
 
-AsyncLogging* g_asyncLoging = NULL;
-
-void bench(LogFilePtr logFile, bool longLog) {
+void bench(AsyncLoggerPtr logger, bool longLog) {
 
 	int cnt = 0;
 	const int kBatch = 1000;
@@ -26,7 +24,7 @@ void bench(LogFilePtr logFile, bool longLog) {
 		
 		std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 		for (int i = 0; i < kBatch; ++i) {
-			LOG_INFO(logFile) << "Hello 0123456789" << " abcdefghijklmnopqrstuvwxyz "
+			LOG_INFO(logger) << "Hello 0123456789" << " abcdefghijklmnopqrstuvwxyz "
 				<< (longLog ? longStr : empty)
 				<< cnt;
 			++cnt;
@@ -58,8 +56,8 @@ int main(int argc, char* argv[])
 	AsyncLogging log;
 	log.start();
 	
-	LogFilePtr logFile1 = LogFile::make(&log, ::basename("file1"), kRollSize);
-	LogFilePtr logFile2 = LogFile::make(&log, ::basename("file2"), kRollSize);
-	bench(logFile1, longLog);
-	g_asyncLoging = &log;
+	AsyncLoggerPtr logger1 = AsyncLogger::make(&log, ::basename("file1"), kRollSize);
+	//AsyncLoggerPtr logger2 = AsyncLogger::make(&log, ::basename("file2"), kRollSize);
+	bench(logger1, longLog);
+	log.stop();
 }

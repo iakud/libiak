@@ -12,26 +12,43 @@ AsyncLogging::AsyncLogging()
 	, latch_(1)
 	, mutex_()
 	, cv_()
-    , pendingFunctors_() {
+	, asyncLoggers_() {
 	
+}
+
+AsyncLogging::~AsyncLogging() {
+	if (running_) {
+		stop();
+	}
+}
+
+void AsyncLogging::append(AsyncLoggerPtr&& asyncLogger, const char* logline, int len) {
+	std::unique_lock<std::mutex> lock(mutex_);
+	asyncLogger->appendToBuffer_locked(logline, len);
+	asyncLoggers_.insert(asyncLogger);
+	cv_.notify_one();
 }
 
 void AsyncLogging::threadFunc() {
 	assert(running_ == true);
 	latch_.countDown();
-	
+
 	while (running_) {
-		std::vector<Functor> functors;
-		{
-			std::unique_lock<std::mutex> lock(mutex_);
-			if (pendingFunctors_.empty()) {
-				cv_.wait(lock);
-			}
-			functors.swap(pendingFunctors_);
-		}
-		for (Functor functor : functors) {
-			functor();
+		std::set<AsyncLoggerPtr> asyncLoggersToWrite;
+		swapAsyncLoggersToWrite(asyncLoggersToWrite);
+		for (const AsyncLoggerPtr& asyncLogger : asyncLoggersToWrite) {
+			asyncLogger->appendBuffers_unlocked();
 		}
 	}
 }
 
+void AsyncLogging::swapAsyncLoggersToWrite(std::set<AsyncLoggerPtr>& asyncLoggersToWrite) {
+	std::unique_lock<std::mutex> lock(mutex_);
+	if (asyncLoggers_.empty()) {
+		cv_.wait(lock);
+	}
+	asyncLoggersToWrite.swap(asyncLoggers_);
+	for (const AsyncLoggerPtr& asyncLogger : asyncLoggersToWrite) {
+		asyncLogger->swapBuffersToWrite_locked();
+	}
+}

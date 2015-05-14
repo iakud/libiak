@@ -1,7 +1,7 @@
 #include "LogMessage.h"
 #include "Logger.h"
 #include "Logging.h"
-//#include "AsyncLogger.h"
+#include "AsyncLogger.h"
 
 #include <thread>
 
@@ -93,4 +93,4 @@ LogMessage<Logger_>::~LogMessage() {
 
 //  explicit instantiations
 template class LogMessage<LoggerPtr>;
-//template class LogMessage<AsyncLogger*>;
+template class LogMessage<AsyncLoggerPtr>;

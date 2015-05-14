@@ -2,6 +2,7 @@
 #define IAK_LOG_ASYNCLOGGER_H
 
 #include <string>
+#include <vector>
 #include <memory>
 
 namespace iak {
@@ -15,10 +16,13 @@ class AsyncLogging;
 class AsyncLogger : public std::enable_shared_from_this<AsyncLogger> {
 
 public:
+	friend class AsyncLogging;
+
 	static AsyncLoggerPtr make(AsyncLogging* asyncLogging,
 			const std::string& basename,
 			size_t rollSize,
-			int flushInterval = 3);
+			bool hostNameInLogFileName = false,
+			bool pidInLogFileName = false);
 
 protected:
 	static const int kCheckTimeRoll_ = 1024;
@@ -28,7 +32,8 @@ public:
 	AsyncLogger(AsyncLogging* asyncLogging,
 			const std::string& basename,
 			size_t rollSize,
-			int flushInterval = 3);
+			bool hostNameInLogFileName = false,
+			bool pidInLogFileName = false);
 	~AsyncLogger();
 	// noncopyable
 	AsyncLogger(const AsyncLogger&) = delete;
@@ -37,14 +42,19 @@ public:
 	void append(const char* logline, int len);
 	void flush();
 
-protected:
-	void append_unlocked(const char* logline, int len);
+private:
+	void appendToBuffer_locked(const char* logline, int len);
+	void swapBuffersToWrite_locked();
+	void appendBuffers_unlocked();
+	void append_unlocked(const char* logline, int len); // call in appendBuffers_unlocked
 	void rollFile();
 
 	AsyncLogging* asyncLogging_;
 	const std::string basename_;
 	const size_t rollSize_;
-	const int flushInterval_;
+
+	bool hostNameInLogFileName_;
+	bool pidInLogFileName_;
 
 	int count_;
 	time_t startOfPeriod_;
@@ -52,8 +62,20 @@ protected:
 	time_t lastFlush_;
 
 	std::unique_ptr<LogFile> logFile_;
+
+	class Buffer;
+	typedef std::shared_ptr<Buffer> BufferPtr;
+
+	BufferPtr currentBuffer_;
+	BufferPtr nextBuffer_;
+	std::vector<BufferPtr> buffers_;
+	std::vector<BufferPtr> buffersToWrite_;
+	BufferPtr buffer1_; // backup
+	BufferPtr buffer2_; // bakcup
 }; // end class AsyncLogger
 
 } // end namespace iak
+
+#include "LogMessage.h"
 
 #endif  // IAK_LOG_ASYNCLOGGER_H

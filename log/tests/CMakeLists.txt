@@ -1,3 +1,5 @@
 add_executable(Logger_test Logger_test.cpp)
 target_link_libraries(Logger_test iak_log)
 
+add_executable(AsyncLogger_test AsyncLogger_test.cpp)
+target_link_libraries(AsyncLogger_test iak_log)

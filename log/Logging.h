@@ -8,11 +8,11 @@ namespace iak {
 class Logging {
 
 public:
+
 	inline static void setLogDestination(const std::string& destination) {
 		if (destination.find_last_of('/') != destination.length()) {
 			s_destination_ = destination + '/';
-		}
-		else {
+		} else {
 			s_destination_ = destination;
 		}
 	}

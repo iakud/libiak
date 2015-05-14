@@ -1,38 +1,28 @@
 #ifndef IAK_BASE_ASYNCLOGGING_H
 #define IAK_BASE_ASYNCLOGGING_H
 
+#include "AsyncLogger.h"
+
 #include <base/CountDownLatch.h>
 
 #include <mutex>
 #include <condition_variable>
 #include <thread>
 #include <memory>
-#include <vector>
-#include <string>
+#include <set>
 
 namespace iak {
 
 class AsyncLogging {
 
 public:
-	typedef std::function<void()> Functor;
-
-public:
 	AsyncLogging();
-	~AsyncLogging() {
-		if (running_) {
-			stop();
-		}
-	}
+	~AsyncLogging();
 	// noncopyable
 	AsyncLogging(const AsyncLogging&) = delete;
 	AsyncLogging& operator=(const AsyncLogging&) = delete;
 
-	void append(Functor&& functor) {
-		std::unique_lock<std::mutex> lock(mutex_);
-		pendingFunctors_.push_back(functor);
-		cv_.notify_one();
-	}
+	void append(AsyncLoggerPtr&& asyncLoggerPtr, const char* logline, int len);
 
 	void start() {
 		running_ = true;
@@ -51,8 +41,9 @@ private:
 	//void operator=(const AsyncLogger&);  // ptr_container
 
 	//static const uint32_t kNanoSecondsPerSecond = 1e9;
-
+	
 	void threadFunc();
+	void swapAsyncLoggersToWrite(std::set<AsyncLoggerPtr>& asyncLoggersToWrite);
 
 	volatile bool running_;
 	std::thread thread_;
@@ -60,7 +51,7 @@ private:
 	std::mutex mutex_;
 	std::condition_variable cv_;
 
-	std::vector<Functor> pendingFunctors_;
+	std::set<AsyncLoggerPtr> asyncLoggers_;
 }; // end class AsyncLogging
 
 } // end namespace iak

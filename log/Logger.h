@@ -64,4 +64,6 @@ private:
 
 } // end namespace iak
 
+#include "LogMessage.h"
+
 #endif	// IAK_LOG_LOGGER_H
