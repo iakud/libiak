@@ -10,7 +10,7 @@ template<typename T>
 class Singleton {
 public:
 	static T& getInstance() {
-		std::call_once(s_once_, &Singleton::init)
+		std::call_once(s_once_, &Singleton::init);
 		return *s_value_;
 	}
 
