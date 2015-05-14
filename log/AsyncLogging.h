@@ -9,7 +9,7 @@
 #include <condition_variable>
 #include <thread>
 #include <memory>
-#include <set>
+#include <vector>
 
 namespace iak {
 
@@ -43,7 +43,7 @@ private:
 	//static const uint32_t kNanoSecondsPerSecond = 1e9;
 	
 	void threadFunc();
-	void swapAsyncLoggersToWrite(std::set<AsyncLoggerPtr>& asyncLoggersToWrite);
+	void swapAsyncLoggersToWrite(std::vector<AsyncLoggerPtr>& asyncLoggersToWrite);
 
 	volatile bool running_;
 	std::thread thread_;
@@ -51,7 +51,7 @@ private:
 	std::mutex mutex_;
 	std::condition_variable cv_;
 
-	std::set<AsyncLoggerPtr> asyncLoggers_;
+	std::vector<AsyncLoggerPtr> asyncLoggers_;
 }; // end class AsyncLogging
 
 } // end namespace iak

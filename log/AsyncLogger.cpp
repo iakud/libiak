@@ -80,7 +80,8 @@ AsyncLogger::AsyncLogger(AsyncLogging* asyncLogging,
 	, count_(0)
 	, startOfPeriod_(0)
 	, lastRoll_(0)
-	, lastFlush_(0) 
+	, lastFlush_(0)
+	, notEmpty_(false)
 	, currentBuffer_(std::make_shared<Buffer>())
 	, nextBuffer_(std::make_shared<Buffer>())
 	, buffers_()
@@ -114,6 +115,9 @@ void AsyncLogger::appendToBuffer_locked(const char* logline, int len) {
 		}
 		currentBuffer_->append(logline, len);
 	}
+	if (!notEmpty_) {
+		notEmpty_ = true;
+	}
 }
 
 void AsyncLogger::swapBuffersToWrite_locked() {
@@ -126,6 +130,9 @@ void AsyncLogger::swapBuffersToWrite_locked() {
 		nextBuffer_.swap(buffer2_);
 	}
 	buffersToWrite_.swap(buffers_);
+	if (notEmpty_) {
+		notEmpty_ = false;
+	}
 }
 
 void AsyncLogger::appendBuffers_unlocked() {

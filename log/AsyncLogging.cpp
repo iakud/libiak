@@ -24,9 +24,12 @@ AsyncLogging::~AsyncLogging() {
 
 void AsyncLogging::append(AsyncLoggerPtr&& asyncLogger, const char* logline, int len) {
 	std::unique_lock<std::mutex> lock(mutex_);
+	bool notEmpty = asyncLogger->isNotEmpty();
 	asyncLogger->appendToBuffer_locked(logline, len);
-	asyncLoggers_.insert(asyncLogger);
-	cv_.notify_one();
+	if (!notEmpty) {
+		asyncLoggers_.push_back(asyncLogger);
+		cv_.notify_one();
+	}
 }
 
 void AsyncLogging::threadFunc() {
@@ -34,7 +37,7 @@ void AsyncLogging::threadFunc() {
 	latch_.countDown();
 
 	while (running_) {
-		std::set<AsyncLoggerPtr> asyncLoggersToWrite;
+		std::vector<AsyncLoggerPtr> asyncLoggersToWrite;
 		swapAsyncLoggersToWrite(asyncLoggersToWrite);
 		for (const AsyncLoggerPtr& asyncLogger : asyncLoggersToWrite) {
 			asyncLogger->appendBuffers_unlocked();
@@ -42,7 +45,7 @@ void AsyncLogging::threadFunc() {
 	}
 }
 
-void AsyncLogging::swapAsyncLoggersToWrite(std::set<AsyncLoggerPtr>& asyncLoggersToWrite) {
+void AsyncLogging::swapAsyncLoggersToWrite(std::vector<AsyncLoggerPtr>& asyncLoggersToWrite) {
 	std::unique_lock<std::mutex> lock(mutex_);
 	if (asyncLoggers_.empty()) {
 		cv_.wait(lock);

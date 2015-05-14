@@ -43,6 +43,7 @@ public:
 	void flush();
 
 private:
+	bool isNotEmpty() { return notEmpty_; }
 	void appendToBuffer_locked(const char* logline, int len);
 	void swapBuffersToWrite_locked();
 	void appendBuffers_unlocked();
@@ -66,6 +67,7 @@ private:
 	class Buffer;
 	typedef std::shared_ptr<Buffer> BufferPtr;
 
+	bool notEmpty_;
 	BufferPtr currentBuffer_;
 	BufferPtr nextBuffer_;
 	std::vector<BufferPtr> buffers_;
