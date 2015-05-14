@@ -21,21 +21,22 @@ const char* LogLevelName[static_cast<int>(LogLevel::NUM_LOG_LEVELS)] = {
 
 using namespace iak;
 
+// DLogMessage
 template<class Logger_>
-LogMessage<Logger_>::LogMessage(Logger_& logger, const char* filename, int line, LogLevel level)
-	: time_(std::chrono::system_clock::now())
-	, stream_()
+DLogMessage<Logger_>::DLogMessage(Logger_& logger, const char* filename, int line, LogLevel level)
+	: stream_()
 	, logger_(logger)
 	, filename_(filename)
 	, line_(line)
 	, level_(level) {
 	
+	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 	std::chrono::seconds seconds = 
-		std::chrono::duration_cast<std::chrono::seconds>(time_.time_since_epoch());
+		std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
 	std::chrono::microseconds microseconds = 
-		std::chrono::duration_cast<std::chrono::microseconds>(time_.time_since_epoch() - seconds);
+		std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch() - seconds);
 
-	time_t time = std::chrono::system_clock::to_time_t(time_);
+	time_t time = std::chrono::system_clock::to_time_t(now);
 	if (seconds.count() != t_lastSecond) {
 		t_lastSecond = seconds.count();
 		struct tm tm_time;
@@ -54,14 +55,14 @@ LogMessage<Logger_>::LogMessage(Logger_& logger, const char* filename, int line,
 }
 
 template<class Logger_>
-LogMessage<Logger_>::LogMessage(Logger_& logger, const char* filename, int line, LogLevel level, const char* func)
-	: LogMessage(logger, filename, line, level) {
+DLogMessage<Logger_>::DLogMessage(Logger_& logger, const char* filename, int line, LogLevel level, const char* func)
+	: DLogMessage(logger, filename, line, level) {
 	stream_ << func << ' ';
 }
 
 template<class Logger_>
-LogMessage<Logger_>::LogMessage(Logger_& logger, const char* filename, int line, bool toAbort)
-	: LogMessage(logger, filename, line, toAbort ? LogLevel::FATAL : LogLevel::ERROR) {
+DLogMessage<Logger_>::DLogMessage(Logger_& logger, const char* filename, int line, bool toAbort)
+	: DLogMessage(logger, filename, line, toAbort ? LogLevel::FATAL : LogLevel::ERROR) {
 	int savedErrno = errno;
 	if (savedErrno != 0) {
 		stream_ << strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
@@ -69,7 +70,7 @@ LogMessage<Logger_>::LogMessage(Logger_& logger, const char* filename, int line,
 }
 
 template<class Logger_>
-LogMessage<Logger_>::~LogMessage() {
+DLogMessage<Logger_>::~DLogMessage() {
 	const char* slash = ::strrchr(filename_, '/');
 	if (slash) {
 		filename_ = slash + 1;
@@ -91,6 +92,47 @@ LogMessage<Logger_>::~LogMessage() {
 	}
 }
 
+// LogMessage
+template<class Logger_>
+LogMessage<Logger_>::LogMessage(Logger_& logger, LogLevel level)
+	: stream_()
+	, logger_(logger) {
+
+	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+	std::chrono::seconds seconds =
+		std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
+	std::chrono::microseconds microseconds =
+		std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch() - seconds);
+
+	time_t time = std::chrono::system_clock::to_time_t(now);
+	if (seconds.count() != t_lastSecond) {
+		t_lastSecond = seconds.count();
+		struct tm tm_time;
+		::localtime_r(&time, &tm_time);
+		int len = snprintf(t_time, sizeof(t_time), "%4d%02d%02d %02d:%02d:%02d",
+			tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
+			tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec);
+		assert(len == 17); (void)len;
+	}
+	LogFormat us(".%06d ", microseconds.count());
+	assert(us.length() == 8);
+	stream_ << t_time << us.data();
+	// stream_ << Thread::tidString(); // FIXME:std::this_thread::get_id()
+	stream_ << LogLevelName[static_cast<int>(level)];
+}
+
+template<class Logger_>
+LogMessage<Logger_>::~LogMessage() {
+	stream_ << '\n';
+	if (logger_) {
+		logger_->append(stream_.data(), stream_.length());
+	} else {
+		::fwrite(stream_.data(), 1, stream_.length(), stdout);
+	}
+}
+
 //  explicit instantiations
+template class DLogMessage<LoggerPtr>;
+template class DLogMessage<AsyncLoggerPtr>;
 template class LogMessage<LoggerPtr>;
 template class LogMessage<AsyncLoggerPtr>;

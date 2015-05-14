@@ -10,50 +10,61 @@ namespace iak {
 enum class LogLevel { TRACE, DEBUG, INFO, WARN, ERROR, FATAL, NUM_LOG_LEVELS };
 
 template<class Logger_>
-class LogMessage {
+class DLogMessage {
 
 public:
-	LogMessage(Logger_& logger, const char* filename, int line, LogLevel level);
-	LogMessage(Logger_& logger, const char* filename, int line, LogLevel level,
+	DLogMessage(Logger_& logger, const char* filename, int line, LogLevel level);
+	DLogMessage(Logger_& logger, const char* filename, int line, LogLevel level,
 		const char* func);
-	LogMessage(Logger_& logger, const char* filename, int line, bool toAbort);
-	~LogMessage();
+	DLogMessage(Logger_& logger, const char* filename, int line, bool toAbort);
+	~DLogMessage();
 
 	LogStream& stream() { return stream_; }
 
 private:
-	std::chrono::system_clock::time_point time_;
 	LogStream stream_;
 	Logger_& logger_;
 	const char* filename_;
 	int line_;
 	LogLevel level_;
+}; // end class DLogMessage
+
+template<class Logger_>
+class LogMessage {
+
+public:
+	LogMessage(Logger_& logger, LogLevel level);
+	~LogMessage();
+
+	LogStream& stream() { return stream_; }
+
+private:
+	LogStream stream_;
+	Logger_& logger_;
 }; // end class LogMessage
 
-
-/*
-template <typename T>
-T* CheckNotNull(LogFilePtr logfile, const char* filename, int line, const char *name, T* ptr) {
+template <class Logger_, typename T>
+T* CheckNotNull(Logger_& logger, const char* filename, int line, const char *name, T* ptr) {
 	if (ptr == NULL) {
-		LogLine(logfile, filename, line, LogLine::FATAL).stream() << name;
+		DLogMessage<decltype(logger)>(logger, filename, line, LogLevel::FATAL).stream() << name;
 	}
 	return ptr;
 }
-*/
 
-/*
-#define CHECK_NOTNULL(val) \
-	::iak::CheckNotNull(__FILE__, __LINE__, "'" #val "' must be non NULL", (val))
-*/
+#define CHECK_NOTNULL(LOGGER,val) \
+	::iak::CheckNotNull((LOGGER), __FILE__, __LINE__, "'" #val "' must be non NULL", (val))
 
-#define LOG_TRACE(LOGGER) ::iak::LogMessage<decltype(LOGGER)>(LOGGER, __FILE__, __LINE__, ::iak::LogLevel::TRACE, __func__).stream()
-#define LOG_DEBUG(LOGGER) ::iak::LogMessage<decltype(LOGGER)>(LOGGER, __FILE__, __LINE__, ::iak::LogLevel::DEBUG, __func__).stream()
-#define LOG_INFO(LOGGER) ::iak::LogMessage<decltype(LOGGER)>(LOGGER, __FILE__, __LINE__, ::iak::LogLevel::INFO).stream()
-#define LOG_WARN(LOGGER) ::iak::LogMessage<decltype(LOGGER)>(LOGGER, __FILE__, __LINE__, ::iak::LogLevel::WARN).stream()
-#define LOG_ERROR(LOGGER) ::iak::LogMessage<decltype(LOGGER)>(LOGGER, __FILE__, __LINE__, ::iak::LogLevel::ERROR).stream()
-#define LOG_FATAL(LOGGER) ::iak::LogMessage<decltype(LOGGER)>(LOGGER, __FILE__, __LINE__, ::iak::LogLevel::FATAL).stream()
-#define LOG_SYSERR(LOGGER) ::iak::LogMessage<decltype(LOGGER)>(LOGGER, __FILE__, __LINE__, false).stream()
-#define LOG_SYSFATAL(LOGGER) ::iak::LogMessage<decltype(LOGGER)>(LOGGER, __FILE__, __LINE__, true).stream()
+#define DLOG_TRACE(LOGGER) ::iak::DLogMessage<decltype(LOGGER)>((LOGGER), __FILE__, __LINE__, ::iak::LogLevel::TRACE, __func__).stream()
+#define DLOG_DEBUG(LOGGER) ::iak::DLogMessage<decltype(LOGGER)>((LOGGER), __FILE__, __LINE__, ::iak::LogLevel::DEBUG, __func__).stream()
+#define DLOG_INFO(LOGGER) ::iak::DLogMessage<decltype(LOGGER)>((LOGGER), __FILE__, __LINE__, ::iak::LogLevel::INFO).stream()
+#define DLOG_WARN(LOGGER) ::iak::DLogMessage<decltype(LOGGER)>((LOGGER), __FILE__, __LINE__, ::iak::LogLevel::WARN).stream()
+#define DLOG_ERROR(LOGGER) ::iak::DLogMessage<decltype(LOGGER)>((LOGGER), __FILE__, __LINE__, ::iak::LogLevel::ERROR).stream()
+#define DLOG_FATAL(LOGGER) ::iak::DLogMessage<decltype(LOGGER)>((LOGGER), __FILE__, __LINE__, ::iak::LogLevel::FATAL).stream()
+#define DLOG_SYSERR(LOGGER) ::iak::DLogMessage<decltype(LOGGER)>((LOGGER), __FILE__, __LINE__, false).stream()
+#define DLOG_SYSFATAL(LOGGER) ::iak::DLogMessage<decltype(LOGGER)>(LOGGER, __FILE__, __LINE__, true).stream()
+
+#define LOG_INFO(LOGGER) ::iak::LogMessage<decltype(LOGGER)>((LOGGER), ::iak::LogLevel::INFO).stream()
+#define LOG_ERROR(LOGGER) ::iak::LogMessage<decltype(LOGGER)>((LOGGER), ::iak::LogLevel::ERROR).stream()
 
 } // end namespace iak
 
