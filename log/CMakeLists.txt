@@ -21,7 +21,6 @@ set(HEADERS
 	AsyncLogger.h
 	)
 
-#file(GLOB HEADERS "*.h")
 install(FILES ${HEADERS} DESTINATION include/iak/log)
 
 if (NOT CMAKE_BUILD_NO_EXAMPLES)

@@ -19,9 +19,14 @@ set_target_properties(iak_net PROPERTIES COMPILE_FLAGS "-std=c++14")
 install(TARGETS iak_net DESTINATION lib)
 
 set(HEADERS
-  EventLoop.h
-  InetAddress.h
-  )
+	EventLoop.h
+	InetAddress.h
+	EventLoopThreadPool.h
+	Packet.h
+	TcpConnection.h
+	TcpClient.h
+	TcpServer.h
+	)
 
 install(FILES ${HEADERS} DESTINATION include/iak/net)
 
