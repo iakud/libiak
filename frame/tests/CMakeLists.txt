@@ -1,5 +1,0 @@
-add_executable(ListenSocket_test ListenSocket_test.cpp)
-target_link_libraries(ListenSocket_test iak_base iak_net iak_frame)
-
-add_executable(ConnectSocket_test ConnectSocket_test.cpp)
-target_link_libraries(ConnectSocket_test iak_base iak_net iak_frame)
