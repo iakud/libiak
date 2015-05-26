@@ -8,7 +8,6 @@ set(base_SRCS
 	)
 
 add_library(iak_base ${base_SRCS})
-target_link_libraries(iak_base pthread rt)
 set_target_properties(iak_base PROPERTIES COMPILE_FLAGS "-std=c++14")
 
 install(TARGETS iak_base DESTINATION lib)
