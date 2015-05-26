@@ -42,7 +42,6 @@ message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " "
 add_subdirectory(base)
 add_subdirectory(log)
 add_subdirectory(net)
-add_subdirectory(frame)
 
 if (NOT CMAKE_BUILD_NO_EXAMPLES)
 
