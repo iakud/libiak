@@ -12,8 +12,4 @@ cd net
 ./clean.sh
 cd ..
 
-cd frame
-./clean.sh
-cd ..
-
 echo "iak OK."
