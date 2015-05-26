@@ -5,6 +5,7 @@
 #include <time.h>
 
 namespace iak {
+namespace base {
 
 // 1970~2030
 class TimeZone {
@@ -32,5 +33,7 @@ private:
 	std::shared_ptr<Data> data_;
 };
 
-}
+} // end namespace base
+} // end namespace iak
+
 #endif  // MUDUO_BASE_TIMEZONE_H

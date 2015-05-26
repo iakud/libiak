@@ -4,6 +4,7 @@
 #include <string>
 
 namespace iak {
+namespace log {
 
 class Logging {
 
@@ -28,6 +29,7 @@ private:
 
 const char* strerror_tl(int savedErrno);
 
+} // end namespace log
 } // end namespace iak
 
 #endif  // IAK_LOG_LOGGING_H

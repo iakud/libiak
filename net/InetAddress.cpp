@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-using namespace iak;
+using namespace iak::net;
 
 InetAddress::InetAddress(uint16_t port, const char* ip) {
 	::bzero(&addr_, sizeof(addr_));

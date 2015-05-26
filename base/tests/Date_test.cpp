@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-using namespace iak;
+using namespace iak::base;
 
 const int kMonthsOfYear = 12;
 

@@ -4,7 +4,7 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-using namespace iak;
+using namespace iak::base;
 
 std::string formatTime(std::chrono::system_clock::time_point tp) {
 	std::chrono::seconds seconds =

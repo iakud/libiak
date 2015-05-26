@@ -1,7 +1,7 @@
 #include <log/Logger.h>
 #include <unistd.h>
 
-using namespace iak;
+using namespace iak::log;
 
 int main(int argc, char* argv[]) {
 	char name[256];

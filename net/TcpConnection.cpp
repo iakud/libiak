@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-using namespace iak;
+using namespace iak::net;
 
 TcpConnectionPtr TcpConnection::make(EventLoop* loop, int sockFd,
 		const InetAddress& localAddr, const InetAddress& peerAddr) {

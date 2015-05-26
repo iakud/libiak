@@ -10,7 +10,7 @@
 #include <string.h>
 
 using namespace std;
-using namespace iak;
+using namespace iak::net;
 
 void onDisconnect(TcpConnectionPtr connection) {
 	cout<<"on disconnect"<<endl;

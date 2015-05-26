@@ -9,6 +9,7 @@
 #include <map>
 
 namespace iak {
+namespace net {
 
 class EventLoop;
 class Acceptor;
@@ -58,6 +59,7 @@ private:
 	ConnectCallback connectCallback_;
 }; // end class TcpServer
 
+} // end namespace net
 } // end namespace iak
 
 #endif // IAK_NET_TCPSERVER_H

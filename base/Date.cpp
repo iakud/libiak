@@ -3,6 +3,7 @@
 #include <stdio.h>  // snprintf
 
 namespace iak {
+namespace base {
 
 char require_32_bit_integer_at_least[sizeof(int) >= sizeof(int32_t) ? 1 : -1];
 
@@ -30,9 +31,10 @@ struct Date::YearMonthDay getYearMonthDay(int julianDayNumber) {
 
 const int Date::kJulianDayOf1970_01_01 = getJulianDayNumber(1970, 1, 1);
 
+} // end namespace base
 } // end namespace iak
 
-using namespace iak;
+using namespace iak::base;
 
 Date::Date(int y, int m, int d)
 	: julianDayNumber_(getJulianDayNumber(y, m, d)) {

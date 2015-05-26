@@ -6,7 +6,7 @@
 #include <sys/eventfd.h>
 #include <unistd.h>
 
-using namespace iak;
+using namespace iak::net;
 
 namespace {
 

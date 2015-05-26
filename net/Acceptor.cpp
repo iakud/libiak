@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-using namespace iak;
+using namespace iak::net;
 
 AcceptorPtr Acceptor::make(EventLoop* loop,
 		const struct sockaddr_in& localSockAddr) {

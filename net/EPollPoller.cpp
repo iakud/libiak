@@ -4,7 +4,7 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
-using namespace iak;
+using namespace iak::net;
 
 EPollPoller::EPollPoller()
 	: epollfd_(::epoll_create1(EPOLL_CLOEXEC))

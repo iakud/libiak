@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-using namespace iak;
+using namespace iak::net;
 
 TcpClientPtr TcpClient::make(EventLoop* loop, 
 		const InetAddress& remoteAddr) {

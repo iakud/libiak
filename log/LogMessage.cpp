@@ -9,6 +9,7 @@
 #include <errno.h>
 
 namespace iak {
+namespace log {
 
 thread_local char t_time[32];
 thread_local time_t t_lastSecond;
@@ -17,9 +18,10 @@ const char* LogLevelName[static_cast<int>(LogLevel::NUM_LOG_LEVELS)] = {
 	"TRACE ", "DEBUG ", "INFO  ", "WARN  ", "ERROR ", "FATAL "
 };
 
+} // end namespace log
 } // end namespace iak
 
-using namespace iak;
+using namespace iak::log;
 
 // DLogMessage
 template<class Logger_>

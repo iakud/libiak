@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-using namespace iak;
+using namespace iak::net;
 
 TcpServerPtr TcpServer::make(EventLoop* loop, 
 		const InetAddress& localAddr) {

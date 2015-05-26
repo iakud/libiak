@@ -7,6 +7,7 @@
 #include <assert.h>
 
 namespace iak {
+namespace base {
 
 template<typename T>
 class BoundedBlockingQueue {
@@ -72,6 +73,7 @@ private:
 	std::deque<T> queue_;
 }; // end class BoundedBlockingQueue
 
+} // end namespace base
 } // end namespace iak
 
 #endif  // IAK_BASE_BOUNDEDBLOCKINGQUEUE_H

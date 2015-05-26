@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 namespace iak {
+namespace net {
 
 struct Buffer {
 	char* buffer = NULL;
@@ -67,6 +68,7 @@ private:
 	Buffer* tail_;		// tail buffer
 }; // end class BufferPool
 
+} // end namespace net
 } // end namespace iak
 
 #endif // IAK_NET_BUFFERPOOL_H

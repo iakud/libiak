@@ -4,7 +4,8 @@
 #include <memory.h>
 #include <assert.h>
 
-using namespace iak;
+using namespace iak::base;
+using namespace iak::log;
 
 AsyncLogging::AsyncLogging()
 	: running_(false)

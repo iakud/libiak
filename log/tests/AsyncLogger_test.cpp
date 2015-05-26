@@ -10,7 +10,7 @@
 int kRollSize = 500*1000*1000;
 
 using namespace std;
-using namespace iak;
+using namespace iak::log;
 
 void bench1(AsyncLoggerPtr logger, bool longLog) {
 

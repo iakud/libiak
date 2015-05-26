@@ -4,6 +4,7 @@
 struct epoll_event;
 
 namespace iak {
+namespace net {
 
 class Watcher;
 
@@ -28,6 +29,7 @@ protected:
 	struct epoll_event* events_;
 }; // end class EPollPoller
 
+} // end namespace net
 } // end namespace iak
 
 #endif // IAK_NET_EPOLLPOLLER_H

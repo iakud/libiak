@@ -4,6 +4,7 @@
 #include <string>
 
 namespace iak {
+namespace base {
 
 class FileReader {
 public:
@@ -28,6 +29,7 @@ private:
 	int err_;
 }; // end class FileReader
 
+} // end namespace base
 } // end namespace iak
 
 #endif // IAK_BASE_FILEUTIL_H

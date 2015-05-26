@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 
 namespace iak {
+namespace net {
 
 class EventLoop;
 class Watcher;
@@ -55,6 +56,7 @@ private:
 	AcceptCallback acceptCallback_;
 }; // end class Acceptor
 
+} // end namespace net
 } // end namespace iak
 
 #endif // IAK_NET_ACCEPTOR_H

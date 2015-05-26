@@ -8,6 +8,7 @@
 #include <functional>
 
 namespace iak {
+namespace net {
 
 class EventLoop;
 class Connector;
@@ -52,6 +53,7 @@ private:
 	ConnectCallback connectCallback_;
 }; // end class TcpClient
 
+} // end namespace net
 } // end namespace iak
 
 #endif // TOT_TCPCLIENT_H

@@ -6,6 +6,7 @@
 struct tm;
 
 namespace iak {
+namespace base {
 
 // 1900..2500
 class Date {
@@ -73,6 +74,7 @@ private:
 	int julianDayNumber_;
 }; // end class Date
 
+} // end namespace base
 } // end namespace iak
 
 #endif  // MUDUO_BASE_DATE_H

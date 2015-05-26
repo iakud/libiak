@@ -5,6 +5,7 @@
 #include <stdlib.h> // atexit
 
 namespace iak {
+namespace base {
 
 template<typename T>
 class Singleton {
@@ -44,6 +45,7 @@ std::once_flag Singleton<T>::s_once_;
 template<typename T>
 T* Singleton<T>::s_value_ = NULL;
 
+} // end namespace base
 } // end namespace iak
 
 #endif // IAK_BASE_SINGLETON_H

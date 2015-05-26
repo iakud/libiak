@@ -6,6 +6,7 @@
 #include <memory>
 
 namespace iak {
+namespace log {
 
 class AsyncLogger;
 typedef std::shared_ptr<AsyncLogger> AsyncLoggerPtr;
@@ -76,6 +77,7 @@ private:
 	BufferPtr buffer2_; // bakcup
 }; // end class AsyncLogger
 
+} // end namespace log
 } // end namespace iak
 
 #include "LogMessage.h"

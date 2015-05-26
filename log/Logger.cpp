@@ -7,7 +7,8 @@
 #include <chrono>
 #include <assert.h>
 
-using namespace iak;
+using namespace iak::base;
+using namespace iak::log;
 
 LoggerPtr Logger::make(const std::string& basename,
 		size_t rollSize,

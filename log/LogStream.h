@@ -5,6 +5,7 @@
 #include <memory.h> // memcpy
 
 namespace iak {
+namespace log {
 
 class LogStream {
 
@@ -84,6 +85,7 @@ inline LogStream& operator<<(LogStream& stream, const LogFormat& fmt) {
 	return stream;
 }
 
+} // end namespace log
 } // end namespace iak
 
 #endif  // IAK_LOG_LOGSTREAM_H

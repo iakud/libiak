@@ -4,7 +4,7 @@
 #include <strings.h>
 #include <assert.h>
 
-using namespace iak;
+using namespace iak::base;
 
 struct tm getTm(int year, int month, int day,
                 int hour, int minute, int seconds) {

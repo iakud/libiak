@@ -4,6 +4,7 @@
 #include <functional>
 
 namespace iak {
+namespace net {
 
 class EventLoop;
 
@@ -74,6 +75,7 @@ private:
 	bool closed_;
 }; // end class Watcher
 
+} // end namespace net
 } // end namespace iak
 
 #endif // IAK_NET_WATCHER_H

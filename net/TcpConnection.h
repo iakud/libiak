@@ -10,6 +10,7 @@
 #include <stdint.h>
 
 namespace iak {
+namespace net {
 
 class EventLoop;
 class Watcher;
@@ -111,6 +112,7 @@ private:
 	friend class TcpClient;
 }; // end class TcpConnection
 
+} // end namespace net
 } // end namespace iak
 
 #endif // IAK_NET_TCPCONNECTION_H

@@ -9,6 +9,7 @@
 #include <functional>
 
 namespace iak {
+namespace net {
 
 class Watcher;
 class EPollPoller;
@@ -62,6 +63,7 @@ protected:
 	friend class Watcher;
 }; // end class EventLoop
 
+} // end namespace net
 } // end namespace iak
 
 #endif // IAK_NET_EVENTLOOP_H

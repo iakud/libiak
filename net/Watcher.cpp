@@ -1,7 +1,7 @@
 #include "Watcher.h"
 #include "EventLoop.h"
 
-using namespace iak;
+using namespace iak::net;
 
 Watcher::Watcher(EventLoop* loop, const int fd)
 	: loop_(loop)

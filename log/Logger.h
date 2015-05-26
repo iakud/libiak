@@ -6,6 +6,7 @@
 #include <memory>
 
 namespace iak {
+namespace log {
 
 class Logger;
 typedef std::shared_ptr<Logger> LoggerPtr;
@@ -62,6 +63,7 @@ private:
 	std::unique_ptr<LogFile> logFile_;
 }; // end class Logger
 
+} // end namespace log
 } // end namespace iak
 
 #include "LogMessage.h"

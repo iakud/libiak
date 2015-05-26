@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 namespace iak {
+namespace net {
 
 class InetAddress {
 public:
@@ -29,6 +30,7 @@ private:
 	struct sockaddr_in addr_;
 }; // end class InetAddress
 
+} // end namespace net
 } // end namespace iak
 
 #endif // IAK_NET_INETADDRESS_H

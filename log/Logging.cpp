@@ -3,6 +3,7 @@
 #include <string.h>
 
 namespace iak {
+namespace log {
 
 thread_local char t_errnobuf[512];
 
@@ -22,8 +23,9 @@ LogLevel GetLogLevel() {
 
 LogLevel Logging::s_level_ = GetLogLevel();
 */
+} // end namespace log
 } // end namespace iak
 
-using namespace iak;
+using namespace iak::log;
 
 std::string Logging::s_destination_("./");

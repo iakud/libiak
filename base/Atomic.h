@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 namespace iak {
+namespace base {
 
 class AtomicInt32 {
 public:
@@ -127,6 +128,7 @@ private:
 	volatile int64_t value_;
 }; // end class AtomicInt64
 
+} // end namespace base
 } // end namespace iak
 
 #endif  // MUDUO_BASE_ATOMIC_H

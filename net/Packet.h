@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 namespace iak {
+namespace net {
 
 class Packet;
 typedef std::shared_ptr<Packet> PacketPtr;
@@ -41,6 +42,7 @@ private:
 	char* pData_;
 }; // end class Packet
 
+} // end namespace net
 } // end namespace iak
 
 #endif // IAK_NET_PACKET_H

@@ -11,6 +11,7 @@
 #include <sys/resource.h>
 
 namespace iak {
+namespace base {
 
 std::chrono::system_clock::time_point g_startTime = std::chrono::system_clock::now();
 
@@ -37,9 +38,10 @@ int scanDir(const char* dirpath, int (*filter)(const struct dirent*)) {
 	return result;
 }
 
+} // end namespace base
 } // end namespace iak
 
-using namespace iak;
+using namespace iak::base;
 
 pid_t ProcessInfo::pid() {
 	return ::getpid();

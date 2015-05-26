@@ -14,6 +14,7 @@
 #endif
 
 namespace iak {
+namespace log {
 
 const char digits[] = "9876543210123456789";
 const char* zero = digits + 9;
@@ -59,9 +60,10 @@ size_t convertHex(char buf[], uintptr_t value) {
 	return p - buf;
 }
 
+} // end namespace log
 } // end namespace iak
 
-using namespace iak;
+using namespace iak::log;
 
 void LogStream::static_check() {
 	static_assert(kMaxNumericSize - 10 > std::numeric_limits<double>::digits10, "kMaxNumericSize - 10 > std::numeric_limits<double>::digits10");

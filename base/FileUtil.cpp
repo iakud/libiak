@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-using namespace iak;
+using namespace iak::base;
 
 FileReader::FileReader(const char* filename)
 	: fd_(::open(filename, O_RDONLY | O_CLOEXEC))

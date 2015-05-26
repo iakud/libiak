@@ -15,6 +15,7 @@
 #include <strings.h>
 
 namespace iak {
+namespace base {
 
 struct Transition {
 	time_t gmttime;
@@ -71,9 +72,10 @@ inline void fillHMS(unsigned seconds, struct tm* utc) {
 
 const int kSecondsPerDay = 24*60*60;
 
+} // end namespace base
 } // end namespace iak
 
-using namespace iak;
+using namespace iak::base;
 
 struct TimeZone::Data {
 	std::vector<Transition> transitions;
@@ -83,6 +85,7 @@ struct TimeZone::Data {
 };
 
 namespace iak {
+namespace base {
 
 class File {
 public:
@@ -215,6 +218,7 @@ const Localtime* findLocaltime(const TimeZone::Data& data, Transition sentry, Co
 	return local;
 }
 
+} // end namespace base
 } // end namespace iak
 
 TimeZone::TimeZone(const char* zonefile)

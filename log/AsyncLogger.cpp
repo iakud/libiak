@@ -11,6 +11,7 @@
 
 
 namespace iak {
+namespace log {
 
 class AsyncLogger::Buffer {
 
@@ -54,9 +55,11 @@ private:
 	char* end_;
 }; // end class AsyncLogger::Buffer
 
+} // end namespace log
 } // end namespace iak
 
-using namespace iak;
+using namespace iak::base;
+using namespace iak::log;
 
 AsyncLoggerPtr AsyncLogger::make(AsyncLogging* asyncLogging,
 		const std::string& basename,

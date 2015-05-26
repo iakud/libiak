@@ -2,7 +2,7 @@
 
 #include <netinet/in.h>
 
-using namespace iak;
+using namespace iak::net;
 
 PacketPtr Packet::make() {
 	return std::make_shared<Packet>();

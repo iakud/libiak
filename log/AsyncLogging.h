@@ -12,6 +12,7 @@
 #include <vector>
 
 namespace iak {
+namespace log {
 
 class AsyncLogging {
 
@@ -47,13 +48,14 @@ private:
 
 	volatile bool running_;
 	std::thread thread_;
-	CountDownLatch latch_;
+	base::CountDownLatch latch_;
 	std::mutex mutex_;
 	std::condition_variable cv_;
 
 	std::vector<AsyncLoggerPtr> asyncLoggers_;
 }; // end class AsyncLogging
 
+} // end namespace log
 } // end namespace iak
 
 #endif  // IAK_BASE_ASYNCLOGGING_H

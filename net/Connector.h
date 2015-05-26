@@ -8,6 +8,7 @@
 #include <functional>
 
 namespace iak {
+namespace net {
 
 class EventLoop;
 class Watcher;
@@ -53,6 +54,7 @@ private:
 	ConnectCallback connectCallback_;
 }; // end class Connector
 
+} // end namespace net
 } // end namespace iak
 
 #endif // IAK_NET_CONNECTOR_H

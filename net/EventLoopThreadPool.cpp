@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-using namespace iak;
+using namespace iak::net;
 
 EventLoopThreadPool::EventLoopThreadPool(uint32_t count)
 	: count_(count) {

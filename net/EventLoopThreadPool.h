@@ -6,6 +6,7 @@
 #include <memory>
 
 namespace iak {
+namespace net {
 
 class EventLoop;
 
@@ -38,6 +39,7 @@ private:
 	std::vector<std::thread> threads_;
 }; // end class EventLoopThreadPool
 
+} // end namespace net
 } // end namespace iak
 
 #endif // IAK_NET_EVENTLOOPTHREADPOOL_H

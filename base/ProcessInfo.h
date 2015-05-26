@@ -6,6 +6,7 @@
 #include <vector>
 
 namespace iak {
+namespace base {
 
 class ProcessInfo {
 public:
@@ -30,6 +31,7 @@ public:
 	static std::vector<pid_t> threads();
 }; // end class ProcessInfo
 
+} // end namespace base
 } // end namespace iak
 
 #endif // IAK_BASE_PROCESSINFO_H

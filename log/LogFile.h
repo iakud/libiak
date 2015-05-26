@@ -8,6 +8,7 @@
 #include <assert.h>
 
 namespace iak {
+namespace log {
 
 class LogFile {
 
@@ -60,6 +61,7 @@ private:
 	size_t writtenBytes_;
 }; // end class LogFile
 
+} // end namespace log
 } // end namespace iak
 
 #endif  // IAK_LOG_LOGFILE_H

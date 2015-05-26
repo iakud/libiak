@@ -5,6 +5,7 @@
 #include <condition_variable>
 
 namespace iak {
+namespace base {
 
 class CountDownLatch {
 public:
@@ -43,6 +44,7 @@ private:
 	int count_;
 }; // end class CountDownLatch
 
+} // end namespace base
 } // end namespace iak
 
 #endif // IAK_BASE_COUNTDOWNLATCH_H
