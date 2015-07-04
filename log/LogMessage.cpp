@@ -12,7 +12,7 @@ namespace iak {
 namespace log {
 
 thread_local char t_time[32];
-thread_local time_t t_lastSecond;
+thread_local int64_t t_lastSecond;
 
 const char* LogLevelName[static_cast<int>(LogLevel::NUM_LOG_LEVELS)] = {
 	"TRACE ", "DEBUG ", "INFO  ", "WARN  ", "ERROR ", "FATAL "
