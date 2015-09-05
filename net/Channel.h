@@ -1,5 +1,5 @@
-#ifndef IAK_NET_WATCHER_H
-#define IAK_NET_WATCHER_H
+#ifndef IAK_NET_CHANNEL_H
+#define IAK_NET_CHANNEL_H
 
 #include <functional>
 
@@ -8,74 +8,76 @@ namespace net {
 
 class EventLoop;
 
-class Watcher {
+class Channel {
 public:
 	typedef std::function<void()> EventCallback;
 
 public:
-	Watcher(EventLoop* loop, const int fd);
-	~Watcher();
+	Channel(EventLoop* loop, const int fd);
+	~Channel();
 	// noncopyable
-	Watcher(const Watcher&) = delete;
-	Watcher& operator=(const Watcher&) = delete;
+	Channel(const Channel&) = delete;
+	Channel& operator=(const Channel&) = delete;
 
-	// watch fd
+	// fd
 	int getFd() { return fd_; }
-	// watch events
+	// events
 	bool isRead() { return read_; }
 	void enableRead() { read_ = true; }
 	void disableRead() { read_ = false; }
 	bool isWrite() { return write_; }
 	void enableWrite() { write_ = true; }
 	void disableWrite() { write_ = false; }
-	bool isClose() { return close_; }
-	void enableClose() { close_ = true; }
-	void disableClose() { close_ = false; }
+	void enableAll() { read_ = write_ = true; }
+	void disableAll() { read_ = write_ = false; }
 	// callback
+	void setCloseCallback(EventCallback&& cb) { closeCallback_ = cb; }
+	void setErrorCallback(EventCallback&& cb) { errorCallback_ = cb; }
 	void setReadCallback(EventCallback&& cb) { readCallback_ = cb; }
 	void setWriteCallback(EventCallback&& cb) { writeCallback_ = cb; }
-	void setCloseCallback(EventCallback&& cb) { closeCallback_ = cb; }
 	// readable & writeable
 	bool isReadable() { return readable_; }
 	void disableReadable() { readable_ = false; }
 	bool isWriteable() { return writeable_; }
 	void disableWriteable() { writeable_ = false; }
-	// active readable & writeable
-	void activeRead();
-	void activeWrite();
 
-	void start();
-	void stop();
+	void open();
+	void update();
+	void close();
 
+	void onClose();
+	void onError();
 	void onRead();
 	void onWrite();
-	void onClose();
 	void handleEvents();
 
 private:
+	void addActivedChannel();
+
 	EventLoop* loop_;
 	const int fd_;
-	// watch events
+	// events
 	bool read_;
 	bool write_;
-	bool close_;
-	// watch revents
+	// revents
+	bool rclose_;
+	bool rerror_;
 	bool rread_;
 	bool rwrite_;
-	bool rclose_;
 	// events callback
 	EventCallback closeCallback_;
+	EventCallback errorCallback_;
 	EventCallback readCallback_;
 	EventCallback writeCallback_;
 
 	bool started_;	// started
 	bool actived_;	// in active list
+	bool closed_;
 	bool readable_;
 	bool writeable_;
-	bool closed_;
-}; // end class Watcher
+}; // end class Channel
 
 } // end namespace net
 } // end namespace iak
 
-#endif // IAK_NET_WATCHER_H
+#endif // IAK_NET_CHANNEL_H

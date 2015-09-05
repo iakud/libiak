@@ -6,7 +6,7 @@ struct epoll_event;
 namespace iak {
 namespace net {
 
-class Watcher;
+class Channel;
 
 class EPollPoller {
 protected:
@@ -19,13 +19,13 @@ public:
 	EPollPoller& operator=(const EPollPoller&) = delete;
 
 	void poll(int timeout);
-	void addWatcher(Watcher* watcher);
-	void updateWatcher(Watcher* watcher);
-	void removeWatcher(Watcher* watcher);
+	void addChannel(Channel* channel);
+	void updateChannel(Channel* channel);
+	void removeChannel(Channel* channel);
 
 protected:
-	int epollfd_;
-	int eventsize_;
+	int epollFd_;
+	int eventSize_;
 	struct epoll_event* events_;
 }; // end class EPollPoller
 

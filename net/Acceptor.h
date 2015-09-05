@@ -10,7 +10,7 @@ namespace iak {
 namespace net {
 
 class EventLoop;
-class Watcher;
+class Channel;
 
 class Acceptor;
 typedef std::shared_ptr<Acceptor> AcceptorPtr;
@@ -37,18 +37,18 @@ public:
 
 	bool isListenning() const { return listenning_; }
 
-	void listenAsync();
-	void closeAsync();
+	void listen();
+	void close();
 
 private:
-	void listen();		// listen in loop
-	void close();		// close in loop
+	void listenInLoop();		// listen in loop
+	void closeInLoop();		// close in loop
 	void onRead();	// read event active
 
 	EventLoop* loop_;
 	const struct sockaddr_in localSockAddr_;
 	const int sockFd_;
-	std::unique_ptr<Watcher> watcher_;
+	std::unique_ptr<Channel> channel_;
 	bool listenning_;	// is listenning
 	bool accept_;	// is accept new connection?
 	int idleFd_;

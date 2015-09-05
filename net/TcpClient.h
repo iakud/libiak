@@ -21,11 +21,11 @@ class TcpClient : public std::enable_shared_from_this<TcpClient> {
 public:
 	typedef std::function<void(TcpConnectionPtr)> ConnectCallback;
 	static TcpClientPtr make(EventLoop* loop,
-			const InetAddress& remoteAddr);
+			const InetAddress& peerAddr);
 
 public:
 	explicit TcpClient(EventLoop* loop,
-			const InetAddress& remoteAddr);
+			const InetAddress& peerAddr);
 	~TcpClient();
 	// noncopyable
 	TcpClient(const TcpClient&) = delete;
@@ -37,14 +37,15 @@ public:
 		connectCallback_ = cb;
 	}
 
-	void connectAsync();
+	void connect();
+	
 private:
 	void onConnect(const int sockFd,
 			const struct sockaddr_in& localSockAddr);
 	void onClose(TcpConnectionPtr connection);
 
 	EventLoop* loop_;
-	InetAddress remoteAddr_;
+	InetAddress peerAddr_;
 	std::shared_ptr<Connector> connector_;
 	bool connect_;
 	std::shared_ptr<TcpConnection> connection_;

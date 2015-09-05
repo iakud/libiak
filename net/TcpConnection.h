@@ -2,10 +2,10 @@
 #define TOT_TCPCONNECTION_H
 
 #include "InetAddress.h"
-#include "Packet.h"
 
 #include <memory>
 #include <functional>
+#include <string>
 
 #include <stdint.h>
 
@@ -13,7 +13,7 @@ namespace iak {
 namespace net {
 
 class EventLoop;
-class Watcher;
+class Channel;
 class Buffer;
 class BufferPool;
 
@@ -25,8 +25,8 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
 public:
 	// callback typedef
 	typedef std::function<void(TcpConnectionPtr)> ConnectCallback;
-	typedef std::function<void(TcpConnectionPtr, PacketPtr)> ReceiveCallback;
-	//typedef std::function<void(TcpConnectionPtr, uint32_t)> SendCallback;
+	typedef std::function<void(TcpConnectionPtr, uint32_t)> RecvCallback;
+	typedef std::function<void(TcpConnectionPtr, uint32_t)> SendCallback;
 	typedef std::function<void(TcpConnectionPtr)> DisconnectCallback;
 
 	static TcpConnectionPtr make(EventLoop* loop, int sockFd,
@@ -47,34 +47,34 @@ public:
 	const InetAddress& getRemoteAddress() const { return remoteAddr_; }
 	// IO
 	size_t GetReadBufferSize() { return readSize_; }
-	bool PeekData(const char* data, const size_t size);
-	bool ReadData(const char* data, const size_t size);
+	bool PeekData(const char* data, size_t size);
+	bool ReadData(const char* data, size_t size);
 	size_t GetWriteBufferSize() { return writeSize_; }
-	bool writeData(const char* data, const size_t size);
+	bool writeData(const char* data, size_t size);
 	// callback function
 	void setConnectCallback(ConnectCallback&& cb) { connectCallback_ = cb; }
-	void setReceiveCallback(ReceiveCallback&& cb) { receiveCallback_ = cb; }
-	//void SetSendCallback(SendCallback&& cb) { sendCallback_ = cb; }
+	void setRecvCallback(RecvCallback&& cb) { recvCallback_ = cb; }
+	void SetSendCallback(SendCallback&& cb) { sendCallback_ = cb; }
 	void setDisconnectCallback(DisconnectCallback&& cb)  { disconnectCallback_ = cb; }
 	// user data
 	void setUserData(void* userdata) { userdata_ = userdata; }
 	void* getUserData() const { return userdata_; }
 
-	void establishAsync();
-	void shutdownAsync();
-	void closeAsync();
-	void sendPack(PacketPtr packet);
+	void establish();
+	void shutdown();
+	void close();
+	void sendPack(const char* data, size_t size);//PacketPtr packet);
 
 private:
 	void setCloseCallback(CloseCallback&& cb) { closeCallback_ = cb; }
 
 	// after close or shutdown
-	void destroyAsync();
-	// in loop
-	void establish();
-	void shutdown();
 	void destroy();
-	void send(PacketPtr packet);
+	// in loop
+	void establishInLoop();
+	void shutdownInLoop();
+	void destroyInLoop();
+	void send(std::string &data);
 	// handle events
 	void onRead();
 	void onWrite();
@@ -86,7 +86,7 @@ private:
 	InetAddress remoteAddr_;
 	bool establish_;
 	bool close_;
-	std::unique_ptr<Watcher> watcher_;
+	std::unique_ptr<Channel> channel_;
 	std::shared_ptr<BufferPool> bufferPool_;
 
 	// read write buffer
@@ -99,8 +99,8 @@ private:
 
 	// callback
 	ConnectCallback connectCallback_;
-	ReceiveCallback receiveCallback_;
-	//SendCallback sendCallback_;
+	RecvCallback recvCallback_;
+	SendCallback sendCallback_;
 	DisconnectCallback disconnectCallback_;
 	CloseCallback closeCallback_;
 

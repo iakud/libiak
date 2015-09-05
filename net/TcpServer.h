@@ -40,11 +40,11 @@ public:
 		connectCallback_ = cb;
 	}
 
-	void listenAsync();
+	void listen();
 
 private:
 	void onAccept(const int sockFd,
-			const struct sockaddr_in& remoteSockAddr);
+			const struct sockaddr_in& peerSockAddr);
 	void onClose(const int sockFd, TcpConnectionPtr connection);
 	void removeConnection(const int sockFd, TcpConnectionPtr connection);
 

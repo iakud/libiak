@@ -1,25 +1,19 @@
 #include "Connector.h"
+#include "Socket.h"
 #include "EventLoop.h"
-#include "Watcher.h"
+#include "Channel.h"
 
-#include <sys/socket.h>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <errno.h>
 
 using namespace iak::net;
 
-ConnectorPtr Connector::make(EventLoop* loop,
-		const struct sockaddr_in& remoteSockAddr) {
-	return std::make_shared<Connector>(loop, remoteSockAddr);
+ConnectorPtr Connector::make(EventLoop* loop, const struct sockaddr_in& peerSockAddr) {
+	return std::make_shared<Connector>(loop, peerSockAddr);
 }
 
-Connector::Connector(EventLoop* loop,
-		const struct sockaddr_in& remoteSockAddr)
+Connector::Connector(EventLoop* loop, const struct sockaddr_in& peerSockAddr)
 	: loop_(loop)
-	, remoteSockAddr_(remoteSockAddr)
+	, peerSockAddr_(peerSockAddr)
 	, connect_(false)
 	, connecting_(false) {
 }
@@ -27,34 +21,26 @@ Connector::Connector(EventLoop* loop,
 Connector::~Connector() {
 }
 
-void Connector::connectAsync() {
-	connect_ = true;
-	loop_->runInLoop(std::bind(&Connector::connect, shared_from_this()));
-}
-
-void Connector::closeAsync() {
-	connect_ = false;
-	loop_->runInLoop(std::bind(&Connector::close, shared_from_this()));
-}
-
 void Connector::connect() {
+	connect_ = true;
+	loop_->runInLoop(std::bind(&Connector::connectInLoop, shared_from_this()));
+}
+
+void Connector::close() {
+	connect_ = false;
+	loop_->runInLoop(std::bind(&Connector::closeInLoop, shared_from_this()));
+}
+
+void Connector::connectInLoop() {
 	if (!connect_ || connecting_) {
 		return;
 	}
 
-	int sockFd = ::socket(AF_INET, 
-			SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC, IPPROTO_TCP);
-	int ret = ::connect(sockFd, 
-			reinterpret_cast<const struct sockaddr*>(&remoteSockAddr_), 
-		static_cast<socklen_t>(sizeof remoteSockAddr_));
+	int sockFd = Socket::open();
+	int ret = Socket::connect(sockFd, peerSockAddr_);
 	if (ret == 0) {
-		//connecting(sockFd);
-		//connected(sockFd); //not here?
 		struct sockaddr_in localSockAddr;
-		socklen_t localSockAddrLen = static_cast<socklen_t>(sizeof localSockAddr);
-		::getsockname(sockFd, 
-				reinterpret_cast<struct sockaddr*>(&localSockAddr), 
-				&localSockAddrLen);
+		Socket::getSockName(sockFd, &localSockAddr);
 		if (connectCallback_) {
 			connectCallback_(sockFd, localSockAddr);
 		}
@@ -64,60 +50,54 @@ void Connector::connect() {
 	int err = errno;
 	if (err == EINPROGRESS || err == EINTR || err == EISCONN) {
 		connecting_ = true;
-		watcher_.reset(new Watcher(loop_, sockFd));
-		watcher_->enableWrite();
-		watcher_->setWriteCallback(std::bind(&Connector::onWrite, this));
-		watcher_->start();
+		channel_.reset(new Channel(loop_, sockFd));
+		channel_->setWriteCallback(std::bind(&Connector::onWrite, this));
+		channel_->enableWrite();
+		channel_->open();
 	} else {
-		::close(sockFd); // close first
+		Socket::close(sockFd); // close first
 		// retry
-		if (err == EAGAIN || err == EADDRINUSE || err == EADDRNOTAVAIL 
-				|| err == ECONNREFUSED || err == ENETUNREACH) {
-			loop_->runInLoop(std::bind(&Connector::connect, shared_from_this()));
+		if (err == EAGAIN || err == EADDRINUSE || err == EADDRNOTAVAIL || err == ECONNREFUSED || err == ENETUNREACH) {
+			loop_->runInLoop(std::bind(&Connector::connectInLoop, shared_from_this()));
 		}
 	}
 }
 
-void Connector::resetWatcher() {
-	watcher_.reset();
-}
-
-void Connector::close() {
+void Connector::closeInLoop() {
 	if (!connecting_) {
 		return;
 	}
 
-	int sockFd = watcher_->getFd();
-	watcher_->stop();
-	::close(sockFd);
+	int sockFd = channel_->getFd();
+	channel_->close();
+	Socket::close(sockFd);
+}
+
+void Connector::resetChannel() {
+	channel_.reset();
 }
 
 void Connector::onWrite() {
 	if (!connect_ || !connecting_) {
 		return;
 	}
-
-	int sockFd = watcher_->getFd();
-	watcher_->stop();
-	//watcher_->disableWrite();
-	loop_->runInLoop(std::bind(&Connector::resetWatcher, shared_from_this()));
+	int sockFd = channel_->getFd();
+	channel_->close();
+	
+	loop_->runInLoop(std::bind(&Connector::resetChannel, shared_from_this()));
 
 	connecting_ = false;
 
 	int optval;
-	socklen_t optlen = static_cast<socklen_t>(sizeof optval);
-	if (::getsockopt(sockFd, SOL_SOCKET, SO_ERROR, 
-				&optval, &optlen) == 0 && optval == 0) {
+	if (Socket::getError(sockFd, &optval) == 0 && optval == 0) {
 		struct sockaddr_in localSockAddr;
-		socklen_t localSockAddrLen = static_cast<socklen_t>(sizeof localSockAddr);
-		::getsockname(sockFd, reinterpret_cast<struct sockaddr*>(&localSockAddr), 
-				&localSockAddrLen);
+		Socket::getSockName(sockFd, &localSockAddr);
 		if (connectCallback_) {
 			connectCallback_(sockFd, localSockAddr);
 		}
 	} else {
-		::close(sockFd); // close first
+		Socket::close(sockFd); // close first
 		// retry
-		loop_->runInLoop(std::bind(&Connector::connect, shared_from_this()));
+		loop_->runInLoop(std::bind(&Connector::connectInLoop, shared_from_this()));
 	}
 }

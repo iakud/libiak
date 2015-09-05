@@ -31,10 +31,10 @@ TcpServer::TcpServer(EventLoop* loop, const InetAddress& localAddr)
 
 TcpServer::~TcpServer() {
 	if (listen_) {
-		acceptor_->closeAsync();	// close first
+		acceptor_->close();	// close first
 		// destroy connections
 		for (auto& pairConn : connections_) {
-			pairConn.second->destroyAsync();
+			pairConn.second->destroy();
 			//connection.reset();
 		}
 	}
@@ -43,18 +43,17 @@ TcpServer::~TcpServer() {
 	}
 }
 
-void TcpServer::listenAsync() {
+void TcpServer::listen() {
 	if (listen_) {
 		return;
 	}
 
 	listen_ = true;
-	acceptor_->listenAsync();
+	acceptor_->listen();
 }
 
-void TcpServer::onAccept(const int sockFd,
-		const struct sockaddr_in& remoteSockAddr) {
-	InetAddress remoteAddr(remoteSockAddr);
+void TcpServer::onAccept(const int sockFd, const struct sockaddr_in& peerSockAddr) {
+	InetAddress peerAddr(peerSockAddr);
 	EventLoop* loop;
 	if (loopThreadPool_) {
 		++indexLoop_;
@@ -64,11 +63,9 @@ void TcpServer::onAccept(const int sockFd,
 		loop = loop_;
 	}
 	
-	TcpConnectionPtr connection = TcpConnection::make(loop,
-			sockFd, localAddr_, remoteAddr);
+	TcpConnectionPtr connection = TcpConnection::make(loop, sockFd, localAddr_, peerAddr);
 	connections_[sockFd] = connection;
-	connection->setCloseCallback(std::bind(&TcpServer::onClose,
-			this, sockFd, std::placeholders::_1));
+	connection->setCloseCallback(std::bind(&TcpServer::onClose, this, sockFd, std::placeholders::_1));
 	if (connectCallback_) {
 		connectCallback_(connection);
 	}
@@ -83,5 +80,5 @@ void TcpServer::removeConnection(const int sockFd,
 		TcpConnectionPtr connection) {
 	connections_.erase(sockFd);
 	//assert(n == 1)
-	connection->destroyAsync();
+	connection->destroy();
 }

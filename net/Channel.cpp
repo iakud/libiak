@@ -1,87 +1,89 @@
-#include "Watcher.h"
+#include "Channel.h"
 #include "EventLoop.h"
 
 using namespace iak::net;
 
-Watcher::Watcher(EventLoop* loop, const int fd)
+Channel::Channel(EventLoop* loop, const int fd)
 	: loop_(loop)
 	, fd_(fd)
 	, read_(false)
 	, write_(false)
-	, close_(false)
+	, rclose_(false)
+	, rerror_(false)
 	, rread_(false)
 	, rwrite_(false)
-	, rclose_(false)
 	, started_(false)
 	, actived_(false)
+	, closed_(false)
 	, readable_(false)
-	, writeable_(false)
-	, closed_(false) {
+	, writeable_(false) {
 }
 
-Watcher::~Watcher() {
+Channel::~Channel() {
 }
 
-void Watcher::activeRead() {
-	if (read_) {
-		rread_ = true;
-		if (!actived_) {
-			loop_->activeWatcher(this);
-			actived_ = true;
-		}
+void Channel::open() {
+	if (!started_) {
+		loop_->addChannel(this);
+		started_ = true;
 	}
 }
 
-void Watcher::activeWrite() {
-	if (write_) {
-		rwrite_ = true;
-		if (!actived_) {
-			loop_->activeWatcher(this);
-			actived_ = true;
-		}
+void Channel::update() {
+	if (started_) {
+		loop_->updateChannel(this);
 	}
 }
 
-void Watcher::start() {
-	loop_->addWatcher(this);
-}
-
-void Watcher::stop() {
-	loop_->removeWatcher(this);
-}
-
-void Watcher::onRead() {
-	if (read_ && !readable_) {
-		readable_ = rread_ = true;
-		if (!actived_) {
-			loop_->activeWatcher(this);
-			actived_ = true;
-		}
+void Channel::close() {
+	if (started_) {
+		loop_->removeChannel(this);
+		started_ = false;
 	}
 }
 
-void Watcher::onWrite() {
-	if (write_ && !writeable_) {
-		writeable_ = rwrite_ = true;
-		if (!actived_) {
-			loop_->activeWatcher(this);
-			actived_ = true;
-		}
-	}
-}
-
-void Watcher::onClose() {
-	if (close_ && !closed_) {
+void Channel::onClose() {
+	if (!closed_ && !rclose_) {
 		closed_ = rclose_ = true;
-		if (!actived_) {
-			loop_->activeWatcher(this);
-			actived_ = true;
-		}
+		addActivedChannel();
 	}
 }
 
-void Watcher::handleEvents() {
+void Channel::onError() {
+	if (!rerror_) {
+		rerror_ = true;
+		addActivedChannel();
+	}
+}
+
+void Channel::onRead() {
+	if (read_ && !readable_ && !rread_) {
+		readable_ = rread_ = true;
+		addActivedChannel();
+	}
+}
+
+void Channel::onWrite() {
+	if (write_ && !writeable_ && !rwrite_) {
+		writeable_ = rwrite_ = true;
+		addActivedChannel();
+	}
+}
+
+void Channel::handleEvents() {
 	actived_ = false;
+	if (rclose_) {
+		rclose_ = false;
+		if (closeCallback_) {
+			closeCallback_();
+		}
+	}
+	if (rerror_) {
+		rerror_ = false;
+		if (errorCallback_) {
+			errorCallback_();
+		}
+	}
 	if (rread_) {
 		rread_ = false;
 		if (readCallback_) {
@@ -94,10 +96,11 @@ void Watcher::handleEvents() {
 			writeCallback_();
 		}
 	}
-	if (rclose_) {
-		rclose_ = false;
-		if (closeCallback_) {
-			closeCallback_();
-		}
+}
+
+void Channel::addActivedChannel() {
+	if (!actived_) {
+		loop_->addActivedChannel(this);
+		actived_ = true;
 	}
 }

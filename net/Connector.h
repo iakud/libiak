@@ -3,15 +3,16 @@
 
 #include "InetAddress.h"
 
-#include <arpa/inet.h>
 #include <memory>
 #include <functional>
+
+#include <arpa/inet.h>
 
 namespace iak {
 namespace net {
 
 class EventLoop;
-class Watcher;
+class Channel;
 
 class Connector;
 typedef std::shared_ptr<Connector> ConnectorPtr;
@@ -19,37 +20,32 @@ typedef std::shared_ptr<Connector> ConnectorPtr;
 class Connector : public std::enable_shared_from_this<Connector> {
 
 public:
-	typedef std::function<void(int sockFd,
-			const struct sockaddr_in& localSockAddr)> ConnectCallback;
-	static ConnectorPtr make(EventLoop* loop,
-			const struct sockaddr_in& remoteSockAddr);
+	typedef std::function<void(int sockFd, const struct sockaddr_in& localSockAddr)> ConnectCallback;
+	static ConnectorPtr make(EventLoop* loop, const struct sockaddr_in& peerSockAddr);
 
 public:
-	explicit Connector(EventLoop* loop,
-			const struct sockaddr_in& remoteSockAddr);
+	explicit Connector(EventLoop* loop, const struct sockaddr_in& peerSockAddr);
 	~Connector();
 	// noncopyable
 	Connector(const Connector&) = delete;
 	Connector& operator=(const Connector&) = delete;
 
-	void setConnectCallback(ConnectCallback&& cb) {
-		connectCallback_ = cb;
-	}
+	void setConnectCallback(ConnectCallback&& cb) { connectCallback_ = cb; }
 
-	void connectAsync();
-	void closeAsync();
+	void connect();
+	void close();
 
 private:
-	void connect();	// connect in loop
-	void resetWatcher();	// reset
-	void close();	// close in loop
+	void connectInLoop();	// connect in loop
+	void closeInLoop();	// close in loop
+	void resetChannel();	// reset
 	void onWrite();// write event active
 
 	EventLoop* loop_;
-	const struct sockaddr_in& remoteSockAddr_;
+	const struct sockaddr_in& peerSockAddr_;
 	bool connect_;
 	bool connecting_;
-	std::unique_ptr<Watcher> watcher_;
+	std::unique_ptr<Channel> channel_;
 
 	ConnectCallback connectCallback_;
 }; // end class Connector

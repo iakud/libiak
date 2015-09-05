@@ -16,38 +16,38 @@ void onDisconnect(TcpConnectionPtr connection) {
 	cout<<"on disconnect"<<endl;
 }
 
-void onReceive(TcpConnectionPtr connection, PacketPtr packet) {
-	string msg(packet->getData(), packet->getDataSize());
-	cout<<"receive:"<<msg<<endl;
-	connection->sendPack(packet);
+void onRecv(TcpConnectionPtr connection, uint32_t size) {
+	char msg[1024];
+	connection->ReadData(msg, size);
+	cout<<"recv "<< size << " data : " <<msg<<endl;
+	connection->sendPack(msg, size);
 }
 
 void onConnect(TcpConnectionPtr connection) {
 	cout<<"on connect"<<endl;
 	char data[] = "hello world!";
-	PacketPtr packet = Packet::make();
-	memcpy(packet->getData(), data, static_cast<uint16_t>(strlen(data)));
-	packet->setDataSize(static_cast<uint16_t>(strlen(data)));
-	connection->sendPack(packet);
+	connection->sendPack(data, strlen(data));
 	cout<<"send:"<<data<<endl;
 }
 
 void onConnection(TcpConnectionPtr connection) {
 	cout<<"connect to server"<<endl;
 	connection->setConnectCallback(std::bind(onConnect, std::placeholders::_1));
-	connection->setReceiveCallback(std::bind(onReceive, std::placeholders::_1, std::placeholders::_2));
+	connection->setRecvCallback(std::bind(onRecv, std::placeholders::_1, std::placeholders::_2));
 	connection->setDisconnectCallback(std::bind(onDisconnect, std::placeholders::_1));
-	connection->establishAsync();
+	connection->establish();
 }
 
 int main() {
 	EventLoop* loop = new EventLoop();
-	InetAddress remoteAddr(9999,"127.0.0.1");
-	TcpClientPtr tcpclient = TcpClient::make(loop, remoteAddr);
+	InetAddress peerAddr(9999,"127.0.0.1");
+	TcpClientPtr tcpclient = TcpClient::make(loop, peerAddr);
 	tcpclient->setConnectCallback(std::bind(onConnection, std::placeholders::_1));
-	tcpclient->connectAsync();
+	tcpclient->setRetry(false);
+	tcpclient->connect();
 	cout<<"tcpclient connect"<<endl;
 	loop->loop();
+	cout<<"tcpclient connect1"<<endl;
 	delete loop;
 	return 0;
 }

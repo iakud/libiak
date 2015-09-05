@@ -11,44 +11,40 @@
 
 using namespace iak::net;
 
-TcpClientPtr TcpClient::make(EventLoop* loop, 
-		const InetAddress& remoteAddr) {
-	return std::make_shared<TcpClient>(loop, remoteAddr);
+TcpClientPtr TcpClient::make(EventLoop* loop, const InetAddress& peerAddr) {
+	return std::make_shared<TcpClient>(loop, peerAddr);
 }
 
-TcpClient::TcpClient(EventLoop* loop, const InetAddress& remoteAddr)
+TcpClient::TcpClient(EventLoop* loop, const InetAddress& peerAddr)
 	: loop_(loop)
-	, remoteAddr_(remoteAddr)
-	, connector_(Connector::make(loop, remoteAddr_.getSockAddr()))
+	, peerAddr_(peerAddr)
+	, connector_(Connector::make(loop, peerAddr_.getSockAddr()))
 	, connect_(false)
 	, retry_(false) {
-	connector_->setConnectCallback(std::bind(&TcpClient::onConnect, 
-			this, std::placeholders::_1, std::placeholders::_2));
+	connector_->setConnectCallback(std::bind(&TcpClient::onConnect, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 TcpClient::~TcpClient() {
 	if (connect_) {
 		if (connection_) {
-			connection_->destroyAsync();
+			connection_->destroy();
 		} else {
-			connector_->closeAsync();	// SAFE
+			connector_->close();
 		}
 	}
 }
 
-void TcpClient::connectAsync() {
+void TcpClient::connect() {
 	if (connect_) {
 		return;
 	}
 	connect_ = true;
-	connector_->connectAsync();
+	connector_->connect();
 }
 
-void TcpClient::onConnect(const int sockFd, 
-		const struct sockaddr_in& localSockAddr) {
+void TcpClient::onConnect(const int sockFd, const struct sockaddr_in& localSockAddr) {
 	InetAddress localAddr(localSockAddr);
-	TcpConnectionPtr connection = TcpConnection::make(
-			loop_, sockFd, localAddr, remoteAddr_);
+	TcpConnectionPtr connection = TcpConnection::make(loop_, sockFd, localAddr, peerAddr_);
 	connection_ = connection;
 	connection->setCloseCallback(std::bind(&TcpClient::onClose, 
 			this, std::placeholders::_1));
@@ -62,14 +58,14 @@ void TcpClient::onClose(TcpConnectionPtr connection) {
 		return;	// match connection
 	}
 	
-	connection->destroyAsync();// Destroy first
+	connection->destroy();// Destroy first
 	connection_.reset();// release pointer
 	if (!connect_) {
 		return;// connect?
 	}
 
 	if (retry_) { // retry?
-		connector_->connectAsync();	// connect again
+		connector_->connect();	// connect again
 	} else {
 		connect_ = false;	// disconnect
 	}

@@ -1,14 +1,11 @@
 #include "TcpConnection.h"
+#include "Socket.h"
 #include "EventLoop.h"
-#include "Watcher.h"
+#include "Channel.h"
 #include "Buffer.h"
 
-#include <sys/socket.h>
 #include <sys/uio.h>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
 #include <memory.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
 
@@ -27,20 +24,17 @@ TcpConnection::TcpConnection(EventLoop* loop, int sockFd,
 	, remoteAddr_(remoteAddr)
 	, establish_(false)
 	, close_(false)
-	, watcher_(new Watcher(loop, sockFd))
+	, channel_(new Channel(loop, sockFd))
 	, bufferPool_(loop->getBufferPool()) {
-	int optKeepAlive = 1;
-	::setsockopt(sockFd_, SOL_SOCKET, SO_KEEPALIVE, &optKeepAlive, 
-			static_cast<socklen_t>(sizeof optKeepAlive));
+	int optval = 1;
+	Socket::setKeepAlive(sockFd_, optval);
 //	int optKeepIdle = 600;
 //	::setsockopt(sockFd_, SOL_TCP, TCP_KEEPIDLE, &optKeepIdle, 
 //		static_cast<socklen_t>(sizeof optKeepIdle));
-	watcher_->setReadCallback(std::bind(&TcpConnection::onRead, this));
-	watcher_->setWriteCallback(std::bind(&TcpConnection::onWrite, this));
-	watcher_->setCloseCallback(std::bind(&TcpConnection::onClose, this));
-	watcher_->enableRead();
-	watcher_->enableWrite();
-	watcher_->enableClose();
+	channel_->setReadCallback(std::bind(&TcpConnection::onRead, this));
+	channel_->setWriteCallback(std::bind(&TcpConnection::onWrite, this));
+	channel_->setCloseCallback(std::bind(&TcpConnection::onClose, this));
+	channel_->enableAll();
 }
 
 TcpConnection::~TcpConnection() {
@@ -52,35 +46,35 @@ TcpConnection::~TcpConnection() {
 	while (writeHead_) {
 		writeHead_ = bufferPool_->putNext(writeHead_);
 	}
-	::close(sockFd_);
+	Socket::close(sockFd_);
 }
 
-void TcpConnection::establishAsync() {
+void TcpConnection::establish() {
 	if (close_ || establish_) {
 		return;
 	}
-	loop_->runInLoop(std::bind(&TcpConnection::establish, shared_from_this()));
+	loop_->runInLoop(std::bind(&TcpConnection::establishInLoop, shared_from_this()));
 }
 
-void TcpConnection::shutdownAsync() {
+void TcpConnection::shutdown() {
 	if (close_) {
 		return;
 	}
-	loop_->runInLoop(std::bind(&TcpConnection::shutdown, shared_from_this()));
+	loop_->runInLoop(std::bind(&TcpConnection::shutdownInLoop, shared_from_this()));
 }
 
-void TcpConnection::closeAsync() {
+void TcpConnection::close() {
 	if (close_) {
 		return;
 	}
 	loop_->runInLoop(std::bind(&TcpConnection::onClose, shared_from_this()));
 }
 
-void TcpConnection::destroyAsync() {
-	loop_->runInLoop(std::bind(&TcpConnection::destroy, shared_from_this()));
+void TcpConnection::destroy() {
+	loop_->runInLoop(std::bind(&TcpConnection::destroyInLoop, shared_from_this()));
 }
 
-void TcpConnection::establish() {
+void TcpConnection::establishInLoop() {
 	if (establish_) {
 		return;
 	}
@@ -89,36 +83,38 @@ void TcpConnection::establish() {
 	readHead_ = readTail_ = bufferPool_->take();
 	writeHead_ = writeTail_ = bufferPool_->take();
 	readSize_ = writeSize_ = 0;
-	watcher_->start();
+	channel_->open();
 	if (connectCallback_) {
 		connectCallback_(shared_from_this());
 	}
 }
 
-void TcpConnection::shutdown() {
-	::shutdown(sockFd_, SHUT_WR);
+void TcpConnection::shutdownInLoop() {
+	Socket::shutdownWrite(sockFd_);
 }
 
-void TcpConnection::destroy() {
-	watcher_->stop();
+void TcpConnection::destroyInLoop() {
+	channel_->close();
 }
 
-void TcpConnection::sendPack(PacketPtr packet) {
+void TcpConnection::sendPack(const char* data, size_t size) {
 	if (close_) {
 		return;
 	}
-	loop_->runInLoop(std::bind(&TcpConnection::send, this, packet));
+	loop_->runInLoop(std::bind(&TcpConnection::send, this, std::string(data, size)));
 }
 
-void TcpConnection::send(PacketPtr packet) {
-	uint16_t size = packet->getSize();
+void TcpConnection::send(std::string &data) {
 	 // write data
-	if (writeData(packet->getPacket(), size + sizeof(uint16_t))) {
-		watcher_->activeWrite();
+	const ssize_t writesize = ::write(sockFd_, data.c_str(), data.size());
+	if (writesize < 0) {
+		writeData(data.c_str(), data.size());
+	} else if (static_cast<uint32_t>(writesize) < data.size()) {
+		writeData(data.c_str() + writesize, data.size() - writesize);
 	}
 };
 
-bool TcpConnection::PeekData(const char* data, const size_t size) {
+bool TcpConnection::PeekData(const char* data, size_t size) {
 	if (!data || 0 == size || size > readSize_) {
 		return false;
 	}
@@ -166,7 +162,7 @@ bool TcpConnection::PeekData(const char* data, const size_t size) {
 	return true;
 }
 
-bool TcpConnection::ReadData(const char* data, const size_t size) {
+bool TcpConnection::ReadData(const char* data, size_t size) {
 	if (!data || 0 == size || size > readSize_) {
 		return false;
 	}
@@ -230,7 +226,7 @@ bool TcpConnection::ReadData(const char* data, const size_t size) {
 	return true;
 }
 
-bool TcpConnection::writeData(const char* data, const size_t size) {
+bool TcpConnection::writeData(const char* data, size_t size) {
 	if (!data || 0 == size) {
 		return false;
 	}
@@ -283,160 +279,163 @@ bool TcpConnection::writeData(const char* data, const size_t size) {
 }
 
 void TcpConnection::onRead() {
-	if (!watcher_->isReadable()) {
+	if (!channel_->isReadable()) {
 		return;
 	}
 
-	struct iovec iov[3];
-	int iovcnt = 0;
-	uint32_t rearcount = readTail_->capacity - readTail_->count;
-	if (rearcount > 0) { // tail buffer
-		if (readTail_->push < readTail_->pop) { // less(Tail<Head)
-			iov[iovcnt].iov_base = readTail_->buffer + readTail_->push;
-			iov[iovcnt].iov_len = readTail_->capacity - readTail_->count;
-			++ iovcnt; // iovcnt = 1
-		} else { // more(Tail>Head) and empty(Tail=Head)
-			iov[iovcnt].iov_base = readTail_->buffer + readTail_->push;
-			iov[iovcnt].iov_len = readTail_->capacity - readTail_->push;
-			++ iovcnt; // iovcnt = 1
-			if (readTail_->pop > 0) {
-				iov[iovcnt].iov_base = readTail_->buffer;
-				iov[iovcnt].iov_len = readTail_->pop;
-				++ iovcnt; // iovcnt = 2
+	while (true) {
+		struct iovec iov[3];
+		int iovcnt = 0;
+		uint32_t rearcount = readTail_->capacity - readTail_->count;
+		if (rearcount > 0) { // tail buffer
+			if (readTail_->push < readTail_->pop) { // less(Tail<Head)
+				iov[iovcnt].iov_base = readTail_->buffer + readTail_->push;
+				iov[iovcnt].iov_len = readTail_->capacity - readTail_->count;
+				++ iovcnt; // iovcnt = 1
+			} else { // more(Tail>Head) and empty(Tail=Head)
+				iov[iovcnt].iov_base = readTail_->buffer + readTail_->push;
+				iov[iovcnt].iov_len = readTail_->capacity - readTail_->push;
+				++ iovcnt; // iovcnt = 1
+				if (readTail_->pop > 0) {
+					iov[iovcnt].iov_base = readTail_->buffer;
+					iov[iovcnt].iov_len = readTail_->pop;
+					++ iovcnt; // iovcnt = 2
+				}
 			}
 		}
-	}
-	// next buffer (for read extra)
-	Buffer* next = readTail_->next;
-	if (!next) {
-		next = bufferPool_->takeNext(readTail_);
-	}
-	iov[iovcnt].iov_base = next->buffer;
-	iov[iovcnt].iov_len = next->capacity;
-	++ iovcnt; // iovcnt <= 3
-	// read fd
-	const ssize_t readsize = ::readv(sockFd_, iov, iovcnt);
-	if (readsize < 0) {
-		// error
-		// watcher_->disableReadable();
-		watcher_->activeRead(); // signal break maybe
-		return;
-	}
-	// read successful
-	uint32_t size = rearcount + next->capacity;
-	if (readsize > static_cast<ssize_t>(size)) { // error?
-		watcher_->disableReadable();
-		return;
-	}
-	// fill tail
-	if (readsize < static_cast<ssize_t>(rearcount)) {
-		readTail_->push = (readTail_->push + static_cast<uint32_t>(readsize)) % readTail_->capacity;
-		readTail_->count += static_cast<uint32_t>(readsize);
-	} else { // tail full
-		readTail_->push = readTail_->pop;
-		readTail_->count = readTail_->capacity;
-		if (readsize > static_cast<ssize_t>(rearcount)) {// fill next
-			next->count = next->push = static_cast<uint32_t>(readsize) - rearcount;
-			readTail_ = next;
+		// next buffer (for read extra)
+		Buffer* next = readTail_->next;
+		if (!next) {
+			next = bufferPool_->takeNext(readTail_);
 		}
-	}
-	// add readsize
-	readSize_ += readsize;
+		iov[iovcnt].iov_base = next->buffer;
+		iov[iovcnt].iov_len = next->capacity;
+		++ iovcnt; // iovcnt <= 3
+		// read fd
+		const ssize_t readsize = ::readv(sockFd_, iov, iovcnt);
+		if (readsize < 0) {
+			// error
+			channel_->disableReadable();
+			return;
+		} else if (readsize == 0) {
+			onClose();
+			return;
+		}
+		// read successful
+		uint32_t size = rearcount + next->capacity;
+		if (readsize > static_cast<ssize_t>(size)) { // error?
+			channel_->disableReadable();
+			return;
+		}
+		// fill tail
+		if (readsize < static_cast<ssize_t>(rearcount)) {
+			readTail_->push = (readTail_->push + static_cast<uint32_t>(readsize)) % readTail_->capacity;
+			readTail_->count += static_cast<uint32_t>(readsize);
+		} else { // tail full
+			readTail_->push = readTail_->pop;
+			readTail_->count = readTail_->capacity;
+			if (readsize > static_cast<ssize_t>(rearcount)) {// fill next
+				next->count = next->push = static_cast<uint32_t>(readsize) - rearcount;
+				readTail_ = next;
+			}
+		}
+		// add readsize
+		readSize_ += readsize;
 
-	if (receiveCallback_) { // callback
-		while (true) {
-			uint16_t packsize;
-			if (!PeekData(reinterpret_cast<char*>(&packsize), sizeof(uint16_t))) {
-				break;
-			}
-			packsize = ntohs(packsize);
-			if (packsize + sizeof(uint16_t) > readSize_) {
-				break;
-			}
-			PacketPtr packet = Packet::make();
-			if (!ReadData(packet->getPacket(), packsize + sizeof(uint16_t))) {
-				break;
-			}
-			receiveCallback_(shared_from_this(), packet);
+		if (recvCallback_) { // callback
+			recvCallback_(shared_from_this(), static_cast<uint32_t>(readsize));
+			/*
+			while (true) {
+				uint16_t packsize;
+				if (!PeekData(reinterpret_cast<char*>(&packsize), sizeof(uint16_t))) {
+					break;
+				}
+				packsize = ntohs(packsize);
+				if (packsize + sizeof(uint16_t) > readSize_) {
+					break;
+				}
+				PacketPtr packet = Packet::make();
+				if (!ReadData(packet->getPacket(), packsize + sizeof(uint16_t))) {
+					break;
+				}
+				receiveCallback_(shared_from_this(), packet);
+			}*/
 		}
-	}
 
-	if (readsize < static_cast<ssize_t>(size)) {
-		watcher_->disableReadable();
-	} else if (readsize == static_cast<ssize_t>(size)) {
-		// socket receive buffer not empty may be, at use EPOLL ET
-		watcher_->activeRead();
+		if (readsize < static_cast<ssize_t>(size)) {
+			channel_->disableReadable();
+			return;
+		}
 	}
 }
 
 void TcpConnection::onWrite() {
-	if (!watcher_->isWriteable() || 0 == writeSize_) {
+	if (!channel_->isWriteable() || 0 == writeSize_) {
 		return;
 	}
 
-	struct iovec iov[3];
-	int iovcnt = 0;
-	uint32_t writecount = writeHead_->count;
-	if (writeHead_->pop < writeHead_->push) { // less(Head<Tail)
-		iov[iovcnt].iov_base = writeHead_->buffer + writeHead_->pop;
-		iov[iovcnt].iov_len = writecount;
-		++ iovcnt; // iovcnt = 1
-	} else { // more(Head>Tail) and full(Tail=Head)
-		iov[iovcnt].iov_base = writeHead_->buffer + writeHead_->pop;
-		iov[iovcnt].iov_len = writeHead_->capacity - writeHead_->pop;
-		++ iovcnt; // iovcnt = 1
-		if (writeHead_->push > 0) {
-			iov[iovcnt].iov_base = writeHead_->buffer;
-			iov[iovcnt].iov_len = writeHead_->push;
-			++ iovcnt; // iovcnt = 2
+	while (true) {
+		struct iovec iov[3];
+		int iovcnt = 0;
+		uint32_t writecount = writeHead_->count;
+		if (writeHead_->pop < writeHead_->push) { // less(Head<Tail)
+			iov[iovcnt].iov_base = writeHead_->buffer + writeHead_->pop;
+			iov[iovcnt].iov_len = writecount;
+			++ iovcnt; // iovcnt = 1
+		} else { // more(Head>Tail) and full(Tail=Head)
+			iov[iovcnt].iov_base = writeHead_->buffer + writeHead_->pop;
+			iov[iovcnt].iov_len = writeHead_->capacity - writeHead_->pop;
+			++ iovcnt; // iovcnt = 1
+			if (writeHead_->push > 0) {
+				iov[iovcnt].iov_base = writeHead_->buffer;
+				iov[iovcnt].iov_len = writeHead_->push;
+				++ iovcnt; // iovcnt = 2
+			}
 		}
-	}
-	uint32_t size = writecount;
-	Buffer* next = writeHead_->next;
-	if (next) {
-		iov[iovcnt].iov_base = next->buffer;
-		iov[iovcnt].iov_len = next->count;
-		++ iovcnt; // iovcnt <= 3
-		size += next->count;
-	}
-	// write fd
-	const ssize_t writesize = ::writev(sockFd_, iov, iovcnt);
-	if (writesize < 0) {
-		// error
-		// watcher_->disableWriteable();
-		watcher_->activeWrite(); // signal break maybe
-		return;
-	}
-	// write successful
-	if (writesize > static_cast<ssize_t>(size)) { // error?
-		watcher_->disableWriteable();
-		return;
-	}
-	
-	if (writesize < static_cast<ssize_t>(writecount)) {
-		writeHead_->pop = (writeHead_->pop + static_cast<uint32_t>(writesize)) % writeHead_->capacity;
-		writeHead_->count -= static_cast<uint32_t>(writesize);
-	} else if (writesize > static_cast<ssize_t>(writecount)) {
-		next->pop = static_cast<uint32_t>(writesize) - writecount;
-		next->count -= next->pop;
-		writeHead_ = bufferPool_->putNext(writeHead_);
-	} else { // writesize == rearcount
-		if (next) {// push move next
+		uint32_t size = writecount;
+		Buffer* next = writeHead_->next;
+		if (next) {
+			iov[iovcnt].iov_base = next->buffer;
+			iov[iovcnt].iov_len = next->count;
+			++ iovcnt; // iovcnt <= 3
+			size += next->count;
+		}
+		// write fd
+		const ssize_t writesize = ::writev(sockFd_, iov, iovcnt);
+		if (writesize < 0) {
+			// error
+			channel_->disableWriteable();
+			return;
+		}
+		// write successful
+		if (writesize > static_cast<ssize_t>(size)) { // error?
+			channel_->disableWriteable();
+			return;
+		}
+		
+		if (writesize < static_cast<ssize_t>(writecount)) {
+			writeHead_->pop = (writeHead_->pop + static_cast<uint32_t>(writesize)) % writeHead_->capacity;
+			writeHead_->count -= static_cast<uint32_t>(writesize);
+		} else if (writesize > static_cast<ssize_t>(writecount)) {
+			next->pop = static_cast<uint32_t>(writesize) - writecount;
+			next->count -= next->pop;
 			writeHead_ = bufferPool_->putNext(writeHead_);
-		} else {
-			writeHead_->push = writeHead_->pop = writeHead_->count = 0;
+		} else { // writesize == rearcount
+			if (next) {// push move next
+				writeHead_ = bufferPool_->putNext(writeHead_);
+			} else {
+				writeHead_->push = writeHead_->pop = writeHead_->count = 0;
+			}
 		}
-	}
-	// remove size
-	writeSize_ -= writesize;
-	//if (m_sendCallback) { // callback
-	//	m_sendCallback(shared_from_this(), writesize);
-	//}
-	if (writesize < static_cast<ssize_t>(size)) {
-		watcher_->disableWriteable();
-	} else if (writesize == static_cast<ssize_t>(size) && writeSize_ > 0) {
-		// send buffer not empty, continue write
-		watcher_->activeWrite();
+		// remove size
+		writeSize_ -= writesize;
+		if (sendCallback_) { // callback
+			sendCallback_(shared_from_this(), static_cast<uint32_t>(writesize));
+		}
+		if (writesize < static_cast<ssize_t>(size)) {
+			channel_->disableWriteable();
+			return;
+		}
 	}
 }
 
@@ -445,9 +444,7 @@ void TcpConnection::onClose() {
 		return;
 	}
 	close_ = true;
-	watcher_->disableRead();	// disable read
-	watcher_->disableWrite();	// disable write
-	watcher_->disableClose();	// disable close
+	channel_->disableAll();
 	TcpConnectionPtr sharedthis = shared_from_this();
 	if (disconnectCallback_) {
 		disconnectCallback_(sharedthis);

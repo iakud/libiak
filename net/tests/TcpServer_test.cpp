@@ -17,17 +17,18 @@ void onDisconnect(TcpConnectionPtr connection) {
 	cout<<"on disconnect"<<endl;
 }
 
-void onReceive(TcpConnectionPtr connection, PacketPtr packet) {
-	string msg(packet->getData(), packet->getDataSize());
-	cout<<"receive:"<<msg<<endl;
-	connection->sendPack(packet);
+void onRecv(TcpConnectionPtr connection, uint32_t size) {
+	char msg[1024];
+	connection->ReadData(msg, size);
+	cout<<"recv "<< size << " data : " <<msg<<endl;
+	connection->sendPack(msg, size);
 }
 
 void onConnection(TcpConnectionPtr connection) {
 	cout<<"accept new client"<<endl;
-	connection->setReceiveCallback(std::bind(onReceive, std::placeholders::_1, std::placeholders::_2));
+	connection->setRecvCallback(std::bind(onRecv, std::placeholders::_1, std::placeholders::_2));
 	connection->setDisconnectCallback(std::bind(onDisconnect, std::placeholders::_1));
-	connection->establishAsync();
+	connection->establish();
 }
 
 int main() {
@@ -35,7 +36,7 @@ int main() {
 	InetAddress localAddr(9999,"0.0.0.0");
 	TcpServerPtr tcpserver = TcpServer::make(loop, localAddr);
 	tcpserver->setConnectCallback(std::bind(onConnection, std::placeholders::_1));
-	tcpserver->listenAsync();
+	tcpserver->listen();
 	cout<<"tcpserver listen"<<endl;
 	loop->loop();
 	delete loop;

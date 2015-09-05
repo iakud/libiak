@@ -1,10 +1,8 @@
 #include "Acceptor.h"
+#include "Socket.h"
 #include "EventLoop.h"
-#include "Watcher.h"
+#include "Channel.h"
 
-#include <sys/socket.h>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
@@ -16,97 +14,89 @@ AcceptorPtr Acceptor::make(EventLoop* loop,
 	return std::make_shared<Acceptor>(loop, localSockAddr);
 }
 
-Acceptor::Acceptor(EventLoop* loop,
-		const struct sockaddr_in& localSockAddr)
+Acceptor::Acceptor(EventLoop* loop, const struct sockaddr_in& localSockAddr)
 	: loop_(loop)
 	, localSockAddr_(localSockAddr)
-	, sockFd_(::socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC, IPPROTO_TCP))
-	, watcher_(new Watcher(loop, sockFd_))
+	, sockFd_(Socket::open())
+	, channel_(new Channel(loop, sockFd_))
 	, listenning_(false)
 	, accept_(false) 
 	, idleFd_(::open("/dev/null", O_RDONLY | O_CLOEXEC)) {
-	int optval = 1;
-	::setsockopt(sockFd_, SOL_SOCKET, SO_REUSEADDR,
-			&optval, static_cast<socklen_t>(sizeof optval));
-	::bind(sockFd_, reinterpret_cast<const struct sockaddr*>(&localSockAddr_),
-			static_cast<socklen_t>(sizeof localSockAddr_));
-	watcher_->setReadCallback(std::bind(&Acceptor::onRead, this));
-	watcher_->enableRead();
+	Socket::setReuseAddr(sockFd_, 1);
+	Socket::bind(sockFd_, localSockAddr_);
+	
+	channel_->setReadCallback(std::bind(&Acceptor::onRead, this));
+	channel_->enableRead();
 }
 
 Acceptor::~Acceptor() {
-	::close(sockFd_);
+	Socket::close(sockFd_);
 	::close(idleFd_);
 }
 
 
-void Acceptor::listenAsync() {
+void Acceptor::listen() {
 	if (accept_) {
 		return;
 	}
 	accept_ = true;
-	loop_->runInLoop(std::bind(&Acceptor::listen, shared_from_this()));
+	loop_->runInLoop(std::bind(&Acceptor::listenInLoop, shared_from_this()));
 }
 
-void Acceptor::closeAsync() {
+void Acceptor::close() {
 	if (!accept_) {
 		return;
 	}
 	accept_ = false;
-	loop_->runInLoop(std::bind(&Acceptor::close, shared_from_this()));
+	loop_->runInLoop(std::bind(&Acceptor::closeInLoop, shared_from_this()));
 }
 
 // listen in loop
-void Acceptor::listen() {
+void Acceptor::listenInLoop() {
 	if (!accept_ || listenning_) {
 		return;
 	}
 	listenning_ = true;
-	::listen(sockFd_, SOMAXCONN);
-	watcher_->start();
+	Socket::listen(sockFd_);
+	channel_->open();
 }
 
 // close in loop
-void Acceptor::close() {
+void Acceptor::closeInLoop() {
 	if (accept_) {
 		return;
 	}
-	watcher_->stop();
+	channel_->close();
 }
 
 void Acceptor::onRead() {
 	if (!accept_) {
 		return;
 	}
-
-	struct sockaddr_in remoteSockAddr;
-	socklen_t remoteSockAddrLen = static_cast<socklen_t>(sizeof remoteSockAddr);
-	int sockFd = ::accept4(sockFd_,
-		reinterpret_cast<struct sockaddr*>(&remoteSockAddr),
-		&remoteSockAddrLen, SOCK_NONBLOCK|SOCK_CLOEXEC);
-	if (sockFd < 0) {
-		int err = errno;// on error
-		if (EAGAIN == err) {
-			watcher_->disableReadable();
-		} else {
-			if (EMFILE == err) {
+	while (true) {
+		struct sockaddr_in peerSockAddr;
+		int sockFd = Socket::accept(sockFd_, &peerSockAddr);
+		if (sockFd < 0) {
+			int err = errno;// on error
+			if (EAGAIN == err) {
+				channel_->disableReadable();
+				return;
+			} else if (EMFILE == err || ENFILE == err) {
 				::close(idleFd_);
-				idleFd_ = ::accept(sockFd_, NULL, NULL);
+				idleFd_ = Socket::accept(sockFd_, nullptr);
 				::close(idleFd_);
 				idleFd_ = ::open("/dev/null", O_RDONLY | O_CLOEXEC);
-			} else if (ENFILE == err) {
-
+			} else {
+				// FIXME
+				return;
 			}
-			watcher_->activeRead(); // next accept
+		} else {
+			// accept successful
+			if (acceptCallback_) {
+				acceptCallback_(sockFd, peerSockAddr);
+			} else {
+				Socket::close(sockFd);
+			}
 		}
-		return;
 	}
-	// accept successful
-	if (acceptCallback_) {
-		acceptCallback_(sockFd, remoteSockAddr);
-	} else {
-		::close(sockFd);
-	}
-	// continue accept in next loop
-	watcher_->activeRead();
 }

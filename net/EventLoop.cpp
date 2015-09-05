@@ -1,6 +1,6 @@
 #include "EventLoop.h"
 #include "EPollPoller.h"
-#include "Watcher.h"
+#include "Channel.h"
 #include "Buffer.h"
 
 #include <sys/eventfd.h>
@@ -13,11 +13,11 @@ namespace {
 const int kPollTime = 10000; // ms
 
 int createEventFd() {
-	int eventfd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-	if (eventfd < 0) {
+	int eventFd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+	if (eventFd < 0) {
 		abort();
 	}
-	return eventfd;
+	return eventFd;
 }
 
 } // anonymous
@@ -26,19 +26,19 @@ EventLoop::EventLoop()
 	: quit_(false)
 	, mutex_()
 	, pendingFunctors_()
-	, activedWatchers_()
+	, activedChannels_()
 	, bufferPool_(new BufferPool(1024*4, 64))
 	, epollPoller_(new EPollPoller())
-	, wakeupfd_(createEventFd())
-	, wakeupWatcher_(new Watcher(this, wakeupfd_)) {
-	wakeupWatcher_->setReadCallback(std::bind(&EventLoop::handleWakeup, this));
-	wakeupWatcher_->enableRead();
-	wakeupWatcher_->start();
+	, wakeupFd_(createEventFd())
+	, wakeupChannel_(new Channel(this, wakeupFd_)) {
+	wakeupChannel_->setReadCallback(std::bind(&EventLoop::handleWakeup, this));
+	wakeupChannel_->enableRead();
+	wakeupChannel_->open();
 }
 
 EventLoop::~EventLoop() {
-	wakeupWatcher_->stop();
-	 ::close(wakeupfd_);
+	wakeupChannel_->close();
+	::close(wakeupFd_);
 }
 
 void EventLoop::quit() {
@@ -50,27 +50,10 @@ void EventLoop::quit() {
 void EventLoop::loop() {
 	quit_ = false;
 	while(!quit_) {
-		wakeupFunctorsAndWatcher();
 		epollPoller_->poll(kPollTime); // poll network event
-		std::vector<Functor> functors;
-		swapPendingFunctors(functors);
-		doPendingFunctors(functors);
-		handleWatchers();
-		// clear at last (for watchers safe)
-		// functors.clear();
+		handleActivedChannels();
+		doPendingFunctors();
 	}
-}
-
-void EventLoop::addWatcher(Watcher* watcher) {
-	epollPoller_->addWatcher(watcher);
-}
-
-void EventLoop::updateWatcher(Watcher* watcher) {
-	epollPoller_->updateWatcher(watcher);
-}
-
-void EventLoop::removeWatcher(Watcher* watcher) {
-	epollPoller_->removeWatcher(watcher);
 }
 
 void EventLoop::runInLoop(Functor&& functor) {
@@ -81,42 +64,47 @@ void EventLoop::runInLoop(Functor&& functor) {
 	wakeup();
 }
 
-void EventLoop::swapPendingFunctors(std::vector<Functor>& functors) {
-	std::unique_lock<std::mutex> lock(mutex_);
-	functors.swap(pendingFunctors_);
+void EventLoop::addChannel(Channel* channel) {
+	epollPoller_->addChannel(channel);
 }
 
-void EventLoop::doPendingFunctors(std::vector<Functor>& functors) {
+void EventLoop::updateChannel(Channel* channel) {
+	epollPoller_->updateChannel(channel);
+}
+
+void EventLoop::removeChannel(Channel* channel) {
+	epollPoller_->removeChannel(channel);
+}
+
+void EventLoop::addActivedChannel(Channel* channel) {
+	activedChannels_.push_back(channel);
+}
+
+void EventLoop::doPendingFunctors() {
+	std::vector<Functor> functors;
+	{
+		std::unique_lock<std::mutex> lock(mutex_);
+		functors.swap(pendingFunctors_);
+	}
 	for (Functor functor : functors) {
 		functor();
 	}
 }
 
-void EventLoop::activeWatcher(Watcher* watcher) {
-	activedWatchers_.push_back(watcher);
-}
-
-void EventLoop::handleWatchers() {
-	std::vector<Watcher*> watchers;
-	watchers.swap(activedWatchers_);
-	for (Watcher* watcher : watchers) {
-		watcher->handleEvents();
+void EventLoop::handleActivedChannels() {
+	for (Channel* channel : activedChannels_) {
+		channel->handleEvents();
 	}
-}
-
-void EventLoop::wakeupFunctorsAndWatcher() {
-	if (pendingFunctors_.size() > 0 || activedWatchers_.size() > 0) {
-		wakeup();
-	}
+	activedChannels_.clear();
 }
 
 void EventLoop::wakeup() {
 	uint64_t one = 1;
-	::write(wakeupfd_, &one, sizeof one);
+	::write(wakeupFd_, &one, sizeof one);
 }
 
 void EventLoop::handleWakeup() {
 	uint64_t one = 1;
-	::read(wakeupfd_, &one, sizeof one);
-	wakeupWatcher_->disableReadable();
+	::read(wakeupFd_, &one, sizeof one);
+	wakeupChannel_->disableReadable();
 }

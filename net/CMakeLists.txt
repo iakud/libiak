@@ -1,11 +1,11 @@
 set(net_SRCS
-	Watcher.cpp
+	Socket.cpp
+	Channel.cpp
 	EventLoop.cpp
 	EPollPoller.cpp
 	InetAddress.cpp
 	Connector.cpp
 	Acceptor.cpp
-	Packet.cpp
 	TcpConnection.cpp
 	EventLoopThreadPool.cpp
 	TcpClient.cpp

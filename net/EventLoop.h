@@ -11,7 +11,7 @@
 namespace iak {
 namespace net {
 
-class Watcher;
+class Channel;
 class EPollPoller;
 
 class EventLoop {
@@ -34,33 +34,28 @@ public:
 
 	void runInLoop(Functor&& functor);
 
+	void addChannel(Channel* channel);
+	void updateChannel(Channel* channel);
+	void removeChannel(Channel* channel);
+	void addActivedChannel(Channel* channel);
+
 protected:
-	void addWatcher(Watcher* watcher);
-	void updateWatcher(Watcher* watcher);
-	void removeWatcher(Watcher* watcher);
+	void doPendingFunctors();
 
-	void swapPendingFunctors(std::vector<Functor>&);
-	void doPendingFunctors(std::vector<Functor>&);
+	// actived channels
+	void handleActivedChannels();
 
-	// actived watchers
-	void activeWatcher(Watcher* watcher);
-	void handleWatchers();
-
-	void wakeupFunctorsAndWatcher();
 	void wakeup();
 	void handleWakeup();
 	
 	bool quit_;
 	std::mutex mutex_;
 	std::vector<Functor> pendingFunctors_;
-	std::vector<Watcher*> activedWatchers_;
+	std::vector<Channel*> activedChannels_;
 	std::shared_ptr<BufferPool> bufferPool_; // buffer
 	std::unique_ptr<EPollPoller> epollPoller_;
-	int wakeupfd_;
-	std::unique_ptr<Watcher> wakeupWatcher_;
-
-	// friend class
-	friend class Watcher;
+	int wakeupFd_;
+	std::unique_ptr<Channel> wakeupChannel_;
 }; // end class EventLoop
 
 } // end namespace net
