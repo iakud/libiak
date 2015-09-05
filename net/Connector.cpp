@@ -83,7 +83,7 @@ void Connector::onWrite() {
 	}
 	int sockFd = channel_->getFd();
 	channel_->close();
-	
+	// inside Channel::handleEvent
 	loop_->runInLoop(std::bind(&Connector::resetChannel, shared_from_this()));
 
 	connecting_ = false;
@@ -94,6 +94,8 @@ void Connector::onWrite() {
 		Socket::getSockName(sockFd, &localSockAddr);
 		if (connectCallback_) {
 			connectCallback_(sockFd, localSockAddr);
+		} else {
+			Socket::close(sockFd);
 		}
 	} else {
 		Socket::close(sockFd); // close first
