@@ -31,6 +31,8 @@ public:
 	Acceptor(const Acceptor&) = delete;
 	Acceptor& operator=(const Acceptor&) = delete;
 
+	void setReuseAddr(bool reuseaddr);
+
 	void setAcceptCallback(AcceptCallback&& acceptCallback) {
 		acceptCallback_ = acceptCallback;
 	}

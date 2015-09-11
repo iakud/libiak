@@ -22,7 +22,6 @@ Acceptor::Acceptor(EventLoop* loop, const struct sockaddr_in& localSockAddr)
 	, listenning_(false)
 	, accept_(false) 
 	, idleFd_(::open("/dev/null", O_RDONLY | O_CLOEXEC)) {
-	Socket::setReuseAddr(sockFd_, 1);
 	Socket::bind(sockFd_, localSockAddr_);
 	
 	channel_->setReadCallback(std::bind(&Acceptor::onRead, this));
@@ -34,6 +33,9 @@ Acceptor::~Acceptor() {
 	::close(idleFd_);
 }
 
+void Acceptor::setReuseAddr(bool reuseaddr) {
+	Socket::setReuseAddr(sockFd_, reuseaddr);
+}
 
 void Acceptor::listen() {
 	if (accept_) {

@@ -32,6 +32,7 @@ void onConnect(TcpConnectionPtr connection) {
 
 void onConnection(TcpConnectionPtr connection) {
 	cout<<"connect to server"<<endl;
+	connection->setTcpNoDelay(true);
 	connection->setConnectCallback(std::bind(onConnect, std::placeholders::_1));
 	connection->setRecvCallback(std::bind(onRecv, std::placeholders::_1, std::placeholders::_2));
 	connection->setDisconnectCallback(std::bind(onDisconnect, std::placeholders::_1));
@@ -45,9 +46,7 @@ int main() {
 	tcpclient->setConnectCallback(std::bind(onConnection, std::placeholders::_1));
 	tcpclient->setRetry(false);
 	tcpclient->connect();
-	cout<<"tcpclient connect"<<endl;
 	loop->loop();
-	cout<<"tcpclient connect1"<<endl;
 	delete loop;
 	return 0;
 }

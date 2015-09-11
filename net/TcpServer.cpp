@@ -43,6 +43,10 @@ TcpServer::~TcpServer() {
 	}
 }
 
+void TcpServer::setReuseAddr(bool reuseaddr) {
+	acceptor_->setReuseAddr(reuseaddr);
+}
+
 void TcpServer::listen() {
 	if (listen_) {
 		return;

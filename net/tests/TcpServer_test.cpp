@@ -3,7 +3,6 @@
 
 #include <net/EventLoop.h>
 #include <net/TcpServer.h>
-#include <net/TcpConnection.h>
 
 #include <iostream>
 #include <string>
@@ -26,6 +25,7 @@ void onRecv(TcpConnectionPtr connection, uint32_t size) {
 
 void onConnection(TcpConnectionPtr connection) {
 	cout<<"accept new client"<<endl;
+	connection->setTcpNoDelay(true);
 	connection->setRecvCallback(std::bind(onRecv, std::placeholders::_1, std::placeholders::_2));
 	connection->setDisconnectCallback(std::bind(onDisconnect, std::placeholders::_1));
 	connection->establish();
@@ -33,8 +33,9 @@ void onConnection(TcpConnectionPtr connection) {
 
 int main() {
 	EventLoop* loop = new EventLoop();
-	InetAddress localAddr(9999,"0.0.0.0");
+	InetAddress localAddr(9999,"127.0.0.1");
 	TcpServerPtr tcpserver = TcpServer::make(loop, localAddr);
+	tcpserver->setReuseAddr(true);
 	tcpserver->setConnectCallback(std::bind(onConnection, std::placeholders::_1));
 	tcpserver->listen();
 	cout<<"tcpserver listen"<<endl;
@@ -44,4 +45,3 @@ int main() {
 }
 
 #endif // TOT_TCPSERVER_TEST_H
-

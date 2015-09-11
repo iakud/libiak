@@ -26,11 +26,7 @@ TcpConnection::TcpConnection(EventLoop* loop, int sockFd,
 	, close_(false)
 	, channel_(new Channel(loop, sockFd))
 	, bufferPool_(loop->getBufferPool()) {
-	int optval = 1;
-	Socket::setKeepAlive(sockFd_, optval);
-//	int optKeepIdle = 600;
-//	::setsockopt(sockFd_, SOL_TCP, TCP_KEEPIDLE, &optKeepIdle, 
-//		static_cast<socklen_t>(sizeof optKeepIdle));
+	
 	channel_->setReadCallback(std::bind(&TcpConnection::onRead, this));
 	channel_->setWriteCallback(std::bind(&TcpConnection::onWrite, this));
 	channel_->setCloseCallback(std::bind(&TcpConnection::onClose, this));
@@ -47,6 +43,14 @@ TcpConnection::~TcpConnection() {
 		writeHead_ = bufferPool_->putNext(writeHead_);
 	}
 	Socket::close(sockFd_);
+}
+
+void TcpConnection::setTcpNoDelay(bool nodelay) {
+	Socket::setTcpNoDelay(sockFd_, nodelay);
+}
+
+void TcpConnection::setKeepAlive(bool keepalive) {
+	Socket::setKeepAlive(sockFd_, keepalive);
 }
 
 void TcpConnection::establish() {

@@ -1,6 +1,7 @@
 #include "Socket.h"
 
 #include <sys/socket.h>
+#include <netinet/tcp.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -39,12 +40,23 @@ int Socket::shutdownWrite(int sockFd) {
 	return ::shutdown(sockFd, SHUT_WR);
 }
 
-int Socket::setReuseAddr(int sockFd, int optval) {
+int Socket::setReuseAddr(int sockFd, bool reuseaddr) {
+	int optval = reuseaddr ? 1 : 0;
 	return ::setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &optval, static_cast<socklen_t>(sizeof optval));
 }
 
-int Socket::setKeepAlive(int sockFd, int optval) {
+int Socket::setTcpNoDelay(int sockFd, bool nodelay) {
+	int optval = nodelay ? 1 : 0;
+	return ::setsockopt(sockFd, IPPROTO_TCP, TCP_NODELAY, &optval, static_cast<socklen_t>(sizeof optval));
+}
+
+int Socket::setKeepAlive(int sockFd, bool keepalive) {
+	int optval = keepalive ? 1 : 0;
 	return ::setsockopt(sockFd, SOL_SOCKET, SO_KEEPALIVE, &optval, static_cast<socklen_t>(sizeof optval));
+}
+
+int Socket::setKeepIdle(int sockFd, int optval) {
+	return ::setsockopt(sockFd, SOL_TCP, TCP_KEEPIDLE, &optval, static_cast<socklen_t>(sizeof optval));
 }
 
 int Socket::getError(int sockFd, int *optval) {

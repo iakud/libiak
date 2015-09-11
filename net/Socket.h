@@ -18,8 +18,11 @@ public:
 	static int connect(int sockFd, const struct sockaddr_in &addr);
 	static int shutdownWrite(int sockFd);
 
-	static int setReuseAddr(int sockFd, int optval);
-	static int setKeepAlive(int sockFd, int optval);
+	static int setReuseAddr(int sockFd, bool reuseaddr);
+	static int setTcpNoDelay(int sockFd, bool nodelay);
+	static int setKeepAlive(int sockFd, bool keepalive);
+	static int setKeepIdle(int sockFd, int optval);
+
 	static int getError(int sockFd, int *optval);
 	static int getSockName(int sockFd, struct sockaddr_in *addr);
 	static int getPeerName(int sockFd, struct sockaddr_in *addr);

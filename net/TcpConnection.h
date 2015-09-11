@@ -43,6 +43,15 @@ public:
 	TcpConnection(const TcpConnection&) = delete;
 	TcpConnection& operator=(const TcpConnection&) = delete;
 	
+	// callback function
+	void setConnectCallback(ConnectCallback&& cb) { connectCallback_ = cb; }
+	void setRecvCallback(RecvCallback&& cb) { recvCallback_ = cb; }
+	void setSendCallback(SendCallback&& cb) { sendCallback_ = cb; }
+	void setDisconnectCallback(DisconnectCallback&& cb)  { disconnectCallback_ = cb; }
+
+	void setTcpNoDelay(bool val);
+	void setKeepAlive(bool val);
+
 	const InetAddress& getLocalAddress() const { return localAddr_; }
 	const InetAddress& getRemoteAddress() const { return remoteAddr_; }
 	// IO
@@ -51,11 +60,7 @@ public:
 	bool ReadData(const char* data, size_t size);
 	size_t GetWriteBufferSize() { return writeSize_; }
 	bool writeData(const char* data, size_t size);
-	// callback function
-	void setConnectCallback(ConnectCallback&& cb) { connectCallback_ = cb; }
-	void setRecvCallback(RecvCallback&& cb) { recvCallback_ = cb; }
-	void SetSendCallback(SendCallback&& cb) { sendCallback_ = cb; }
-	void setDisconnectCallback(DisconnectCallback&& cb)  { disconnectCallback_ = cb; }
+	
 	// user data
 	void setUserData(void* userdata) { userdata_ = userdata; }
 	void* getUserData() const { return userdata_; }

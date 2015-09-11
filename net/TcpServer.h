@@ -32,6 +32,8 @@ public:
 	TcpServer(const TcpServer&) = delete;
 	TcpServer& operator=(const TcpServer&) = delete;
 
+	void setReuseAddr(bool reuseaddr);
+
 	void setEventLoopThreadPool(EventLoopThreadPool* loopThreadPool) {
 		loopThreadPool_ = loopThreadPool;
 	}
