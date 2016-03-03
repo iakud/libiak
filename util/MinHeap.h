@@ -30,17 +30,17 @@ private:
 	Compare comp_;
 };
 
-template <class T, class Compare>
+template <typename T, typename Compare>
 MinHeap<T, Compare>::MinHeap(const Compare& comp) : comp_(comp) {
 }
 
-template <class T, class Compare>
+template <typename T, typename Compare>
 void MinHeap<T, Compare>::insert(const T& node) {
 	heap_.push_back(node);
 	siftup();
 }
 
-template <class T, class Compare>
+template <typename T, typename Compare>
 T MinHeap<T, Compare>::remove() {
 	T node = heap_.front();
 	heap_.front() = heap_.back();
@@ -49,7 +49,7 @@ T MinHeap<T, Compare>::remove() {
 	return node;
 }
 
-template <class T, class Compare>
+template <typename T, typename Compare>
 void MinHeap<T, Compare>::siftup() {
 	size_t index = heap_.size() - 1;
 	size_t parent = (index - 1) / 2;
@@ -64,7 +64,7 @@ void MinHeap<T, Compare>::siftup() {
 	}
 }
 
-template <class T, typename Compare>
+template <typename T, typename Compare>
 void MinHeap<T, Compare>::siftdown() {
 	size_t index = 0;
 	size_t child = index * 2 + 1;
