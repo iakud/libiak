@@ -5,13 +5,13 @@
 #include <algorithm>
 
 template <typename T>
-struct less {
+struct Less {
 	bool operator() (const T& x, const T& y) const {
 		return x < y;
 	}
 };
 
-template <typename T, typename Compare = less<T>>
+template <typename T, typename Compare = Less<T>>
 class MinHeap {
 public:
 	MinHeap(const Compare& comp = Compare());
@@ -22,6 +22,7 @@ public:
 
 	void insert(const T& node);
 	T remove();
+
 private:
 	void siftup();
 	void siftdown();
