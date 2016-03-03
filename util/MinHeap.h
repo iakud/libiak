@@ -4,9 +4,17 @@
 #include <vector>
 #include <algorithm>
 
-template <class T>
+template <typename T>
+struct less {
+	bool operator() (const T& x, const T& y) const {
+		return x < y;
+	}
+};
+
+template <typename T, typename Compare = less<T>>
 class MinHeap {
 public:
+	MinHeap(const Compare& comp = Compare());
 	size_t size() { return heap_.size(); }
 	bool empty() { return heap_.empty(); }
 	void clear() { heap_.clear(); }
@@ -19,16 +27,21 @@ private:
 	void siftdown();
 
 	std::vector<T> heap_;
+	Compare comp_;
 };
 
-template <class T>
-void MinHeap<T>::insert(const T& node) {
+template <class T, class Compare>
+MinHeap<T, Compare>::MinHeap(const Compare& comp) : comp_(comp) {
+}
+
+template <class T, class Compare>
+void MinHeap<T, Compare>::insert(const T& node) {
 	heap_.push_back(node);
 	siftup();
 }
 
-template <class T>
-T MinHeap<T>::remove() {
+template <class T, class Compare>
+T MinHeap<T, Compare>::remove() {
 	T node = heap_.front();
 	heap_.front() = heap_.back();
 	heap_.pop_back();
@@ -36,12 +49,12 @@ T MinHeap<T>::remove() {
 	return node;
 }
 
-template <class T>
-void MinHeap<T>::siftup() {
+template <class T, class Compare>
+void MinHeap<T, Compare>::siftup() {
 	size_t index = heap_.size() - 1;
 	size_t parent = (index - 1) / 2;
 	while (index > 0) {
-		if (heap_[index] < heap_[parent]) {
+		if (comp_(heap_[index], heap_[parent])) {
 			std::swap(heap_[parent], heap_[index]);
 			index = parent;
 			parent = (index - 1) / 2;
@@ -51,15 +64,15 @@ void MinHeap<T>::siftup() {
 	}
 }
 
-template <class T>
-void MinHeap<T>::siftdown() {
+template <class T, typename Compare>
+void MinHeap<T, Compare>::siftdown() {
 	size_t index = 0;
 	size_t child = index * 2 + 1;
 	while (child < heap_.size()) {
-		if (child < heap_.size() - 1 && heap_[child + 1] < heap_[child]) {
+		if (child < heap_.size() - 1 && comp_(heap_[child + 1], heap_[child])) {
 			++child;
 		}
-		if (heap_[child] < heap_[index]) {
+		if (comp_(heap_[child], heap_[index])) {
 			std::swap(heap_[index], heap_[child]);
 			index = child;
 			child = index * 2 + 1;
